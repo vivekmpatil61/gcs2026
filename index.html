@@ -771,32 +771,21 @@
       document.getElementById('pwLoading').style.display = 'none';
 
       if (data.approved) {
-        // Store approval in sessionStorage so new tab can read it
-        sessionStorage.setItem('gcs_approved', '1');
-        sessionStorage.setItem('gcs_name', user.given_name || email.split('@')[0]);
-        sessionStorage.setItem('gcs_email', email);
-        sessionStorage.setItem('gcs_avatar', user.picture || '');
-
         // Set user chip
         document.getElementById('vidUserAvatar').src = user.picture || '';
         document.getElementById('vidUserEmail').textContent = email;
 
-        // Open new tab immediately — no setTimeout to avoid popup block
-        const newTab = window.open(window.location.origin + window.location.pathname + '?tutorials=1', '_blank');
-
-        // Show welcome
+        // Show welcome and unlock
         document.getElementById('pwLoading').style.display = 'none';
-        if (newTab) {
-          document.getElementById('pwWelcome').textContent =
-            `Tutorials opened in a new tab. Welcome, ${user.given_name || email.split('@')[0]}!`;
-        } else {
-          // Fallback if popup was blocked — unlock in same page
+        document.getElementById('pwWelcome').textContent =
+          `Welcome, ${user.given_name || email.split('@')[0]}! Loading your tutorials…`;
+        document.getElementById('pwWelcome').style.display = 'block';
+
+        setTimeout(() => {
           document.getElementById('pwGate').style.display = 'none';
           document.getElementById('vidLib').classList.add('open');
-          document.getElementById('pwWelcome').textContent =
-            `Welcome, ${user.given_name || email.split('@')[0]}! Tutorials unlocked.`;
-        }
-        document.getElementById('pwWelcome').style.display = 'block';
+          document.getElementById('videos').scrollIntoView({ behavior: 'smooth' });
+        }, 1000);
       } else {
         showErr(`This Google account (${email}) is not registered. Please contact Vivek on 8553082800.`);
       }
@@ -818,24 +807,6 @@
     document.getElementById('pwWelcome').style.display = 'none';
     document.getElementById('pwErr').style.display = 'none';
   }
-
-  /* ── Auto-unlock if opened as tutorials tab ── */
-  (function() {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('tutorials') === '1' && sessionStorage.getItem('gcs_approved') === '1') {
-      const name   = sessionStorage.getItem('gcs_name') || '';
-      const email  = sessionStorage.getItem('gcs_email') || '';
-      const avatar = sessionStorage.getItem('gcs_avatar') || '';
-      document.getElementById('vidUserAvatar').src = avatar;
-      document.getElementById('vidUserEmail').textContent = email;
-      document.getElementById('pwGate').style.display = 'none';
-      document.getElementById('vidLib').classList.add('open');
-      // Scroll straight to tutorials section
-      setTimeout(() => {
-        document.getElementById('videos').scrollIntoView({ behavior: 'smooth' });
-      }, 300);
-    }
-  })();
 
   /* ── Active nav ── */
   const secs = document.querySelectorAll('section[id]');
