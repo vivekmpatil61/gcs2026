@@ -53,3 +53,21 @@ Re-upload to GitHub.
 If you want graphiteandcharcoalstudio.com instead of the github.io URL,
 buy the domain from GoDaddy or Namecheap (~Rs 800/year) and follow
 GitHub Pages custom domain instructions.
+
+How to add new youtube link :
+
+<div class="ep-card" onclick="openPlayer('YOUR_YOUTUBE_ID','Episode 08','Your Episode Title Here')">
+  <div class="ep-thumb">
+    <img class="ep-thumb-img" src="https://img.youtube.com/vi/YOUR_YOUTUBE_ID/mqdefault.jpg" alt="EP08 thumbnail"/>
+    <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+    <span class="ep-badge">EP 08</span>
+  </div>
+  <div class="ep-body"><p class="ep-num">Episode 08</p><p class="ep-title">Your Episode Title Here</p></div>
+</div>
+
+Just replace two things:
+
+YOUR_YOUTUBE_ID — the part after youtu.be/ in your video link. For example if the link is https://youtu.be/abc123xyz then the ID is abc123xyz
+Your Episode Title Here — your episode title
+
+The thumbnail pulls automatically from YouTube — no image upload needed.
