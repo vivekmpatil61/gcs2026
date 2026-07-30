@@ -69,7 +69,7 @@
     .hero-slides { position:absolute; inset:0; background:#000000; }
     .hero-slide {
       position:absolute; inset:0;
-      background-size:contain; background-position:center; background-repeat:no-repeat;
+      background-size:cover; background-position:center top; background-repeat:no-repeat;
       opacity:0; transition:opacity 1.2s ease;
     }
     .hero-slide.active { opacity:1; }
@@ -82,7 +82,7 @@
     .dot.active { background:var(--gold); width:20px; border-radius:3px; }
     .hero-img-fade {
       position:absolute; inset:0;
-      background: linear-gradient(to right, var(--ink) 0%, transparent 25%);
+      background: linear-gradient(to right, var(--ink) 0%, rgba(13,13,13,0.5) 35%, transparent 60%);
       z-index: 1;
     }
     .hero-eyebrow {
@@ -612,7 +612,10 @@
       </div>
     </div>
     <div class="about-img-wrap">
-      <img src="/gcs-website/assets/caricature.jpeg" alt="Vivek Patil - Principal Engineer and Artist"/>
+      <div style="position:relative;border-radius:16px;overflow:hidden;">
+        <img src="/gcs-website/assets/caricature.jpeg" alt="Vivek Patil - Principal Engineer and Artist" style="width:100%;display:block;"/>
+        <div style="position:absolute;inset:0;background:linear-gradient(to right, var(--ink) 0%, rgba(13,13,13,0.3) 25%, transparent 55%);"></div>
+      </div>
     </div>
   </div>
 </section>
