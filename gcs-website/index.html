@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Graphite & Charcoal Studio | Vivek Patil</title>
+  <meta name="description" content="Weekly drawing classes for kids and adults at Bhuvi by Amsha, Bangalore. Realistic portrait drawing, shading, charcoal techniques."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold:     #F4C948;
+      --gold-dim: #c9a030;
+      --ink:      #0d0d0d;
+      --paper:    #fafaf7;
+      --paper2:   #f2f2ee;
+      --text:     #1a1a1a;
+      --muted:    #666660;
+      --border:   #e0e0d8;
+      --r:        8px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--paper); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+
+    /* ── NAV ───────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5vw; height: 58px;
+      background: rgba(13,13,13,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(244,201,72,0.25);
+      transition: background 0.3s;
+    }
+    .nav-logo { font-family:'Playfair Display',serif; font-size:1rem; color:var(--gold); text-decoration:none; letter-spacing:0.03em; }
+    .nav-links { display:flex; gap:2rem; list-style:none; }
+    .nav-links a { color:#aaaaaa; text-decoration:none; font-size:0.78rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; transition:color 0.2s; }
+    .nav-links a:hover { color:var(--gold); }
+    .nav-cta { background:var(--gold); color:var(--ink); padding:0.45rem 1.1rem; border-radius:var(--r); font-size:0.78rem; font-weight:700; text-decoration:none; transition:background 0.2s; }
+    .nav-cta:hover { background:#e8bc30; }
+
+    /* ── HERO ──────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      height: 100vh; min-height: 600px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .hero-slides { position:absolute; inset:0; }
+    .hero-slide {
+      position:absolute; inset:0;
+      background-size:cover; background-position:center;
+      opacity:0; transition:opacity 1.2s ease;
+    }
+    .hero-slide.active { opacity:1; }
+    .hero-overlay {
+      position:absolute; inset:0;
+      background: linear-gradient(135deg, rgba(13,13,13,0.88) 0%, rgba(13,13,13,0.6) 60%, rgba(13,13,13,0.82) 100%);
+    }
+    .hero-content {
+      position: relative; z-index:2;
+      text-align: center; padding: 0 5vw;
+      max-width: 860px;
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      font-size:0.7rem; font-weight:700; letter-spacing:0.22em; text-transform:uppercase;
+      color:var(--gold); margin-bottom:1.4rem;
+      border: 1px solid rgba(244,201,72,0.35);
+      padding: 0.4rem 1rem; border-radius:20px;
+    }
+    .hero h1 {
+      font-family:'Playfair Display',serif;
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      color:#ffffff; line-height:1.05; margin-bottom:1.4rem;
+    }
+    .hero h1 em { font-style:italic; color:var(--gold); }
+    .hero-sub { font-size:1.05rem; color:rgba(255,255,255,0.7); max-width:520px; margin:0 auto 2.4rem; line-height:1.75; }
+    .hero-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+    .btn { display:inline-block; padding:0.75rem 1.8rem; border-radius:var(--r); font-size:0.88rem; font-weight:600; text-decoration:none; transition:all 0.2s; cursor:pointer; border:none; }
+    .btn-gold { background:var(--gold); color:var(--ink); }
+    .btn-gold:hover { background:#e8bc30; transform:translateY(-1px); box-shadow:0 6px 20px rgba(244,201,72,0.35); }
+    .btn-ghost { background:transparent; color:#ffffff; border:1.5px solid rgba(255,255,255,0.35); }
+    .btn-ghost:hover { border-color:var(--gold); color:var(--gold); }
+    .hero-scroll {
+      position:absolute; bottom:2rem; left:50%; transform:translateX(-50%);
+      display:flex; flex-direction:column; align-items:center; gap:0.5rem;
+      color:rgba(255,255,255,0.4); font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase;
+      animation: bounce 2s infinite;
+    }
+    .hero-scroll-line { width:1px; height:40px; background:linear-gradient(to bottom, rgba(255,255,255,0.4), transparent); }
+    @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(6px)} }
+    .slide-dots {
+      position:absolute; bottom:3.5rem; left:50%; transform:translateX(-50%);
+      display:flex; gap:8px; z-index:3;
+    }
+    .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.3); cursor:pointer; transition:all 0.3s; }
+    .dot.active { background:var(--gold); width:20px; border-radius:3px; }
+
+    /* ── VALUE STRIP ───────────────────────────────────── */
+    .strip {
+      background:var(--gold); padding:14px 5vw;
+      display:flex; justify-content:center; gap:2.5rem; flex-wrap:wrap;
+    }
+    .strip-item { display:flex; align-items:center; gap:0.5rem; font-size:0.82rem; font-weight:600; color:var(--ink); }
+    .strip-dot { width:5px; height:5px; border-radius:50%; background:var(--ink); flex-shrink:0; }
+
+    /* ── GALLERY STRIP ─────────────────────────────────── */
+    #gallery { background:var(--ink); padding:60px 0 50px; overflow:hidden; }
+    .gallery-header { padding:0 5vw; margin-bottom:2rem; }
+    .gallery-header .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:0.5rem; }
+    .gallery-header h2 { font-family:'Playfair Display',serif; font-size:clamp(1.6rem,3vw,2.4rem); color:#ffffff; }
+    .gallery-scroll {
+      display:flex; gap:1rem; padding:0 5vw;
+      overflow-x:auto; scroll-snap-type:x mandatory;
+      scrollbar-width:none; cursor:grab;
+    }
+    .gallery-scroll::-webkit-scrollbar { display:none; }
+    .gallery-scroll.dragging { cursor:grabbing; }
+    .gallery-item {
+      flex-shrink:0; scroll-snap-align:start;
+      border-radius:var(--r); overflow:hidden;
+      position:relative; background:var(--ink);
+      transition:transform 0.3s;
+    }
+    .gallery-item:hover { transform:scale(1.02); }
+    .gallery-item img { display:block; height:280px; width:auto; object-fit:cover; }
+    .gallery-item .caption {
+      position:absolute; bottom:0; left:0; right:0;
+      background:linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      padding:1rem 0.8rem 0.6rem;
+      font-size:0.72rem; color:rgba(255,255,255,0.7);
+      opacity:0; transition:opacity 0.3s;
+    }
+    .gallery-item:hover .caption { opacity:1; }
+    .gallery-hint { text-align:center; margin-top:1.2rem; font-size:0.72rem; color:rgba(255,255,255,0.3); letter-spacing:0.08em; }
+
+    /* ── ABOUT ─────────────────────────────────────────── */
+    #about { background:var(--paper2); padding:90px 5vw; }
+    .about-wrap { display:grid; grid-template-columns:1fr 1.1fr; gap:5rem; max-width:1100px; align-items:center; }
+    .about-img-wrap { position:relative; }
+    .about-img-wrap img { width:100%; border-radius:var(--r); display:block; box-shadow:0 20px 60px rgba(0,0,0,0.18); }
+    .about-img-badge {
+      position:absolute; bottom:-16px; right:-16px;
+      background:var(--gold); color:var(--ink);
+      padding:0.8rem 1.2rem; border-radius:var(--r);
+      font-size:0.78rem; font-weight:700; text-align:center;
+      box-shadow:0 4px 16px rgba(244,201,72,0.4);
+    }
+    .about-img-badge span { display:block; font-size:1.4rem; font-weight:700; line-height:1; margin-bottom:3px; }
+    .about-text .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:0.8rem; }
+    .about-text h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); color:var(--ink); line-height:1.2; margin-bottom:1.2rem; }
+    .about-text p { font-size:0.97rem; color:var(--muted); line-height:1.8; margin-bottom:1rem; }
+    .about-quote { border-left:3px solid var(--gold); padding:1rem 1.4rem; margin:1.5rem 0; font-family:'Playfair Display',serif; font-size:1.1rem; font-style:italic; color:var(--text); line-height:1.6; }
+    .about-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:2rem; }
+    .astat { text-align:center; padding:1rem; background:#ffffff; border-radius:var(--r); border:1px solid var(--border); }
+    .astat-n { font-family:'Playfair Display',serif; font-size:1.8rem; color:var(--gold-dim); font-weight:700; line-height:1; }
+    .astat-l { font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:3px; }
+
+    /* ── CURRICULUM ────────────────────────────────────── */
+    #curriculum { background:var(--ink); padding:90px 5vw; }
+    #curriculum .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:0.8rem; }
+    #curriculum h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); color:#ffffff; margin-bottom:0.8rem; }
+    #curriculum > p { font-size:0.97rem; color:#888888; max-width:560px; line-height:1.8; margin-bottom:3rem; }
+    .cur-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1.2rem; max-width:1100px; }
+    .cur-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:var(--r); padding:1.5rem; transition:background 0.2s,border-color 0.2s; }
+    .cur-card:hover { background:rgba(244,201,72,0.06); border-color:rgba(244,201,72,0.25); }
+    .cur-wk { font-size:0.68rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:0.5rem; }
+    .cur-title { font-family:'Playfair Display',serif; font-size:1.05rem; color:#ffffff; margin-bottom:0.5rem; }
+    .cur-desc { font-size:0.82rem; color:#777777; line-height:1.6; }
+
+    /* ── VIDEO LIBRARY ─────────────────────────────────── */
+    #videos { background:var(--paper); padding:90px 5vw; }
+    #videos .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:0.8rem; }
+    #videos h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); color:var(--ink); margin-bottom:0.8rem; }
+    #videos > p { font-size:0.97rem; color:var(--muted); max-width:560px; line-height:1.8; margin-bottom:2rem; }
+    .pw-gate { max-width:400px; background:#ffffff; border:1px solid var(--border); border-radius:var(--r); padding:2.5rem 2rem; text-align:center; }
+    .pw-gate h3 { font-family:'Playfair Display',serif; font-size:1.25rem; color:var(--ink); margin-bottom:0.5rem; }
+    .pw-gate p { font-size:0.88rem; color:var(--muted); margin-bottom:1.5rem; }
+    .pw-row { display:flex; gap:0.5rem; }
+    .pw-in { flex:1; padding:0.65rem 1rem; border:1.5px solid var(--border); border-radius:var(--r); font-size:0.95rem; outline:none; transition:border-color 0.2s; }
+    .pw-in:focus { border-color:var(--gold); }
+    .pw-err { font-size:0.8rem; color:#c0392b; margin-top:0.7rem; display:none; }
+    .vid-lib { display:none; }
+    .vid-lib.open { display:block; }
+    .ep-lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin:2.5rem 0 1rem; padding-bottom:0.5rem; border-bottom:1px solid var(--border); }
+    .ep-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.2rem; max-width:1100px; }
+    .ep-card { background:#ffffff; border:1px solid var(--border); border-radius:var(--r); overflow:hidden; transition:box-shadow 0.2s,transform 0.2s; }
+    .ep-card:hover { box-shadow:0 8px 30px rgba(0,0,0,0.1); transform:translateY(-2px); }
+    .ep-thumb { width:100%; aspect-ratio:16/9; background:var(--ink); position:relative; }
+    .ep-thumb iframe { width:100%; height:100%; border:none; }
+    .ep-badge { position:absolute; top:10px; left:10px; background:var(--gold); color:var(--ink); font-size:0.68rem; font-weight:700; padding:3px 8px; border-radius:4px; }
+    .ep-track { position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.7); color:#ffffff; font-size:0.65rem; font-weight:600; padding:3px 8px; border-radius:4px; }
+    .ep-body { padding:1rem 1.2rem; }
+    .ep-num { font-size:0.68rem; font-weight:700; color:var(--gold-dim); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.3rem; }
+    .ep-title { font-size:0.9rem; font-weight:600; color:var(--ink); line-height:1.4; margin-bottom:0.5rem; }
+    .ep-link { font-size:0.8rem; color:var(--gold-dim); text-decoration:none; font-weight:500; }
+    .ep-link:hover { text-decoration:underline; }
+
+    /* ── BATCHES ───────────────────────────────────────── */
+    #batches { background:var(--paper2); padding:90px 5vw; }
+    #batches .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:0.8rem; }
+    #batches h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); color:var(--ink); margin-bottom:0.8rem; }
+    #batches > p { font-size:0.97rem; color:var(--muted); max-width:560px; line-height:1.8; margin-bottom:2.5rem; }
+    .batch-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; max-width:780px; }
+    .batch-card { border-radius:var(--r); padding:2rem; border:1px solid var(--border); }
+    .ba { background:#f0f6ff; border-color:#b8d0f0; }
+    .bb { background:#f0fff6; border-color:#b8f0d0; }
+    .batch-letter { font-family:'Playfair Display',serif; font-size:3rem; font-weight:700; line-height:1; margin-bottom:0.6rem; }
+    .ba .batch-letter { color:#1B5E8A; }
+    .bb .batch-letter { color:#1E7E5E; }
+    .batch-time { font-size:1rem; font-weight:600; color:var(--ink); margin-bottom:0.4rem; }
+    .batch-desc { font-size:0.85rem; color:var(--muted); line-height:1.6; }
+
+    /* ── HOW ───────────────────────────────────────────── */
+    #how { background:var(--ink); padding:90px 5vw; }
+    #how .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:0.8rem; }
+    #how h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); color:#ffffff; margin-bottom:3rem; }
+    .steps { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1.2rem; max-width:1000px; }
+    .step { padding:1.5rem; border:1px solid rgba(255,255,255,0.07); border-radius:var(--r); background:rgba(255,255,255,0.02); }
+    .step-n { font-family:'Playfair Display',serif; font-size:2.2rem; color:var(--gold); line-height:1; margin-bottom:0.8rem; }
+    .step-t { font-size:0.88rem; font-weight:600; color:#ffffff; margin-bottom:0.4rem; }
+    .step-d { font-size:0.82rem; color:#777777; line-height:1.6; }
+
+    /* ── CONTACT ───────────────────────────────────────── */
+    #contact { background:var(--paper); padding:90px 5vw; }
+    #contact .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:0.8rem; }
+    #contact h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); color:var(--ink); margin-bottom:2.5rem; }
+    .contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:4rem; max-width:900px; align-items:start; }
+    .c-detail { display:flex; flex-direction:column; gap:1.3rem; }
+    .c-item-l { font-size:0.68rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:0.25rem; }
+    .c-item-v { font-size:0.97rem; font-weight:500; color:var(--ink); line-height:1.6; }
+    .c-item-v a { color:var(--gold-dim); text-decoration:none; }
+    .c-item-v a:hover { text-decoration:underline; }
+    .enrol-box { background:var(--ink); border-radius:var(--r); padding:2.2rem; text-align:center; }
+    .enrol-box h3 { font-family:'Playfair Display',serif; font-size:1.4rem; color:#ffffff; margin-bottom:0.6rem; }
+    .enrol-box p { font-size:0.88rem; color:#777777; margin-bottom:1.6rem; line-height:1.7; }
+    .enrol-box small { display:block; margin-top:1rem; font-size:0.75rem; color:#444444; }
+
+    /* ── FOOTER ────────────────────────────────────────── */
+    footer { background:var(--ink); border-top:1px solid #1a1a1a; padding:2rem 5vw; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; }
+    .f-logo { font-family:'Playfair Display',serif; color:var(--gold); font-size:1rem; }
+    .f-copy { font-size:0.75rem; color:#444444; }
+
+    /* ── RESPONSIVE ────────────────────────────────────── */
+    @media(max-width:720px){
+      .about-wrap,.contact-grid,.batch-grid{grid-template-columns:1fr;gap:2.5rem;}
+      .about-stats{grid-template-columns:repeat(2,1fr);}
+      .nav-links{display:none;}
+      .pw-row{flex-direction:column;}
+      .about-img-badge{right:0;bottom:-12px;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#top">Graphite & Charcoal Studio</a>
+  <ul class="nav-links">
+    <li><a href="#gallery">Work</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#videos">Tutorials</a></li>
+    <li><a href="#batches">Batches</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a class="nav-cta" href="#contact">Enrol Now</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-slides">
+    <div class="hero-slide active" style="background-image:url('assets/hero1.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('assets/hero2.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('assets/hero3.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('assets/hero4.jpg')"></div>
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Bhuvi by Amsha · Bangalore · Every Saturday</p>
+    <h1>Where pencils<br/>meet <em>patience.</em></h1>
+    <p class="hero-sub">Weekly drawing classes for kids and adults. Realistic portraits, shading, charcoal — taught with individual attention in small batches.</p>
+    <div class="hero-btns">
+      <a href="#contact" class="btn btn-gold">Enrol Now</a>
+      <a href="#gallery" class="btn btn-ghost">See the Work</a>
+    </div>
+  </div>
+  <div class="slide-dots" id="dots">
+    <div class="dot active" onclick="goSlide(0)"></div>
+    <div class="dot" onclick="goSlide(1)"></div>
+    <div class="dot" onclick="goSlide(2)"></div>
+    <div class="dot" onclick="goSlide(3)"></div>
+  </div>
+  <div class="hero-scroll"><div class="hero-scroll-line"></div>Scroll</div>
+</section>
+
+<!-- VALUE STRIP -->
+<div class="strip">
+  <div class="strip-item"><div class="strip-dot"></div>90-minute sessions</div>
+  <div class="strip-item"><div class="strip-dot"></div>Max 16 per batch</div>
+  <div class="strip-item"><div class="strip-dot"></div>Weekly private tutorials</div>
+  <div class="strip-item"><div class="strip-dot"></div>Rs 2,500 per month</div>
+  <div class="strip-item"><div class="strip-dot"></div>Compensation classes — no caps</div>
+</div>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <div class="gallery-header">
+    <p class="lbl">Portfolio</p>
+    <h2>A decade of marks on paper.</h2>
+  </div>
+  <div class="gallery-scroll" id="galleryScroll">
+    <div class="gallery-item"><img src="assets/gallery1.jpg" alt="Pencil drawing"/><div class="caption">Pencil · Graphite</div></div>
+    <div class="gallery-item"><img src="assets/gallery3.jpg" alt="Charcoal portrait"/><div class="caption">Charcoal · Portrait study</div></div>
+    <div class="gallery-item"><img src="assets/gallery2.jpg" alt="Detailed drawing"/><div class="caption">Graphite · Detailed study</div></div>
+    <div class="gallery-item"><img src="assets/gallery4.jpg" alt="Pencil study"/><div class="caption">Pencil · Observational drawing</div></div>
+    <div class="gallery-item"><img src="assets/gallery5.jpg" alt="Portrait"/><div class="caption">Charcoal · Portrait</div></div>
+    <div class="gallery-item"><img src="assets/gallery8.jpg" alt="Drawing"/><div class="caption">Graphite · Figure study</div></div>
+    <div class="gallery-item"><img src="assets/gallery6.jpg" alt="Sketch"/><div class="caption">Pencil · Sketch</div></div>
+    <div class="gallery-item"><img src="assets/gallery9.jpg" alt="Drawing"/><div class="caption">Pencil · Still life</div></div>
+    <div class="gallery-item"><img src="assets/gallery7.jpg" alt="Early work"/><div class="caption">Early work · 2015</div></div>
+    <div class="gallery-item"><img src="assets/gallery10.jpg" alt="Drawing"/><div class="caption">Graphite · Study</div></div>
+    <div class="gallery-item"><img src="assets/gallery11.jpg" alt="Drawing"/><div class="caption">Pencil · Portrait study</div></div>
+  </div>
+  <p class="gallery-hint">← drag to explore →</p>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-wrap">
+    <div class="about-img-wrap">
+      <img src="assets/about_img.jpg" alt="Vivek Patil drawing"/>
+      <div class="about-img-badge"><span>10+</span>Years drawing</div>
+    </div>
+    <div class="about-text">
+      <p class="lbl">About Vivek Patil</p>
+      <h2>I am not here to teach you how to copy.<br/>I am here to teach you how to <em style="font-style:italic;color:var(--gold-dim)">see.</em></h2>
+      <p>Graphite & Charcoal Studio is run by Vivek Patil — resident artist at Bhuvi by Amsha and passionate art educator. After a hugely successful Summer Drawing Classes programme, the studio now runs year-round every Saturday.</p>
+      <blockquote class="about-quote">"Every perfect drawing is built on two things — a perfect outline and perfect shading. That is it. Nothing else."</blockquote>
+      <p>The goal is simple: by end of the year every student should be able to draw realistic portraits of their choice, with smooth shading, confident perspectives, and a strong understanding of light and shadow.</p>
+      <div class="about-stats">
+        <div class="astat"><div class="astat-n">27+</div><div class="astat-l">Students</div></div>
+        <div class="astat"><div class="astat-n">2</div><div class="astat-l">Batches</div></div>
+        <div class="astat"><div class="astat-n">7+</div><div class="astat-l">Episodes</div></div>
+        <div class="astat"><div class="astat-n">∞</div><div class="astat-l">Comp classes</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CURRICULUM -->
+<section id="curriculum">
+  <p class="lbl">Curriculum</p>
+  <h2>A full year of real art.</h2>
+  <p>Four progressive terms, each building on the last. Every student reaches the same goal by March — regardless of where they started.</p>
+  <div class="cur-grid">
+    <div class="cur-card">
+      <p class="cur-wk">Term 1 · Jul – Sep</p>
+      <h3 class="cur-title">Foundations & Facial Features</h3>
+      <p class="cur-desc">Pencil grip, line quality, value scales, hatching, blending, sphere shading, eye, nose, lips, ear and face proportions using Loomis method.</p>
+    </div>
+    <div class="cur-card">
+      <p class="cur-wk">Term 2 · Oct – Dec</p>
+      <h3 class="cur-title">Portraits & Realism</h3>
+      <p class="cur-desc">Full face portraits from reference, hair texture, grid method, skin texture, dramatic lighting and chiaroscuro technique.</p>
+    </div>
+    <div class="cur-card">
+      <p class="cur-wk">Term 3 · Jan – Mar</p>
+      <h3 class="cur-title">Hyper Realism & Charcoal</h3>
+      <p class="cur-desc">Charcoal techniques, kneadable eraser highlights, animal portraits, reflective surfaces and a year-end showcase with certificates.</p>
+    </div>
+    <div class="cur-card">
+      <p class="cur-wk">All Year</p>
+      <h3 class="cur-title">Weekly Private Tutorials</h3>
+      <p class="cur-desc">Exclusive YouTube tutorials uploaded every week — scripted as individual tutoring sessions. Watch at home, practise, then deepen in class.</p>
+    </div>
+  </div>
+</section>
+
+<!-- VIDEO LIBRARY -->
+<section id="videos">
+  <p class="lbl">Video Library</p>
+  <h2>Your weekly tutorials.</h2>
+  <p>Exclusive to enrolled students. Enter your class password to watch all episodes.</p>
+  <div class="pw-gate" id="pwGate">
+    <h3>Student Access</h3>
+    <p>Enter your class password to unlock the tutorial library.</p>
+    <div class="pw-row">
+      <input class="pw-in" type="password" id="pwIn" placeholder="Class password" onkeydown="if(event.key==='Enter')checkPw()"/>
+      <button class="btn btn-gold" onclick="checkPw()">Enter</button>
+    </div>
+    <p class="pw-err" id="pwErr">Incorrect password. Please check with Vivek.</p>
+  </div>
+  <div class="vid-lib" id="vidLib">
+    <p class="ep-lbl">Foundations — All Students</p>
+    <div class="ep-grid">
+      <div class="ep-card">
+        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/naUyVYZzo2Y" allowfullscreen></iframe><span class="ep-badge">EP 01</span></div>
+        <div class="ep-body"><p class="ep-num">Episode 01</p><p class="ep-title">Every Drawing Tool You Need as a Beginner | Pencils, Paper, Erasers and More</p><a class="ep-link" href="https://youtu.be/naUyVYZzo2Y" target="_blank">Watch on YouTube ↗</a></div>
+      </div>
+      <div class="ep-card">
+        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/rGCoXfIMats" allowfullscreen></iframe><span class="ep-badge">EP 03</span></div>
+        <div class="ep-body"><p class="ep-num">Episode 03</p><p class="ep-title">Drawing Warm Up Exercises Every Beginner Must Know | Lines, Curves, Circles and More</p><a class="ep-link" href="https://youtu.be/rGCoXfIMats" target="_blank">Watch on YouTube ↗</a></div>
+      </div>
+      <div class="ep-card">
+        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/snltJhqqrb0" allowfullscreen></iframe><span class="ep-badge">EP 04</span></div>
+        <div class="ep-body"><p class="ep-num">Episode 04</p><p class="ep-title">Grid Method for Beginners | How to Draw Accurate Portraits + Free Android App Tutorial</p><a class="ep-link" href="https://youtu.be/snltJhqqrb0" target="_blank">Watch on YouTube ↗</a></div>
+      </div>
+      <div class="ep-card">
+        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/4p0U-0fJeZY" allowfullscreen></iframe><span class="ep-badge">EP 07</span></div>
+        <div class="ep-body"><p class="ep-num">Episode 07</p><p class="ep-title">11 Shading Mistakes Every Beginner Makes | Pencil Drawing Tips</p><a class="ep-link" href="https://youtu.be/4p0U-0fJeZY" target="_blank">Watch on YouTube ↗</a></div>
+      </div>
+    </div>
+    <p class="ep-lbl">Advanced Track — Summer Batch Students</p>
+    <div class="ep-grid">
+      <div class="ep-card">
+        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/b81-VX1EGOQ" allowfullscreen></iframe><span class="ep-badge">EP 02</span><span class="ep-track">Summer Batch</span></div>
+        <div class="ep-body"><p class="ep-num">Episode 02 · Advanced</p><p class="ep-title">How to Draw a Realistic Coconut | Texture, Fibres and Shading | Charcoal Pencil Tutorial</p><a class="ep-link" href="https://youtu.be/b81-VX1EGOQ" target="_blank">Watch on YouTube ↗</a></div>
+      </div>
+      <div class="ep-card">
+        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/oxrkTgeYBkU" allowfullscreen></iframe><span class="ep-badge">EP 05</span><span class="ep-track">Summer Batch</span></div>
+        <div class="ep-body"><p class="ep-num">Episode 05 · Advanced</p><p class="ep-title">How to Draw Pikachu Using Grid Method | Realistic Grid Drawing for Beginners</p><a class="ep-link" href="https://youtu.be/oxrkTgeYBkU" target="_blank">Watch on YouTube ↗</a></div>
+      </div>
+      <div class="ep-card">
+        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/pNVg8riocAg" allowfullscreen></iframe><span class="ep-badge">EP 06</span><span class="ep-track">Summer Batch</span></div>
+        <div class="ep-body"><p class="ep-num">Episode 06 · Advanced</p><p class="ep-title">How to Draw a Realistic Lipstick | Metallic Shading | Charcoal Pencil Drawing Tutorial</p><a class="ep-link" href="https://youtu.be/pNVg8riocAg" target="_blank">Watch on YouTube ↗</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BATCHES -->
+<section id="batches">
+  <p class="lbl">Batches</p>
+  <h2>Small groups. Full attention.</h2>
+  <p>Each batch is capped at 16 students so every child gets personal guidance every Saturday. Same syllabus, same goals — just a setting where your child is never lost in the crowd.</p>
+  <div class="batch-grid">
+    <div class="batch-card ba">
+      <div class="batch-letter">A</div>
+      <p class="batch-time">Saturday · 2:00 PM – 3:30 PM</p>
+      <p class="batch-desc">Experienced students and summer batch alumni pushing into advanced shading and portrait work.</p>
+    </div>
+    <div class="batch-card bb">
+      <div class="batch-letter">B</div>
+      <p class="batch-time">Saturday · 3:30 PM – 5:00 PM</p>
+      <p class="batch-desc">Younger and beginner students building confident foundations from the ground up.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <p class="lbl">How it works</p>
+  <h2>Watch. Practise. Create.</h2>
+  <div class="steps">
+    <div class="step"><div class="step-n">01</div><p class="step-t">Watch the tutorial</p><p class="step-d">A private tutorial is uploaded every week — scripted like a personal teaching session.</p></div>
+    <div class="step"><div class="step-n">02</div><p class="step-t">Practise at home</p><p class="step-d">Draw along with the video before Saturday. Come to class already halfway there.</p></div>
+    <div class="step"><div class="step-n">03</div><p class="step-t">Deepen in class</p><p class="step-d">Same concept, different drawings. Doubts get cleared, technique gets sharper, confidence grows.</p></div>
+    <div class="step"><div class="step-n">04</div><p class="step-t">Missed a class?</p><p class="step-d">Attend the following week across both batches — 2 to 5 PM. No caps, no conditions.</p></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <p class="lbl">Contact & Enrolment</p>
+  <h2>Ready to start drawing?</h2>
+  <div class="contact-grid">
+    <div class="c-detail">
+      <div><p class="c-item-l">Instructor</p><p class="c-item-v">Vivek Patil</p></div>
+      <div><p class="c-item-l">Location</p><p class="c-item-v">Presentation Room<br/>Bhuvi by Amsha, Bangalore</p></div>
+      <div><p class="c-item-l">Schedule</p><p class="c-item-v">Every Saturday<br/>Batch A: 2:00 PM – 3:30 PM<br/>Batch B: 3:30 PM – 5:00 PM</p></div>
+      <div><p class="c-item-l">Monthly Fee</p><p class="c-item-v">Rs 2,500 <span style="font-size:0.83rem;color:var(--muted)">(materials not included)</span></p></div>
+      <div><p class="c-item-l">WhatsApp / Call</p><p class="c-item-v"><a href="tel:+918553082800">+91 85530 82800</a></p></div>
+      <div><p class="c-item-l">Instagram</p><p class="c-item-v"><a href="https://instagram.com/universeofvivek" target="_blank">@universeofvivek</a></p></div>
+    </div>
+    <div class="enrol-box">
+      <h3>Enrol your child</h3>
+      <p>Fill in the form and Vivek will reach out personally with batch placement and all the details you need.</p>
+      <a href="https://forms.gle/gw2iZhwk5cNAxhoT8" target="_blank" class="btn btn-gold">Fill Enrolment Form</a>
+      <small>Spots are limited. Once a batch hits 16 students the form closes.</small>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="f-logo">Graphite & Charcoal Studio</span>
+  <span class="f-copy">© 2026 Vivek Patil · Bhuvi by Amsha, Bangalore · @universeofvivek</span>
+</footer>
+
+<script>
+  /* ── Hero slideshow ── */
+  let cur = 0;
+  const slides = document.querySelectorAll('.hero-slide');
+  const dots   = document.querySelectorAll('.dot');
+  function goSlide(n) {
+    slides[cur].classList.remove('active');
+    dots[cur].classList.remove('active');
+    cur = n;
+    slides[cur].classList.add('active');
+    dots[cur].classList.add('active');
+  }
+  setInterval(() => goSlide((cur + 1) % slides.length), 5000);
+
+  /* ── Gallery drag scroll ── */
+  const gs = document.getElementById('galleryScroll');
+  let isDragging = false, startX, scrollLeft;
+  gs.addEventListener('mousedown', e => { isDragging=true; gs.classList.add('dragging'); startX=e.pageX-gs.offsetLeft; scrollLeft=gs.scrollLeft; });
+  gs.addEventListener('mouseleave', () => { isDragging=false; gs.classList.remove('dragging'); });
+  gs.addEventListener('mouseup', () => { isDragging=false; gs.classList.remove('dragging'); });
+  gs.addEventListener('mousemove', e => { if(!isDragging) return; e.preventDefault(); const x=e.pageX-gs.offsetLeft; gs.scrollLeft=scrollLeft-(x-startX)*1.5; });
+
+  /* ── Password gate ── */
+  const PW = 'gcs2026';
+  function checkPw() {
+    const v = document.getElementById('pwIn').value.trim();
+    if (v === PW) {
+      document.getElementById('pwGate').style.display = 'none';
+      document.getElementById('vidLib').classList.add('open');
+    } else {
+      document.getElementById('pwErr').style.display = 'block';
+      document.getElementById('pwIn').value = '';
+      document.getElementById('pwIn').focus();
+    }
+  }
+
+  /* ── Active nav ── */
+  const secs = document.querySelectorAll('section[id]');
+  const navAs = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let c = '';
+    secs.forEach(s => { if(window.scrollY >= s.offsetTop - 80) c = s.id; });
+    navAs.forEach(a => { a.style.color = a.getAttribute('href')==='#'+c ? '#F4C948' : ''; });
+  });
+</script>
+</body>
+</html>
