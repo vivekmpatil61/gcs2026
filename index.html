@@ -35,7 +35,14 @@
       border-bottom: 1px solid rgba(244,201,72,0.25);
       transition: background 0.3s;
     }
-    .nav-logo { font-family:'Playfair Display',serif; font-size:1rem; color:var(--gold); text-decoration:none; letter-spacing:0.03em; }
+    .nav-logo {
+      font-family:'Playfair Display',serif;
+      font-size:1.25rem;
+      color:var(--gold);
+      text-decoration:none;
+      letter-spacing:0.04em;
+      font-style:italic;
+    }
     .nav-links { display:flex; gap:2rem; list-style:none; }
     .nav-links a { color:#aaaaaa; text-decoration:none; font-size:0.78rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; transition:color 0.2s; }
     .nav-links a:hover { color:var(--gold); }
@@ -79,10 +86,38 @@
       padding: 0.4rem 1rem; border-radius:20px;
       width: fit-content;
     }
+    .hero-studio-name {
+      font-family:'Playfair Display',serif;
+      font-size: clamp(3.2rem, 6vw, 5.8rem);
+      font-weight:700;
+      font-style:italic;
+      line-height:0.95;
+      letter-spacing:-0.01em;
+      margin-bottom:1.6rem;
+      background: linear-gradient(
+        90deg,
+        #c9a030 0%,
+        #F4C948 20%,
+        #fffbe0 40%,
+        #F4C948 60%,
+        #c9a030 80%,
+        #F4C948 100%
+      );
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s linear infinite;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
     .hero h1 {
       font-family:'Playfair Display',serif;
-      font-size: clamp(2.6rem, 5vw, 4.5rem);
-      color:#ffffff; line-height:1.05; margin-bottom:1.4rem;
+      font-size: clamp(1.4rem, 2.5vw, 2rem);
+      color:rgba(255,255,255,0.75); line-height:1.3; margin-bottom:1.2rem;
+      font-weight:400;
     }
     .hero h1 em { font-style:italic; color:var(--gold); }
     .hero-sub { font-size:1rem; color:rgba(255,255,255,0.65); max-width:440px; margin:0 0 2.4rem; line-height:1.75; }
@@ -145,10 +180,10 @@
     .gallery-hint { text-align:center; margin-top:1.2rem; font-size:0.72rem; color:rgba(255,255,255,0.3); letter-spacing:0.08em; }
 
     /* ── ABOUT ─────────────────────────────────────────── */
-    #about { background:var(--paper2); padding:90px 5vw; }
-    .about-wrap { display:grid; grid-template-columns:1fr 1.1fr; gap:5rem; max-width:1100px; align-items:center; }
+    #about { background:var(--ink); padding:90px 5vw; }
+    .about-wrap { display:grid; grid-template-columns:1fr 1.2fr; gap:5rem; max-width:1200px; align-items:start; }
     .about-img-wrap { position:relative; }
-    .about-img-wrap img { width:100%; border-radius:var(--r); display:block; box-shadow:0 20px 60px rgba(0,0,0,0.18); }
+    .about-img-wrap img { width:100%; border-radius:16px; display:block; box-shadow:0 20px 60px rgba(0,0,0,0.5); }
     .about-img-badge {
       position:absolute; bottom:-16px; right:-16px;
       background:var(--gold); color:var(--ink);
@@ -157,14 +192,22 @@
       box-shadow:0 4px 16px rgba(244,201,72,0.4);
     }
     .about-img-badge span { display:block; font-size:1.4rem; font-weight:700; line-height:1; margin-bottom:3px; }
-    .about-text .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:0.8rem; }
-    .about-text h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); color:var(--ink); line-height:1.2; margin-bottom:1.2rem; }
-    .about-text p { font-size:0.97rem; color:var(--muted); line-height:1.8; margin-bottom:1rem; }
-    .about-quote { border-left:3px solid var(--gold); padding:1rem 1.4rem; margin:1.5rem 0; font-family:'Playfair Display',serif; font-size:1.1rem; font-style:italic; color:var(--text); line-height:1.6; }
+    .about-text .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:0.8rem; }
+    .about-text h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.6rem); color:#ffffff; line-height:1.2; margin-bottom:1.2rem; }
+    .about-text p { font-size:0.95rem; color:#999999; line-height:1.85; margin-bottom:1rem; }
+    .about-quote { border-left:3px solid var(--gold); padding:1rem 1.4rem; margin:1.5rem 0; font-family:'Playfair Display',serif; font-size:1.05rem; font-style:italic; color:#ddddcc; line-height:1.6; }
+    .about-tags { display:flex; flex-wrap:wrap; gap:0.5rem; margin:1.2rem 0; }
+    .about-tag {
+      font-size:0.75rem; font-weight:600; padding:0.3rem 0.8rem;
+      border-radius:20px;
+      border-color:rgba(244,201,72,0.4); color:var(--gold); background:rgba(244,201,72,0.08);
+      border: 1px solid rgba(244,201,72,0.4);
+    }
+    .about-tag.gold { border-color:rgba(244,201,72,0.4); color:var(--gold); background:rgba(244,201,72,0.08); }
     .about-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:2rem; }
-    .astat { text-align:center; padding:1rem; background:#ffffff; border-radius:var(--r); border:1px solid var(--border); }
-    .astat-n { font-family:'Playfair Display',serif; font-size:1.8rem; color:var(--gold-dim); font-weight:700; line-height:1; }
-    .astat-l { font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:3px; }
+    .astat { text-align:center; padding:1rem; background:rgba(255,255,255,0.04); border-radius:var(--r); border:1px solid rgba(255,255,255,0.08); }
+    .astat-n { font-family:'Playfair Display',serif; font-size:1.8rem; color:var(--gold); font-weight:700; line-height:1; }
+    .astat-l { font-size:0.72rem; color:#777777; text-transform:uppercase; letter-spacing:0.08em; margin-top:3px; }
 
     /* ── CURRICULUM ────────────────────────────────────── */
     #curriculum { background:var(--ink); padding:90px 5vw; }
@@ -287,21 +330,6 @@
     .modal-studio { font-size:0.75rem; color:rgba(255,255,255,0.3); letter-spacing:0.05em; }
     .modal-studio span { color:var(--gold); }
 
-    /* ── BATCHES ───────────────────────────────────────── */
-    #batches { background:var(--paper2); padding:90px 5vw; }
-    #batches .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:0.8rem; }
-    #batches h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); color:var(--ink); margin-bottom:0.8rem; }
-    #batches > p { font-size:0.97rem; color:var(--muted); max-width:560px; line-height:1.8; margin-bottom:2.5rem; }
-    .batch-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; max-width:780px; }
-    .batch-card { border-radius:var(--r); padding:2rem; border:1px solid var(--border); }
-    .ba { background:#f0f6ff; border-color:#b8d0f0; }
-    .bb { background:#f0fff6; border-color:#b8f0d0; }
-    .batch-letter { font-family:'Playfair Display',serif; font-size:3rem; font-weight:700; line-height:1; margin-bottom:0.6rem; }
-    .ba .batch-letter { color:#1B5E8A; }
-    .bb .batch-letter { color:#1E7E5E; }
-    .batch-time { font-size:1rem; font-weight:600; color:var(--ink); margin-bottom:0.4rem; }
-    .batch-desc { font-size:0.85rem; color:var(--muted); line-height:1.6; }
-
     /* ── HOW ───────────────────────────────────────────── */
     #how { background:var(--ink); padding:90px 5vw; }
     #how .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:0.8rem; }
@@ -334,7 +362,7 @@
 
     /* ── RESPONSIVE ────────────────────────────────────── */
     @media(max-width:720px){
-      .about-wrap,.contact-grid,.batch-grid{grid-template-columns:1fr;gap:2.5rem;}
+      .about-wrap,.contact-grid{grid-template-columns:1fr;gap:2.5rem;}
       .about-stats{grid-template-columns:repeat(2,1fr);}
       .nav-links{display:none;}
       .pw-row{flex-direction:column;}
@@ -351,7 +379,6 @@
     <li><a href="#gallery">Work</a></li>
     <li><a href="#about">About</a></li>
     <li><a href="#videos">Tutorials</a></li>
-    <li><a href="#batches">Batches</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
   <a class="nav-cta" href="#contact">Enrol Now</a>
@@ -361,8 +388,9 @@
 <section class="hero" id="top">
   <div class="hero-text-side">
     <p class="hero-eyebrow">Bhuvi by Amsha · Bangalore · Every Saturday</p>
+    <p class="hero-studio-name">Graphite<br/>&amp; Charcoal<br/>Studio</p>
     <h1>Where pencils<br/>meet <em>patience.</em></h1>
-    <p class="hero-sub">Weekly drawing classes for kids and adults. Realistic portraits, shading, charcoal — taught with individual attention in small batches.</p>
+    <p class="hero-sub">Weekly drawing classes for kids and adults. Realistic portraits, shading, charcoal — taught with individual attention.</p>
     <div class="hero-btns">
       <a href="#contact" class="btn btn-gold">Enrol Now</a>
       <a href="#gallery" class="btn btn-ghost">See the Work</a>
@@ -420,18 +448,33 @@
 <section id="about">
   <div class="about-wrap">
     <div class="about-img-wrap">
-      <img src="/gcs-website/assets/about_img.jpg" alt="Vivek Patil drawing"/>
-      <div class="about-img-badge"><span>10+</span>Years drawing</div>
+      <img src="/gcs-website/assets/vivek-caricature.jpg" alt="Vivek Patil — Principal Engineer and Artist"/>
+      <div class="about-img-badge"><span>10+</span>Years of art</div>
     </div>
     <div class="about-text">
       <p class="lbl">About Vivek Patil</p>
-      <h2>I am not here to teach you how to copy.<br/>I am here to teach you how to <em style="font-style:italic;color:var(--gold-dim)">see.</em></h2>
-      <p>Graphite & Charcoal Studio is run by Vivek Patil — resident artist at Bhuvi by Amsha and passionate art educator. After a hugely successful Summer Drawing Classes programme, the studio now runs year-round every Saturday.</p>
-      <blockquote class="about-quote">"Every perfect drawing is built on two things — a perfect outline and perfect shading. That is it. Nothing else."</blockquote>
-      <p>The goal is simple: by end of the year every student should be able to draw realistic portraits of their choice, with smooth shading, confident perspectives, and a strong understanding of light and shadow.</p>
+      <h2>Engineer by profession.<br/>Artist by <em style="font-style:italic;color:var(--gold)">passion.</em><br/>Teacher by calling.</h2>
+
+      <div class="about-tags">
+        <span class="about-tag gold">Principal Engineer · Cohesity</span>
+        <span class="about-tag">Ex-Cisco · 9 Years</span>
+        <span class="about-tag">IIIT Bangalore · MTech</span>
+        <span class="about-tag gold">University Topper · UoP</span>
+        <span class="about-tag">Maharashtra · Latur · Pune · Bangalore</span>
+        <span class="about-tag">Meditator</span>
+      </div>
+
+      <p>Vivek Patil is a Principal Engineer at Cohesity, where he builds AI-driven automation solutions for some of the world's largest enterprises. Before that, he spent nine years at Cisco as a Solutions Architect — designing, delivering and explaining complex systems to the people who depend on them. He holds an MTech from IIIT Bangalore and graduated as University Topper from the University of Pune among over 14,000 students.</p>
+
+      <p>Vivek's art journey began early but came to a halt after 10th class — the familiar story of studies taking over. Years later, after his MTech, he picked up the pencil again. What followed was a quiet, self-taught obsession with realistic portraiture, shading and light — the same discipline and patience he brings to every system he architects.</p>
+
+      <blockquote class="about-quote">"What is this earth without Art? Just a rock."</blockquote>
+
+      <p>What makes Vivek's teaching rare is the bridge he builds between analytical thinking and artistic intuition. He teaches drawing the way great engineers approach problems — breaking complexity into layers, building from fundamentals, and training the eye to observe what is actually there rather than what the brain assumes. Paired with a meditative, unhurried approach to learning, his classes build far more than drawing skills. They build focus, patience and a quiet confidence that carries into everything a student does.</p>
+
       <div class="about-stats">
         <div class="astat"><div class="astat-n">50+</div><div class="astat-l">Students</div></div>
-        <div class="astat"><div class="astat-n">2</div><div class="astat-l">Batches</div></div>
+        <div class="astat"><div class="astat-n">10+</div><div class="astat-l">Years drawing</div></div>
         <div class="astat"><div class="astat-n">100+</div><div class="astat-l">Hrs of content</div></div>
         <div class="astat"><div class="astat-n">∞</div><div class="astat-l">Comp classes</div></div>
       </div>
@@ -580,25 +623,6 @@
   </div>
 </div>
 
-<!-- BATCHES -->
-<section id="batches">
-  <p class="lbl">Batches</p>
-  <h2>Small groups. Full attention.</h2>
-  <p>Each batch is capped at 16 students so every child gets personal guidance every Saturday. Same syllabus, same goals — just a setting where your child is never lost in the crowd.</p>
-  <div class="batch-grid">
-    <div class="batch-card ba">
-      <div class="batch-letter">A</div>
-      <p class="batch-time">Saturday · 2:00 PM – 3:30 PM</p>
-      <p class="batch-desc">A mix of summer batch alumni and experienced newcomers — pushing into advanced shading, portraiture and realism together.</p>
-    </div>
-    <div class="batch-card bb">
-      <div class="batch-letter">B</div>
-      <p class="batch-time">Saturday · 3:30 PM – 5:00 PM</p>
-      <p class="batch-desc">A mix of younger kids and complete beginners — building confident foundations in a relaxed, encouraging environment.</p>
-    </div>
-  </div>
-</section>
-
 <!-- HOW IT WORKS -->
 <section id="how">
   <p class="lbl">How it works</p>
@@ -607,7 +631,7 @@
     <div class="step"><div class="step-n">01</div><p class="step-t">Watch the tutorial</p><p class="step-d">A private tutorial is uploaded every week — scripted like a personal teaching session.</p></div>
     <div class="step"><div class="step-n">02</div><p class="step-t">Practise at home</p><p class="step-d">Draw along with the video before Saturday. Come to class already halfway there.</p></div>
     <div class="step"><div class="step-n">03</div><p class="step-t">Deepen in class</p><p class="step-d">Same concept, different drawings. Doubts get cleared, technique gets sharper, confidence grows.</p></div>
-    <div class="step"><div class="step-n">04</div><p class="step-t">Missed a class?</p><p class="step-d">Attend the following week across both batches — 2 to 5 PM. No caps, no conditions.</p></div>
+    <div class="step"><div class="step-n">04</div><p class="step-t">Missed a class?</p><p class="step-d">The weekly tutorial is always there. No one falls behind. No caps, no conditions.</p></div>
   </div>
 </section>
 
