@@ -187,17 +187,77 @@
     .vid-lib.open { display:block; }
     .ep-lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin:2.5rem 0 1rem; padding-bottom:0.5rem; border-bottom:1px solid var(--border); }
     .ep-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.2rem; max-width:1100px; }
-    .ep-card { background:#ffffff; border:1px solid var(--border); border-radius:var(--r); overflow:hidden; transition:box-shadow 0.2s,transform 0.2s; }
-    .ep-card:hover { box-shadow:0 8px 30px rgba(0,0,0,0.1); transform:translateY(-2px); }
-    .ep-thumb { width:100%; aspect-ratio:16/9; background:var(--ink); position:relative; }
-    .ep-thumb iframe { width:100%; height:100%; border:none; }
-    .ep-badge { position:absolute; top:10px; left:10px; background:var(--gold); color:var(--ink); font-size:0.68rem; font-weight:700; padding:3px 8px; border-radius:4px; }
-    .ep-track { position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.7); color:#ffffff; font-size:0.65rem; font-weight:600; padding:3px 8px; border-radius:4px; }
+    .ep-card { background:#ffffff; border:1px solid var(--border); border-radius:var(--r); overflow:hidden; transition:box-shadow 0.2s,transform 0.2s; cursor:pointer; }
+    .ep-card:hover { box-shadow:0 8px 30px rgba(0,0,0,0.12); transform:translateY(-2px); }
+    .ep-thumb {
+      width:100%; aspect-ratio:16/9; background:var(--ink); position:relative; overflow:hidden;
+    }
+    .ep-thumb-img {
+      width:100%; height:100%; object-fit:cover; display:block;
+      transition:transform 0.4s ease;
+    }
+    .ep-card:hover .ep-thumb-img { transform:scale(1.04); }
+    .ep-thumb-overlay {
+      position:absolute; inset:0;
+      background:rgba(0,0,0,0.35);
+      display:flex; align-items:center; justify-content:center;
+      transition:background 0.3s;
+    }
+    .ep-card:hover .ep-thumb-overlay { background:rgba(0,0,0,0.18); }
+    .ep-play-btn {
+      width:52px; height:52px; border-radius:50%;
+      background:var(--gold); display:flex; align-items:center; justify-content:center;
+      transition:transform 0.2s, box-shadow 0.2s;
+      box-shadow:0 4px 20px rgba(0,0,0,0.4);
+    }
+    .ep-card:hover .ep-play-btn { transform:scale(1.1); box-shadow:0 6px 28px rgba(244,201,72,0.5); }
+    .ep-play-btn svg { width:20px; height:20px; fill:var(--ink); margin-left:3px; }
+    .ep-badge { position:absolute; top:10px; left:10px; background:var(--gold); color:var(--ink); font-size:0.68rem; font-weight:700; padding:3px 8px; border-radius:4px; z-index:2; }
+    .ep-track { position:absolute; top:10px; right:10px; background:rgba(0,0,0,0.7); color:#ffffff; font-size:0.65rem; font-weight:600; padding:3px 8px; border-radius:4px; z-index:2; }
     .ep-body { padding:1rem 1.2rem; }
     .ep-num { font-size:0.68rem; font-weight:700; color:var(--gold-dim); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.3rem; }
-    .ep-title { font-size:0.9rem; font-weight:600; color:var(--ink); line-height:1.4; margin-bottom:0.5rem; }
-    .ep-link { font-size:0.8rem; color:var(--gold-dim); text-decoration:none; font-weight:500; }
-    .ep-link:hover { text-decoration:underline; }
+    .ep-title { font-size:0.9rem; font-weight:600; color:var(--ink); line-height:1.4; margin-bottom:0.4rem; }
+    .ep-dur { font-size:0.78rem; color:var(--muted); }
+
+    /* ── MODAL PLAYER ──────────────────────────────────── */
+    .modal-overlay {
+      position:fixed; inset:0; z-index:1000;
+      background:rgba(0,0,0,0.96);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none;
+      transition:opacity 0.3s;
+    }
+    .modal-overlay.open { opacity:1; pointer-events:all; }
+    .modal-header {
+      width:100%; max-width:900px;
+      display:flex; justify-content:space-between; align-items:flex-start;
+      padding:1.2rem 1.5rem 0.8rem;
+    }
+    .modal-ep { font-size:0.7rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); margin-bottom:0.3rem; }
+    .modal-title { font-family:'Playfair Display',serif; font-size:1.1rem; color:#ffffff; line-height:1.4; max-width:700px; }
+    .modal-close {
+      background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
+      color:#ffffff; width:36px; height:36px; border-radius:50%;
+      font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; margin-left:1rem; transition:background 0.2s;
+    }
+    .modal-close:hover { background:rgba(255,255,255,0.18); }
+    .modal-player {
+      width:100%; max-width:900px;
+      aspect-ratio:16/9;
+      background:#000;
+      position:relative;
+    }
+    .modal-player iframe {
+      width:100%; height:100%; border:none; display:block;
+    }
+    .modal-footer {
+      width:100%; max-width:900px;
+      padding:0.8rem 1.5rem;
+      display:flex; align-items:center; gap:1rem;
+    }
+    .modal-studio { font-size:0.75rem; color:rgba(255,255,255,0.3); letter-spacing:0.05em; }
+    .modal-studio span { color:var(--gold); }
 
     /* ── BATCHES ───────────────────────────────────────── */
     #batches { background:var(--paper2); padding:90px 5vw; }
@@ -396,40 +456,86 @@
   <div class="vid-lib" id="vidLib">
     <p class="ep-lbl">Foundations — All Students</p>
     <div class="ep-grid">
-      <div class="ep-card">
-        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/naUyVYZzo2Y" allowfullscreen></iframe><span class="ep-badge">EP 01</span></div>
-        <div class="ep-body"><p class="ep-num">Episode 01</p><p class="ep-title">Every Drawing Tool You Need as a Beginner | Pencils, Paper, Erasers and More</p><a class="ep-link" href="https://youtu.be/naUyVYZzo2Y" target="_blank">Watch on YouTube ↗</a></div>
+      <div class="ep-card" onclick="openPlayer('naUyVYZzo2Y','Episode 01','Every Drawing Tool You Need as a Beginner | Pencils, Paper, Erasers and More')">
+        <div class="ep-thumb">
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/naUyVYZzo2Y/mqdefault.jpg" alt="EP01 thumbnail"/>
+          <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+          <span class="ep-badge">EP 01</span>
+        </div>
+        <div class="ep-body"><p class="ep-num">Episode 01</p><p class="ep-title">Every Drawing Tool You Need as a Beginner | Pencils, Paper, Erasers and More</p></div>
       </div>
-      <div class="ep-card">
-        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/rGCoXfIMats" allowfullscreen></iframe><span class="ep-badge">EP 03</span></div>
-        <div class="ep-body"><p class="ep-num">Episode 03</p><p class="ep-title">Drawing Warm Up Exercises Every Beginner Must Know | Lines, Curves, Circles and More</p><a class="ep-link" href="https://youtu.be/rGCoXfIMats" target="_blank">Watch on YouTube ↗</a></div>
+      <div class="ep-card" onclick="openPlayer('rGCoXfIMats','Episode 03','Drawing Warm Up Exercises Every Beginner Must Know | Lines, Curves, Circles and More')">
+        <div class="ep-thumb">
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/rGCoXfIMats/mqdefault.jpg" alt="EP03 thumbnail"/>
+          <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+          <span class="ep-badge">EP 03</span>
+        </div>
+        <div class="ep-body"><p class="ep-num">Episode 03</p><p class="ep-title">Drawing Warm Up Exercises Every Beginner Must Know | Lines, Curves, Circles and More</p></div>
       </div>
-      <div class="ep-card">
-        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/snltJhqqrb0" allowfullscreen></iframe><span class="ep-badge">EP 04</span></div>
-        <div class="ep-body"><p class="ep-num">Episode 04</p><p class="ep-title">Grid Method for Beginners | How to Draw Accurate Portraits + Free Android App Tutorial</p><a class="ep-link" href="https://youtu.be/snltJhqqrb0" target="_blank">Watch on YouTube ↗</a></div>
+      <div class="ep-card" onclick="openPlayer('snltJhqqrb0','Episode 04','Grid Method for Beginners | How to Draw Accurate Portraits + Free Android App Tutorial')">
+        <div class="ep-thumb">
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/snltJhqqrb0/mqdefault.jpg" alt="EP04 thumbnail"/>
+          <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+          <span class="ep-badge">EP 04</span>
+        </div>
+        <div class="ep-body"><p class="ep-num">Episode 04</p><p class="ep-title">Grid Method for Beginners | How to Draw Accurate Portraits + Free Android App Tutorial</p></div>
       </div>
-      <div class="ep-card">
-        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/4p0U-0fJeZY" allowfullscreen></iframe><span class="ep-badge">EP 07</span></div>
-        <div class="ep-body"><p class="ep-num">Episode 07</p><p class="ep-title">11 Shading Mistakes Every Beginner Makes | Pencil Drawing Tips</p><a class="ep-link" href="https://youtu.be/4p0U-0fJeZY" target="_blank">Watch on YouTube ↗</a></div>
+      <div class="ep-card" onclick="openPlayer('4p0U-0fJeZY','Episode 07','11 Shading Mistakes Every Beginner Makes | Pencil Drawing Tips')">
+        <div class="ep-thumb">
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/4p0U-0fJeZY/mqdefault.jpg" alt="EP07 thumbnail"/>
+          <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+          <span class="ep-badge">EP 07</span>
+        </div>
+        <div class="ep-body"><p class="ep-num">Episode 07</p><p class="ep-title">11 Shading Mistakes Every Beginner Makes | Pencil Drawing Tips</p></div>
       </div>
     </div>
+
     <p class="ep-lbl">Advanced Track — Summer Batch Students</p>
     <div class="ep-grid">
-      <div class="ep-card">
-        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/b81-VX1EGOQ" allowfullscreen></iframe><span class="ep-badge">EP 02</span><span class="ep-track">Summer Batch</span></div>
-        <div class="ep-body"><p class="ep-num">Episode 02 · Advanced</p><p class="ep-title">How to Draw a Realistic Coconut | Texture, Fibres and Shading | Charcoal Pencil Tutorial</p><a class="ep-link" href="https://youtu.be/b81-VX1EGOQ" target="_blank">Watch on YouTube ↗</a></div>
+      <div class="ep-card" onclick="openPlayer('b81-VX1EGOQ','Episode 02 · Advanced','How to Draw a Realistic Coconut | Texture, Fibres and Shading | Charcoal Pencil Tutorial')">
+        <div class="ep-thumb">
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/b81-VX1EGOQ/mqdefault.jpg" alt="EP02 thumbnail"/>
+          <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+          <span class="ep-badge">EP 02</span><span class="ep-track">Summer Batch</span>
+        </div>
+        <div class="ep-body"><p class="ep-num">Episode 02 · Advanced</p><p class="ep-title">How to Draw a Realistic Coconut | Texture, Fibres and Shading | Charcoal Pencil Tutorial</p></div>
       </div>
-      <div class="ep-card">
-        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/oxrkTgeYBkU" allowfullscreen></iframe><span class="ep-badge">EP 05</span><span class="ep-track">Summer Batch</span></div>
-        <div class="ep-body"><p class="ep-num">Episode 05 · Advanced</p><p class="ep-title">How to Draw Pikachu Using Grid Method | Realistic Grid Drawing for Beginners</p><a class="ep-link" href="https://youtu.be/oxrkTgeYBkU" target="_blank">Watch on YouTube ↗</a></div>
+      <div class="ep-card" onclick="openPlayer('oxrkTgeYBkU','Episode 05 · Advanced','How to Draw Pikachu Using Grid Method | Realistic Grid Drawing for Beginners')">
+        <div class="ep-thumb">
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/oxrkTgeYBkU/mqdefault.jpg" alt="EP05 thumbnail"/>
+          <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+          <span class="ep-badge">EP 05</span><span class="ep-track">Summer Batch</span>
+        </div>
+        <div class="ep-body"><p class="ep-num">Episode 05 · Advanced</p><p class="ep-title">How to Draw Pikachu Using Grid Method | Realistic Grid Drawing for Beginners</p></div>
       </div>
-      <div class="ep-card">
-        <div class="ep-thumb"><iframe src="https://www.youtube.com/embed/pNVg8riocAg" allowfullscreen></iframe><span class="ep-badge">EP 06</span><span class="ep-track">Summer Batch</span></div>
-        <div class="ep-body"><p class="ep-num">Episode 06 · Advanced</p><p class="ep-title">How to Draw a Realistic Lipstick | Metallic Shading | Charcoal Pencil Drawing Tutorial</p><a class="ep-link" href="https://youtu.be/pNVg8riocAg" target="_blank">Watch on YouTube ↗</a></div>
+      <div class="ep-card" onclick="openPlayer('pNVg8riocAg','Episode 06 · Advanced','How to Draw a Realistic Lipstick | Metallic Shading | Charcoal Pencil Drawing Tutorial')">
+        <div class="ep-thumb">
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/pNVg8riocAg/mqdefault.jpg" alt="EP06 thumbnail"/>
+          <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+          <span class="ep-badge">EP 06</span><span class="ep-track">Summer Batch</span>
+        </div>
+        <div class="ep-body"><p class="ep-num">Episode 06 · Advanced</p><p class="ep-title">How to Draw a Realistic Lipstick | Metallic Shading | Charcoal Pencil Drawing Tutorial</p></div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- MODAL PLAYER -->
+<div class="modal-overlay" id="modalOverlay" onclick="closePlayer(event)">
+  <div class="modal-header">
+    <div>
+      <p class="modal-ep" id="modalEp"></p>
+      <p class="modal-title" id="modalTitle"></p>
+    </div>
+    <button class="modal-close" onclick="closePlayer(null)">✕</button>
+  </div>
+  <div class="modal-player">
+    <iframe id="modalIframe" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+  </div>
+  <div class="modal-footer">
+    <p class="modal-studio"><span>Graphite & Charcoal Studio</span> · @universeofvivek</p>
+  </div>
+</div>
 
 <!-- BATCHES -->
 <section id="batches">
@@ -533,6 +639,27 @@
     let c = '';
     secs.forEach(s => { if(window.scrollY >= s.offsetTop - 80) c = s.id; });
     navAs.forEach(a => { a.style.color = a.getAttribute('href')==='#'+c ? '#F4C948' : ''; });
+  });
+
+  /* ── Modal player ── */
+  function openPlayer(videoId, epNum, title) {
+    document.getElementById('modalEp').textContent = epNum;
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalIframe').src =
+      `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+    document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePlayer(e) {
+    if (e && e.target !== document.getElementById('modalOverlay')) return;
+    document.getElementById('modalIframe').src = '';
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePlayer(null);
   });
 </script>
 </body>
