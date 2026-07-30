@@ -48,10 +48,10 @@
       display: flex; align-items: center; justify-content: center;
       overflow: hidden;
     }
-    .hero-slides { position:absolute; inset:0; }
+    .hero-slides { position:absolute; inset:0; background:#000000; }
     .hero-slide {
       position:absolute; inset:0;
-      background-size:cover; background-position:center;
+      background-size:contain; background-position:center; background-repeat:no-repeat;
       opacity:0; transition:opacity 1.2s ease;
     }
     .hero-slide.active { opacity:1; }
