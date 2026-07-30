@@ -66,13 +66,6 @@
     .hero-img-side {
       position: relative; overflow: hidden;
     }
-    .hero-slides { position:absolute; inset:0; background:#000000; }
-    .hero-slide {
-      position:absolute; inset:0;
-      background-size:contain; background-position:center; background-repeat:no-repeat;
-      opacity:0; transition:opacity 1.2s ease;
-    }
-    .hero-slide.active { opacity:1; }
     .hero-img-fade {
       position:absolute; inset:0;
       background: linear-gradient(to right, var(--ink) 0%, transparent 25%);
@@ -127,13 +120,6 @@
     .btn-gold:hover { background:#e8bc30; transform:translateY(-1px); box-shadow:0 6px 20px rgba(244,201,72,0.35); }
     .btn-ghost { background:transparent; color:#ffffff; border:1.5px solid rgba(255,255,255,0.35); }
     .btn-ghost:hover { border-color:var(--gold); color:var(--gold); }
-    .slide-dots {
-      position:absolute; bottom:2.5rem; left:0;
-      display:flex; gap:8px; z-index:3;
-      padding: 0 5vw;
-    }
-    .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.3); cursor:pointer; transition:all 0.3s; }
-    .dot.active { background:var(--gold); width:20px; border-radius:3px; }
     @media(max-width:720px){
       .hero { grid-template-columns:1fr; }
       .hero-img-side { height:55vw; }
@@ -387,20 +373,9 @@
       <a href="#contact" class="btn btn-gold">Enrol Now</a>
       <a href="#gallery" class="btn btn-ghost">See the Work</a>
     </div>
-    <div class="slide-dots" id="dots">
-      <div class="dot active" onclick="goSlide(0)"></div>
-      <div class="dot" onclick="goSlide(1)"></div>
-      <div class="dot" onclick="goSlide(2)"></div>
-      <div class="dot" onclick="goSlide(3)"></div>
-    </div>
   </div>
   <div class="hero-img-side">
-    <div class="hero-slides">
-      <div class="hero-slide active" style="background-image:url('/gcs-website/assets/hero1.jpg')"></div>
-      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero2.jpg')"></div>
-      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero3.jpg')"></div>
-      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero4.jpg')"></div>
-    </div>
+    <img src="/gcs-website/assets/caricature.jpeg" alt="Vivek Patil — Principal Engineer and Artist" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;"/>
     <div class="hero-img-fade"></div>
   </div>
 </section>
@@ -582,38 +557,32 @@
 
 <!-- ABOUT -->
 <section id="about">
-  <div class="about-wrap">
-    <div class="about-img-wrap">
-      <img src="/gcs-website/assets/vivek-caricature.jpg" alt="Vivek Patil — Principal Engineer and Artist"/>
-      <div class="about-img-badge"><span>10+</span>Years of art</div>
+  <div style="max-width:900px;">
+    <p class="lbl">About Vivek Patil</p>
+    <h2 class="section-title">Engineer by profession.<br/>Artist by <em style="font-style:italic;color:var(--gold)">passion.</em><br/>Teacher by calling.</h2>
+
+    <div class="about-tags">
+      <span class="about-tag gold">Principal Engineer · Cohesity</span>
+      <span class="about-tag">Ex-Cisco · 9 Years</span>
+      <span class="about-tag">IIIT Bangalore · MTech</span>
+      <span class="about-tag gold">University Topper · UoP</span>
+      <span class="about-tag">Maharashtra · Latur · Pune · Bangalore</span>
+      <span class="about-tag">Meditator</span>
     </div>
-    <div class="about-text">
-      <p class="lbl">About Vivek Patil</p>
-      <h2>Engineer by profession.<br/>Artist by <em style="font-style:italic;color:var(--gold)">passion.</em><br/>Teacher by calling.</h2>
 
-      <div class="about-tags">
-        <span class="about-tag gold">Principal Engineer · Cohesity</span>
-        <span class="about-tag">Ex-Cisco · 9 Years</span>
-        <span class="about-tag">IIIT Bangalore · MTech</span>
-        <span class="about-tag gold">University Topper · UoP</span>
-        <span class="about-tag">Maharashtra · Latur · Pune · Bangalore</span>
-        <span class="about-tag">Meditator</span>
-      </div>
+    <p style="font-size:0.95rem;color:#999999;line-height:1.85;margin-bottom:1rem;margin-top:1.5rem;">Vivek Patil is a Principal Engineer at Cohesity, where he builds AI-driven automation solutions for some of the world's largest enterprises. Before that, he spent nine years at Cisco as a Solutions Architect — designing, delivering and explaining complex systems to the people who depend on them. He holds an MTech from IIIT Bangalore and graduated as University Topper from the University of Pune among over 14,000 students.</p>
 
-      <p>Vivek Patil is a Principal Engineer at Cohesity, where he builds AI-driven automation solutions for some of the world's largest enterprises. Before that, he spent nine years at Cisco as a Solutions Architect — designing, delivering and explaining complex systems to the people who depend on them. He holds an MTech from IIIT Bangalore and graduated as University Topper from the University of Pune among over 14,000 students.</p>
+    <p style="font-size:0.95rem;color:#999999;line-height:1.85;margin-bottom:1rem;">Vivek's art journey began early but came to a halt after 10th class — the familiar story of studies taking over. Years later, after his MTech, he picked up the pencil again. What followed was a quiet, self-taught obsession with realistic portraiture, shading and light — the same discipline and patience he brings to every system he architects.</p>
 
-      <p>Vivek's art journey began early but came to a halt after 10th class — the familiar story of studies taking over. Years later, after his MTech, he picked up the pencil again. What followed was a quiet, self-taught obsession with realistic portraiture, shading and light — the same discipline and patience he brings to every system he architects.</p>
+    <blockquote class="about-quote">"What is this earth without Art? Just a rock."</blockquote>
 
-      <blockquote class="about-quote">"What is this earth without Art? Just a rock."</blockquote>
+    <p style="font-size:0.95rem;color:#999999;line-height:1.85;margin-bottom:1rem;">What makes Vivek's teaching rare is the bridge he builds between analytical thinking and artistic intuition. He teaches drawing the way great engineers approach problems — breaking complexity into layers, building from fundamentals, and training the eye to observe what is actually there rather than what the brain assumes. Paired with a meditative, unhurried approach to learning, his classes build far more than drawing skills. They build focus, patience and a quiet confidence that carries into everything a student does.</p>
 
-      <p>What makes Vivek's teaching rare is the bridge he builds between analytical thinking and artistic intuition. He teaches drawing the way great engineers approach problems — breaking complexity into layers, building from fundamentals, and training the eye to observe what is actually there rather than what the brain assumes. Paired with a meditative, unhurried approach to learning, his classes build far more than drawing skills. They build focus, patience and a quiet confidence that carries into everything a student does.</p>
-
-      <div class="about-stats">
-        <div class="astat"><div class="astat-n">50+</div><div class="astat-l">Students</div></div>
-        <div class="astat"><div class="astat-n">10+</div><div class="astat-l">Years drawing</div></div>
-        <div class="astat"><div class="astat-n">100+</div><div class="astat-l">Hrs of content</div></div>
-        <div class="astat"><div class="astat-n">∞</div><div class="astat-l">Comp classes</div></div>
-      </div>
+    <div class="about-stats">
+      <div class="astat"><div class="astat-n">50+</div><div class="astat-l">Students</div></div>
+      <div class="astat"><div class="astat-n">10+</div><div class="astat-l">Years drawing</div></div>
+      <div class="astat"><div class="astat-n">100+</div><div class="astat-l">Hrs of content</div></div>
+      <div class="astat"><div class="astat-n">∞</div><div class="astat-l">Comp classes</div></div>
     </div>
   </div>
 </section>
@@ -647,19 +616,6 @@
 </footer>
 
 <script>
-  /* ── Hero slideshow ── */
-  let cur = 0;
-  const slides = document.querySelectorAll('.hero-slide');
-  const dots   = document.querySelectorAll('.dot');
-  function goSlide(n) {
-    slides[cur].classList.remove('active');
-    dots[cur].classList.remove('active');
-    cur = n;
-    slides[cur].classList.add('active');
-    dots[cur].classList.add('active');
-  }
-  setInterval(() => goSlide((cur + 1) % slides.length), 5000);
-
   /* ── Gallery drag scroll ── */
   const gs = document.getElementById('galleryScroll');
   let isDragging = false, startX, scrollLeft;
