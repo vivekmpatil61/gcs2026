@@ -66,6 +66,20 @@
     .hero-img-side {
       position: relative; overflow: hidden;
     }
+    .hero-slides { position:absolute; inset:0; background:#000000; }
+    .hero-slide {
+      position:absolute; inset:0;
+      background-size:contain; background-position:center; background-repeat:no-repeat;
+      opacity:0; transition:opacity 1.2s ease;
+    }
+    .hero-slide.active { opacity:1; }
+    .slide-dots {
+      position:absolute; bottom:2.5rem; left:0;
+      display:flex; gap:8px; z-index:3;
+      padding: 0 5vw;
+    }
+    .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.3); cursor:pointer; transition:all 0.3s; }
+    .dot.active { background:var(--gold); width:20px; border-radius:3px; }
     .hero-img-fade {
       position:absolute; inset:0;
       background: linear-gradient(to right, var(--ink) 0%, transparent 25%);
@@ -365,17 +379,27 @@
 <!-- HERO -->
 <section class="hero" id="top">
   <div class="hero-text-side">
-    <p class="hero-eyebrow">Bhuvi by Amsha · Bangalore · Every Saturday</p>
     <p class="hero-studio-name">Graphite<br/>&amp; Charcoal<br/>Studio</p>
     <h1>Where pencils<br/>meet <em>patience.</em></h1>
-    <p class="hero-sub">Weekly drawing classes for kids and adults. Realistic portraits, shading, charcoal — taught with individual attention.</p>
+    <p class="hero-sub">Weekly drawing classes for kids and adults. Realistic portraits, shading, charcoal - taught with individual attention.</p>
     <div class="hero-btns">
       <a href="#contact" class="btn btn-gold">Enrol Now</a>
       <a href="#gallery" class="btn btn-ghost">See the Work</a>
     </div>
+    <div class="slide-dots" id="dots">
+      <div class="dot active" onclick="goSlide(0)"></div>
+      <div class="dot" onclick="goSlide(1)"></div>
+      <div class="dot" onclick="goSlide(2)"></div>
+      <div class="dot" onclick="goSlide(3)"></div>
+    </div>
   </div>
   <div class="hero-img-side">
-    <img src="/gcs-website/assets/caricature.jpeg" alt="Vivek Patil — Principal Engineer and Artist" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block;"/>
+    <div class="hero-slides">
+      <div class="hero-slide active" style="background-image:url('/gcs-website/assets/hero1.jpg')"></div>
+      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero2.jpg')"></div>
+      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero3.jpg')"></div>
+      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero4.jpg')"></div>
+    </div>
     <div class="hero-img-fade"></div>
   </div>
 </section>
@@ -406,7 +430,7 @@
 <section id="curriculum">
   <p class="lbl">Curriculum</p>
   <h2>A full year of real art.</h2>
-  <p>Four progressive terms, each building on the last. Every student reaches the same goal by March — regardless of where they started.</p>
+  <p>Four progressive terms, each building on the last. Every student reaches the same goal by March - regardless of where they started.</p>
   <div class="cur-grid">
     <div class="cur-card">
       <p class="cur-wk">Term 1 · Jul – Sep</p>
@@ -426,7 +450,7 @@
     <div class="cur-card">
       <p class="cur-wk">All Year</p>
       <h3 class="cur-title">Weekly Private Tutorials</h3>
-      <p class="cur-desc">Exclusive YouTube tutorials uploaded every week — scripted as individual tutoring sessions. Watch at home, practise, then deepen in class.</p>
+      <p class="cur-desc">Exclusive YouTube tutorials uploaded every week - scripted as individual tutoring sessions. Watch at home, practise, then deepen in class.</p>
     </div>
   </div>
 </section>
@@ -460,7 +484,7 @@
       </div>
       <button class="vid-signout-btn" onclick="signOut()">Sign out</button>
     </div>
-    <p class="ep-lbl">Foundations — All Students</p>
+    <p class="ep-lbl">Foundations - All Students</p>
     <div class="ep-grid">
       <div class="ep-card" onclick="openPlayer('naUyVYZzo2Y','Episode 01','Every Drawing Tool You Need as a Beginner | Pencils, Paper, Erasers and More')">
         <div class="ep-thumb">
@@ -496,7 +520,7 @@
       </div>
     </div>
 
-    <p class="ep-lbl">Advanced Track — Summer Batch Students</p>
+    <p class="ep-lbl">Advanced Track - Summer Batch Students</p>
     <div class="ep-grid">
       <div class="ep-card" onclick="openPlayer('b81-VX1EGOQ','Episode 02 · Advanced','How to Draw a Realistic Coconut | Texture, Fibres and Shading | Charcoal Pencil Tutorial')">
         <div class="ep-thumb">
@@ -548,7 +572,7 @@
   <p class="lbl">How it works</p>
   <h2>Watch. Practise. Create.</h2>
   <div class="steps">
-    <div class="step"><div class="step-n">01</div><p class="step-t">Watch the tutorial</p><p class="step-d">A private tutorial is uploaded every week — scripted like a personal teaching session.</p></div>
+    <div class="step"><div class="step-n">01</div><p class="step-t">Watch the tutorial</p><p class="step-d">A private tutorial is uploaded every week - scripted like a personal teaching session.</p></div>
     <div class="step"><div class="step-n">02</div><p class="step-t">Practise at home</p><p class="step-d">Draw along with the video before Saturday. Come to class already halfway there.</p></div>
     <div class="step"><div class="step-n">03</div><p class="step-t">Deepen in class</p><p class="step-d">Same concept, different drawings. Doubts get cleared, technique gets sharper, confidence grows.</p></div>
     <div class="step"><div class="step-n">04</div><p class="step-t">Missed a class?</p><p class="step-d">The weekly tutorial is always there. No one falls behind. No caps, no conditions.</p></div>
@@ -557,32 +581,37 @@
 
 <!-- ABOUT -->
 <section id="about">
-  <div style="max-width:900px;">
-    <p class="lbl">About Vivek Patil</p>
-    <h2 class="section-title">Engineer by profession.<br/>Artist by <em style="font-style:italic;color:var(--gold)">passion.</em><br/>Teacher by calling.</h2>
+  <div class="about-wrap">
+    <div class="about-text">
+      <p class="lbl">About Vivek Patil</p>
+      <h2 class="section-title">Engineer by profession.<br/>Artist by <em style="font-style:italic;color:var(--gold)">passion.</em><br/>Teacher by calling.</h2>
 
-    <div class="about-tags">
-      <span class="about-tag gold">Principal Engineer · Cohesity</span>
-      <span class="about-tag">Ex-Cisco · 9 Years</span>
-      <span class="about-tag">IIIT Bangalore · MTech</span>
-      <span class="about-tag gold">University Topper · UoP</span>
-      <span class="about-tag">Maharashtra · Latur · Pune · Bangalore</span>
-      <span class="about-tag">Meditator</span>
+      <div class="about-tags">
+        <span class="about-tag gold">Principal Engineer · Cohesity</span>
+        <span class="about-tag">Ex-Cisco · 9 Years</span>
+        <span class="about-tag">IIIT Bangalore · MTech</span>
+        <span class="about-tag gold">University Topper · UoP</span>
+        <span class="about-tag">Maharashtra · Latur · Pune · Bangalore</span>
+        <span class="about-tag">Meditator</span>
+      </div>
+
+      <p style="font-size:0.95rem;color:#999999;line-height:1.85;margin-bottom:1rem;margin-top:1.5rem;">Vivek Patil is a Principal Engineer at Cohesity, where he builds AI-driven automation solutions for some of the world's largest enterprises. Before that, he spent nine years at Cisco as a Solutions Architect - designing, delivering and explaining complex systems to the people who depend on them. He holds an MTech from IIIT Bangalore and graduated as University Topper from the University of Pune among over 14,000 students.</p>
+
+      <p style="font-size:0.95rem;color:#999999;line-height:1.85;margin-bottom:1rem;">Vivek's art journey began early but came to a halt after 10th class - the familiar story of studies taking over. Years later, after his MTech, he picked up the pencil again. What followed was a quiet, self-taught obsession with realistic portraiture, shading and light - the same discipline and patience he brings to every system he architects.</p>
+
+      <blockquote class="about-quote">"What is this earth without Art? Just a rock."</blockquote>
+
+      <p style="font-size:0.95rem;color:#999999;line-height:1.85;margin-bottom:1rem;">What makes Vivek's teaching rare is the bridge he builds between analytical thinking and artistic intuition. He teaches drawing the way great engineers approach problems - breaking complexity into layers, building from fundamentals, and training the eye to observe what is actually there rather than what the brain assumes. Paired with a meditative, unhurried approach to learning, his classes build far more than drawing skills. They build focus, patience and a quiet confidence that carries into everything a student does.</p>
+
+      <div class="about-stats">
+        <div class="astat"><div class="astat-n">50+</div><div class="astat-l">Students</div></div>
+        <div class="astat"><div class="astat-n">10+</div><div class="astat-l">Years drawing</div></div>
+        <div class="astat"><div class="astat-n">100+</div><div class="astat-l">Hrs of content</div></div>
+        <div class="astat"><div class="astat-n">∞</div><div class="astat-l">Comp classes</div></div>
+      </div>
     </div>
-
-    <p style="font-size:0.95rem;color:#999999;line-height:1.85;margin-bottom:1rem;margin-top:1.5rem;">Vivek Patil is a Principal Engineer at Cohesity, where he builds AI-driven automation solutions for some of the world's largest enterprises. Before that, he spent nine years at Cisco as a Solutions Architect — designing, delivering and explaining complex systems to the people who depend on them. He holds an MTech from IIIT Bangalore and graduated as University Topper from the University of Pune among over 14,000 students.</p>
-
-    <p style="font-size:0.95rem;color:#999999;line-height:1.85;margin-bottom:1rem;">Vivek's art journey began early but came to a halt after 10th class — the familiar story of studies taking over. Years later, after his MTech, he picked up the pencil again. What followed was a quiet, self-taught obsession with realistic portraiture, shading and light — the same discipline and patience he brings to every system he architects.</p>
-
-    <blockquote class="about-quote">"What is this earth without Art? Just a rock."</blockquote>
-
-    <p style="font-size:0.95rem;color:#999999;line-height:1.85;margin-bottom:1rem;">What makes Vivek's teaching rare is the bridge he builds between analytical thinking and artistic intuition. He teaches drawing the way great engineers approach problems — breaking complexity into layers, building from fundamentals, and training the eye to observe what is actually there rather than what the brain assumes. Paired with a meditative, unhurried approach to learning, his classes build far more than drawing skills. They build focus, patience and a quiet confidence that carries into everything a student does.</p>
-
-    <div class="about-stats">
-      <div class="astat"><div class="astat-n">50+</div><div class="astat-l">Students</div></div>
-      <div class="astat"><div class="astat-n">10+</div><div class="astat-l">Years drawing</div></div>
-      <div class="astat"><div class="astat-n">100+</div><div class="astat-l">Hrs of content</div></div>
-      <div class="astat"><div class="astat-n">∞</div><div class="astat-l">Comp classes</div></div>
+    <div class="about-img-wrap">
+      <img src="/gcs-website/assets/caricature.jpeg" alt="Vivek Patil - Principal Engineer and Artist"/>
     </div>
   </div>
 </section>
@@ -616,6 +645,19 @@
 </footer>
 
 <script>
+  /* ── Hero slideshow ── */
+  let cur = 0;
+  const slides = document.querySelectorAll('.hero-slide');
+  const dots   = document.querySelectorAll('.dot');
+  function goSlide(n) {
+    slides[cur].classList.remove('active');
+    dots[cur].classList.remove('active');
+    cur = n;
+    slides[cur].classList.add('active');
+    dots[cur].classList.add('active');
+  }
+  setInterval(() => goSlide((cur + 1) % slides.length), 5000);
+
   /* ── Gallery drag scroll ── */
   const gs = document.getElementById('galleryScroll');
   let isDragging = false, startX, scrollLeft;
