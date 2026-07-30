@@ -771,26 +771,32 @@
       document.getElementById('pwLoading').style.display = 'none';
 
       if (data.approved) {
-        // Show welcome
-        document.getElementById('pwWelcome').textContent =
-          `Welcome, ${user.given_name || email.split('@')[0]}! Opening your tutorials…`;
-        document.getElementById('pwWelcome').style.display = 'block';
-
-        // Set user chip
-        document.getElementById('vidUserAvatar').src = user.picture || '';
-        document.getElementById('vidUserEmail').textContent = email;
-
         // Store approval in sessionStorage so new tab can read it
         sessionStorage.setItem('gcs_approved', '1');
         sessionStorage.setItem('gcs_name', user.given_name || email.split('@')[0]);
         sessionStorage.setItem('gcs_email', email);
         sessionStorage.setItem('gcs_avatar', user.picture || '');
 
-        setTimeout(() => {
-          window.open(window.location.origin + window.location.pathname + '?tutorials=1', '_blank');
+        // Set user chip
+        document.getElementById('vidUserAvatar').src = user.picture || '';
+        document.getElementById('vidUserEmail').textContent = email;
+
+        // Open new tab immediately — no setTimeout to avoid popup block
+        const newTab = window.open(window.location.origin + window.location.pathname + '?tutorials=1', '_blank');
+
+        // Show welcome
+        document.getElementById('pwLoading').style.display = 'none';
+        if (newTab) {
           document.getElementById('pwWelcome').textContent =
             `Tutorials opened in a new tab. Welcome, ${user.given_name || email.split('@')[0]}!`;
-        }, 1000);
+        } else {
+          // Fallback if popup was blocked — unlock in same page
+          document.getElementById('pwGate').style.display = 'none';
+          document.getElementById('vidLib').classList.add('open');
+          document.getElementById('pwWelcome').textContent =
+            `Welcome, ${user.given_name || email.split('@')[0]}! Tutorials unlocked.`;
+        }
+        document.getElementById('pwWelcome').style.display = 'block';
       } else {
         showErr(`This Google account (${email}) is not registered. Please contact Vivek on 8553082800.`);
       }
