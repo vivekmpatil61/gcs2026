@@ -150,6 +150,7 @@
       display:flex; gap:1rem; padding:0 5vw;
       overflow-x:auto; scroll-snap-type:x mandatory;
       scrollbar-width:none; cursor:grab;
+      align-items:flex-end;
     }
     .gallery-scroll::-webkit-scrollbar { display:none; }
     .gallery-scroll.dragging { cursor:grabbing; }
@@ -157,10 +158,10 @@
       flex-shrink:0; scroll-snap-align:start;
       border-radius:var(--r); overflow:hidden;
       position:relative; background:var(--ink);
-      transition:transform 0.3s;
+      transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease;
+      transform-origin: bottom center;
     }
-    .gallery-item:hover { transform:scale(1.02); }
-    .gallery-item img { display:block; height:280px; width:220px; object-fit:cover; object-position:center top; }
+    .gallery-item img { display:block; height:280px; width:220px; object-fit:cover; object-position:center top; transition: width 0.3s ease, height 0.3s ease; }
     .gallery-item .caption {
       position:absolute; bottom:0; left:0; right:0;
       background:linear-gradient(to top, rgba(0,0,0,0.8), transparent);
@@ -723,6 +724,43 @@
   gs.addEventListener('mouseleave', () => { isDragging=false; gs.classList.remove('dragging'); });
   gs.addEventListener('mouseup', () => { isDragging=false; gs.classList.remove('dragging'); });
   gs.addEventListener('mousemove', e => { if(!isDragging) return; e.preventDefault(); const x=e.pageX-gs.offsetLeft; gs.scrollLeft=scrollLeft-(x-startX)*1.5; });
+
+  /* ── Gallery dock magnification ── */
+  const galleryItems = document.querySelectorAll('.gallery-item');
+  const BASE_H = 280, BASE_W = 220;
+  const MAX_H  = 420, MAX_W  = 330;
+  const SPREAD = 2; // how many neighbours get partial magnification
+
+  function getDist(itemEl, mouseX) {
+    const rect = itemEl.getBoundingClientRect();
+    const center = rect.left + rect.width / 2;
+    return Math.abs(mouseX - center);
+  }
+
+  function applyDock(mouseX) {
+    galleryItems.forEach(item => {
+      const dist = getDist(item, mouseX);
+      const maxDist = (BASE_W + 16) * (SPREAD + 1);
+      const ratio = Math.max(0, 1 - dist / maxDist);
+      const scale = 1 + (MAX_H / BASE_H - 1) * ratio;
+      const h = Math.round(BASE_H * scale);
+      const w = Math.round(BASE_W * scale);
+      item.querySelector('img').style.height = h + 'px';
+      item.querySelector('img').style.width  = w + 'px';
+    });
+  }
+
+  function resetDock() {
+    galleryItems.forEach(item => {
+      item.querySelector('img').style.height = BASE_H + 'px';
+      item.querySelector('img').style.width  = BASE_W + 'px';
+    });
+  }
+
+  gs.addEventListener('mousemove', e => {
+    if (!isDragging) applyDock(e.clientX);
+  });
+  gs.addEventListener('mouseleave', resetDock);
 
   /* ── Google Sign-In ── */
   // REPLACE THIS with your actual values after setup
