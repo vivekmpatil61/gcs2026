@@ -45,9 +45,19 @@
     /* ── HERO ──────────────────────────────────────────── */
     .hero {
       position: relative;
-      height: 100vh; min-height: 600px;
-      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       overflow: hidden;
+      background: var(--ink);
+    }
+    .hero-text-side {
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 8rem 5vw 6rem;
+      position: relative; z-index: 2;
+    }
+    .hero-img-side {
+      position: relative; overflow: hidden;
     }
     .hero-slides { position:absolute; inset:0; background:#000000; }
     .hero-slide {
@@ -56,14 +66,10 @@
       opacity:0; transition:opacity 1.2s ease;
     }
     .hero-slide.active { opacity:1; }
-    .hero-overlay {
+    .hero-img-fade {
       position:absolute; inset:0;
-      background: linear-gradient(135deg, rgba(13,13,13,0.88) 0%, rgba(13,13,13,0.6) 60%, rgba(13,13,13,0.82) 100%);
-    }
-    .hero-content {
-      position: relative; z-index:2;
-      text-align: center; padding: 0 5vw;
-      max-width: 860px;
+      background: linear-gradient(to right, var(--ink) 0%, transparent 25%);
+      z-index: 1;
     }
     .hero-eyebrow {
       display: inline-block;
@@ -71,34 +77,34 @@
       color:var(--gold); margin-bottom:1.4rem;
       border: 1px solid rgba(244,201,72,0.35);
       padding: 0.4rem 1rem; border-radius:20px;
+      width: fit-content;
     }
     .hero h1 {
       font-family:'Playfair Display',serif;
-      font-size: clamp(3rem, 7vw, 5.5rem);
+      font-size: clamp(2.6rem, 5vw, 4.5rem);
       color:#ffffff; line-height:1.05; margin-bottom:1.4rem;
     }
     .hero h1 em { font-style:italic; color:var(--gold); }
-    .hero-sub { font-size:1.05rem; color:rgba(255,255,255,0.7); max-width:520px; margin:0 auto 2.4rem; line-height:1.75; }
-    .hero-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+    .hero-sub { font-size:1rem; color:rgba(255,255,255,0.65); max-width:440px; margin:0 0 2.4rem; line-height:1.75; }
+    .hero-btns { display:flex; gap:1rem; flex-wrap:wrap; }
     .btn { display:inline-block; padding:0.75rem 1.8rem; border-radius:var(--r); font-size:0.88rem; font-weight:600; text-decoration:none; transition:all 0.2s; cursor:pointer; border:none; }
     .btn-gold { background:var(--gold); color:var(--ink); }
     .btn-gold:hover { background:#e8bc30; transform:translateY(-1px); box-shadow:0 6px 20px rgba(244,201,72,0.35); }
     .btn-ghost { background:transparent; color:#ffffff; border:1.5px solid rgba(255,255,255,0.35); }
     .btn-ghost:hover { border-color:var(--gold); color:var(--gold); }
-    .hero-scroll {
-      position:absolute; bottom:2rem; left:50%; transform:translateX(-50%);
-      display:flex; flex-direction:column; align-items:center; gap:0.5rem;
-      color:rgba(255,255,255,0.4); font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase;
-      animation: bounce 2s infinite;
-    }
-    .hero-scroll-line { width:1px; height:40px; background:linear-gradient(to bottom, rgba(255,255,255,0.4), transparent); }
-    @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(6px)} }
     .slide-dots {
-      position:absolute; bottom:3.5rem; left:50%; transform:translateX(-50%);
+      position:absolute; bottom:2.5rem; left:0;
       display:flex; gap:8px; z-index:3;
+      padding: 0 5vw;
     }
     .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.3); cursor:pointer; transition:all 0.3s; }
     .dot.active { background:var(--gold); width:20px; border-radius:3px; }
+    @media(max-width:720px){
+      .hero { grid-template-columns:1fr; }
+      .hero-img-side { height:55vw; }
+      .hero-img-fade { background: linear-gradient(to top, var(--ink) 0%, transparent 40%); }
+      .hero-text-side { padding: 2rem 5vw 4rem; }
+    }
 
     /* ── VALUE STRIP ───────────────────────────────────── */
     .strip {
@@ -353,14 +359,7 @@
 
 <!-- HERO -->
 <section class="hero" id="top">
-  <div class="hero-slides">
-    <div class="hero-slide active" style="background-image:url('/gcs-website/assets/hero1.jpg')"></div>
-    <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero2.jpg')"></div>
-    <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero3.jpg')"></div>
-    <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero4.jpg')"></div>
-  </div>
-  <div class="hero-overlay"></div>
-  <div class="hero-content">
+  <div class="hero-text-side">
     <p class="hero-eyebrow">Bhuvi by Amsha · Bangalore · Every Saturday</p>
     <h1>Where pencils<br/>meet <em>patience.</em></h1>
     <p class="hero-sub">Weekly drawing classes for kids and adults. Realistic portraits, shading, charcoal — taught with individual attention in small batches.</p>
@@ -368,14 +367,22 @@
       <a href="#contact" class="btn btn-gold">Enrol Now</a>
       <a href="#gallery" class="btn btn-ghost">See the Work</a>
     </div>
+    <div class="slide-dots" id="dots">
+      <div class="dot active" onclick="goSlide(0)"></div>
+      <div class="dot" onclick="goSlide(1)"></div>
+      <div class="dot" onclick="goSlide(2)"></div>
+      <div class="dot" onclick="goSlide(3)"></div>
+    </div>
   </div>
-  <div class="slide-dots" id="dots">
-    <div class="dot active" onclick="goSlide(0)"></div>
-    <div class="dot" onclick="goSlide(1)"></div>
-    <div class="dot" onclick="goSlide(2)"></div>
-    <div class="dot" onclick="goSlide(3)"></div>
+  <div class="hero-img-side">
+    <div class="hero-slides">
+      <div class="hero-slide active" style="background-image:url('/gcs-website/assets/hero1.jpg')"></div>
+      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero2.jpg')"></div>
+      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero3.jpg')"></div>
+      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero4.jpg')"></div>
+    </div>
+    <div class="hero-img-fade"></div>
   </div>
-  <div class="hero-scroll"><div class="hero-scroll-line"></div>Scroll</div>
 </section>
 
 <!-- VALUE STRIP -->
