@@ -150,6 +150,7 @@
       display:flex; gap:1rem; padding:0 5vw;
       overflow-x:auto; scroll-snap-type:x mandatory;
       scrollbar-width:none; cursor:grab;
+      align-items:flex-end;
     }
     .gallery-scroll::-webkit-scrollbar { display:none; }
     .gallery-scroll.dragging { cursor:grabbing; }
@@ -157,10 +158,10 @@
       flex-shrink:0; scroll-snap-align:start;
       border-radius:var(--r); overflow:hidden;
       position:relative; background:var(--ink);
-      transition:transform 0.3s;
+      transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease;
+      transform-origin: bottom center;
     }
-    .gallery-item:hover { transform:scale(1.02); }
-    .gallery-item img { display:block; height:280px; width:220px; object-fit:cover; object-position:center top; }
+    .gallery-item img { display:block; height:280px; width:220px; object-fit:cover; object-position:center top; transition: width 0.3s ease, height 0.3s ease; }
     .gallery-item .caption {
       position:absolute; bottom:0; left:0; right:0;
       background:linear-gradient(to top, rgba(0,0,0,0.8), transparent);
@@ -412,14 +413,14 @@
   </div>
   <div class="gallery-scroll" id="galleryScroll">
     <div class="gallery-item"><img src="/gcs-website/assets/gallery-coconut.jpg" alt="Coconut drawing"/><div class="caption">Charcoal · Realistic coconut</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery1.jpg" alt="Pencil drawing"/><div class="caption">Graphite · Human Anatomy</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery3.jpg" alt="Charcoal portrait"/><div class="caption">Charcoal & Graphite · Portrait study</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery2.jpg" alt="Detailed drawing"/><div class="caption">Charcoal · Animal outlines</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery4.jpg" alt="Pencil study"/><div class="caption">Charcoal & Graphite · Realistic drawing</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery5.jpg" alt="Portrait"/><div class="caption">Graphite · Nose</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery8.jpg" alt="Drawing"/><div class="caption">Graphite · Ear</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery6.jpg" alt="Sketch"/><div class="caption">Graphite · Sketch</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery9.jpg" alt="Drawing"/><div class="caption">Graphite · Mouth</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery1.jpg" alt="Pencil drawing"/><div class="caption">Pencil · Graphite</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery3.jpg" alt="Charcoal portrait"/><div class="caption">Charcoal · Portrait study</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery2.jpg" alt="Detailed drawing"/><div class="caption">Graphite · Detailed study</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery4.jpg" alt="Pencil study"/><div class="caption">Pencil · Observational drawing</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery5.jpg" alt="Portrait"/><div class="caption">Charcoal · Portrait</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery8.jpg" alt="Drawing"/><div class="caption">Graphite · Figure study</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery6.jpg" alt="Sketch"/><div class="caption">Pencil · Sketch</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery9.jpg" alt="Drawing"/><div class="caption">Pencil · Still life</div></div>
     <div class="gallery-item"><img src="/gcs-website/assets/gallery7.jpg" alt="Early work"/><div class="caption">Early work · 2015</div></div>
     <div class="gallery-item"><img src="/gcs-website/assets/gallery10.jpg" alt="Drawing"/><div class="caption">Graphite · Study</div></div>
     <div class="gallery-item"><img src="/gcs-website/assets/gallery11.jpg" alt="Drawing"/><div class="caption">Pencil · Portrait study</div></div>
@@ -606,12 +607,12 @@
 <!-- HOW IT WORKS -->
 <section id="how">
   <p class="lbl">How it works</p>
-  <h2>Watch. Practise. Create.</h2>
+  <h2>Watch. Practise. Grow.</h2>
   <div class="steps">
-    <div class="step"><div class="step-n">01</div><p class="step-t">Watch the tutorial</p><p class="step-d">A private tutorial is uploaded every week - scripted like a personal teaching session.</p></div>
-    <div class="step"><div class="step-n">02</div><p class="step-t">Practise at home</p><p class="step-d">Draw along with the video before Saturday. Come to class already halfway there.</p></div>
-    <div class="step"><div class="step-n">03</div><p class="step-t">Deepen in class</p><p class="step-d">Same concept, different drawings. Doubts get cleared, technique gets sharper, confidence grows.</p></div>
-    <div class="step"><div class="step-n">04</div><p class="step-t">Missed a class?</p><p class="step-d">The weekly tutorial is always there. No one falls behind. No caps, no conditions.</p></div>
+    <div class="step"><div class="step-n">01</div><p class="step-t">Get access</p><p class="step-d">Fill in the form and Vivek reaches out personally. Once enrolled, your email is added to the library — no passwords, just sign in with Google.</p></div>
+    <div class="step"><div class="step-n">02</div><p class="step-t">Watch at your pace</p><p class="step-d">Every tutorial is scripted as a personal teaching session. Pause, rewind, watch again — it is designed to feel like Vivek is sitting right next to you.</p></div>
+    <div class="step"><div class="step-n">03</div><p class="step-t">Draw along</p><p class="step-d">Set up your drawing book next to the screen. Follow each step, practise the same subject, and build the muscle memory that only comes from actually drawing.</p></div>
+    <div class="step"><div class="step-n">04</div><p class="step-t">New episodes every week</p><p class="step-d">The library grows continuously. Each new episode builds on the last — from foundations to hyper-realism, at a pace that never overwhelms.</p></div>
   </div>
 </section>
 
@@ -723,6 +724,43 @@
   gs.addEventListener('mouseleave', () => { isDragging=false; gs.classList.remove('dragging'); });
   gs.addEventListener('mouseup', () => { isDragging=false; gs.classList.remove('dragging'); });
   gs.addEventListener('mousemove', e => { if(!isDragging) return; e.preventDefault(); const x=e.pageX-gs.offsetLeft; gs.scrollLeft=scrollLeft-(x-startX)*1.5; });
+
+  /* ── Gallery dock magnification ── */
+  const galleryItems = document.querySelectorAll('.gallery-item');
+  const BASE_H = 280, BASE_W = 220;
+  const MAX_H  = 420, MAX_W  = 330;
+  const SPREAD = 2; // how many neighbours get partial magnification
+
+  function getDist(itemEl, mouseX) {
+    const rect = itemEl.getBoundingClientRect();
+    const center = rect.left + rect.width / 2;
+    return Math.abs(mouseX - center);
+  }
+
+  function applyDock(mouseX) {
+    galleryItems.forEach(item => {
+      const dist = getDist(item, mouseX);
+      const maxDist = (BASE_W + 16) * (SPREAD + 1);
+      const ratio = Math.max(0, 1 - dist / maxDist);
+      const scale = 1 + (MAX_H / BASE_H - 1) * ratio;
+      const h = Math.round(BASE_H * scale);
+      const w = Math.round(BASE_W * scale);
+      item.querySelector('img').style.height = h + 'px';
+      item.querySelector('img').style.width  = w + 'px';
+    });
+  }
+
+  function resetDock() {
+    galleryItems.forEach(item => {
+      item.querySelector('img').style.height = BASE_H + 'px';
+      item.querySelector('img').style.width  = BASE_W + 'px';
+    });
+  }
+
+  gs.addEventListener('mousemove', e => {
+    if (!isDragging) applyDock(e.clientX);
+  });
+  gs.addEventListener('mouseleave', resetDock);
 
   /* ── Google Sign-In ── */
   // REPLACE THIS with your actual values after setup
