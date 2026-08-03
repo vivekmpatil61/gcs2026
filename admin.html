@@ -84,6 +84,13 @@
     .admin-chip { display:flex; align-items:center; gap:0.6rem; color:var(--muted); font-size:0.78rem; }
     .admin-chip img { width:30px; height:30px; border-radius:50%; background:var(--paper); }
     .signout { padding:0; border:0; background:none; color:var(--muted); text-decoration:underline; }
+    .admin-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:0.5rem; margin-top:1.5rem; padding:0.4rem; background:var(--paper); border:1px solid var(--border); border-radius:12px; }
+    .admin-tab { border:0; border-radius:9px; padding:0.75rem 0.6rem; background:transparent; color:var(--muted); font-weight:600; }
+    .admin-tab:hover { color:var(--ink); }
+    .admin-tab[aria-selected="true"] { background:var(--ink); color:#fff; box-shadow:0 5px 14px rgba(17,17,15,0.16); }
+    .tab-count { display:inline-block; min-width:1.5rem; margin-left:0.35rem; padding:0.08rem 0.35rem; border-radius:999px; background:rgba(244,201,72,0.22); color:inherit; font-size:0.68rem; }
+    .tab-panel { display:none; margin-top:1rem; }
+    .tab-panel.active { display:block; }
     .add-form { display:flex; gap:0.7rem; margin:1.5rem 0 0.6rem; }
     .add-form input { width:100%; min-width:0; border:1px solid var(--border); border-radius:10px; padding:0.85rem 1rem; background:#fff; color:var(--ink); }
     .add-form input:focus { outline:3px solid rgba(244,201,72,0.35); border-color:var(--gold-dark); }
@@ -110,6 +117,14 @@
     .action-btn:hover { border-color:var(--gold-dark); }
     .delete-btn { color:var(--danger); }
     .empty { padding:2rem; border:1px dashed var(--border); border-radius:var(--radius); color:var(--muted); text-align:center; }
+    .list-toolbar { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin:1.2rem 0 1rem; }
+    .search-input { width:min(100%,360px); border:1px solid var(--border); border-radius:10px; padding:0.75rem 0.9rem; background:#fff; color:var(--ink); }
+    .search-input:focus { outline:3px solid rgba(244,201,72,0.35); border-color:var(--gold-dark); }
+    .result-count { color:var(--muted); font-size:0.76rem; white-space:nowrap; }
+    .pagination { display:flex; align-items:center; justify-content:center; gap:0.8rem; margin-top:1rem; }
+    .page-btn { border:1px solid var(--border); border-radius:8px; padding:0.5rem 0.8rem; background:#fff; color:var(--ink); font-size:0.75rem; }
+    .page-btn:hover:not(:disabled) { border-color:var(--gold-dark); }
+    .page-info { min-width:7rem; color:var(--muted); font-size:0.75rem; text-align:center; }
     .student-panel { margin-top:1rem; }
     .student-list { display:grid; gap:0.55rem; margin-top:1rem; }
     .student-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0.75rem 0.9rem; background:var(--paper); border:1px solid var(--border); border-radius:10px; }
@@ -139,6 +154,10 @@
       .actions { grid-column:1 / -1; grid-template-columns:repeat(4,1fr); }
       .action-btn { padding:0.55rem 0.3rem; }
       .progress-summary { grid-template-columns:1fr; }
+      .list-toolbar { align-items:stretch; flex-direction:column; }
+      .search-input { width:100%; }
+      .admin-tab { padding:0.7rem 0.25rem; font-size:0.78rem; }
+      .tab-count { display:block; width:fit-content; margin:0.2rem auto 0; }
     }
   </style>
 </head>
@@ -169,8 +188,8 @@
       <div class="panel">
         <div class="dashboard-head">
           <div>
-            <p class="eyebrow">Tutorial manager</p>
-            <h2>Add your next lesson</h2>
+            <p class="eyebrow">Private owner area</p>
+            <h2>Studio dashboard</h2>
           </div>
           <div>
             <div class="admin-chip">
@@ -180,57 +199,92 @@
             <button class="signout" id="signOut" type="button">Sign out</button>
           </div>
         </div>
-        <p class="intro">Paste a YouTube video ID or full YouTube link. The title is fetched automatically and the tutorial is added as the next episode.</p>
-        <form class="add-form" id="addForm">
-          <input id="videoId" name="videoId" type="text" placeholder="Example: dQw4w9WgXcQ" autocomplete="off" required/>
-          <button class="primary-btn" type="submit">Add tutorial</button>
-        </form>
-        <p class="help">You can reorder, refresh the YouTube title, or remove a tutorial below.</p>
-        <p class="status" id="adminStatus" role="status"></p>
+        <p class="intro">Manage tutorials, student access and learning progress without scrolling through one long page.</p>
+        <div class="admin-tabs" role="tablist" aria-label="Admin sections">
+          <button class="admin-tab" id="tutorialsTab" type="button" role="tab" aria-selected="true" aria-controls="tutorialsPanel" data-tab="tutorials">Tutorials <span class="tab-count" id="tutorialTabCount">0</span></button>
+          <button class="admin-tab" id="studentsTab" type="button" role="tab" aria-selected="false" aria-controls="studentsPanel" data-tab="students" tabindex="-1">Students <span class="tab-count" id="studentTabCount">0</span></button>
+          <button class="admin-tab" id="progressTab" type="button" role="tab" aria-selected="false" aria-controls="progressPanel" data-tab="progress" tabindex="-1">Progress <span class="tab-count" id="progressTabCount">0</span></button>
+        </div>
       </div>
 
-      <div class="panel student-panel">
-        <div class="dashboard-head">
-          <div>
-            <p class="eyebrow">Student access</p>
-            <h2>Approve a student</h2>
+      <section class="tab-panel active" id="tutorialsPanel" role="tabpanel" aria-labelledby="tutorialsTab">
+        <div class="panel">
+          <div class="dashboard-head">
+            <div>
+              <p class="eyebrow">Tutorial manager</p>
+              <h2>Add your next lesson</h2>
+            </div>
           </div>
-          <span class="count" id="studentCount"></span>
+          <p class="intro">Paste a YouTube video ID or full YouTube link. The title is fetched automatically and the tutorial is added as the next episode.</p>
+          <form class="add-form" id="addForm">
+            <input id="videoId" name="videoId" type="text" placeholder="Example: dQw4w9WgXcQ" autocomplete="off" required/>
+            <button class="primary-btn" type="submit">Add tutorial</button>
+          </form>
+          <p class="help">You can reorder, refresh the YouTube title, or remove a tutorial below.</p>
+          <p class="status" id="adminStatus" role="status"></p>
         </div>
-        <p class="intro">Add the Google email used by the student. Access starts immediately and can be revoked at any time.</p>
-        <form class="add-form" id="studentForm">
-          <input id="studentEmail" name="studentEmail" type="email" placeholder="student@gmail.com" autocomplete="email" required/>
-          <button class="primary-btn" type="submit">Approve student</button>
-        </form>
-        <p class="status" id="studentStatus" role="status"></p>
-        <div class="student-list" id="studentList"></div>
-      </div>
-
-      <div class="panel progress-panel">
-        <div class="dashboard-head">
+        <div class="library-head">
           <div>
-            <p class="eyebrow">Learning progress</p>
-            <h2>Student activity</h2>
+            <p class="eyebrow">Published library</p>
+            <h2>Current tutorials</h2>
           </div>
-          <span class="count" id="progressCount"></span>
+          <span class="count" id="tutorialCount"></span>
         </div>
-        <p class="intro">Track how far each approved student has moved through the published tutorial library.</p>
-        <div class="progress-summary">
-          <div class="progress-stat"><p class="progress-stat-value" id="startedStudents">0</p><p class="progress-stat-label">Students started</p></div>
-          <div class="progress-stat"><p class="progress-stat-value" id="averageProgress">0%</p><p class="progress-stat-label">Average progress</p></div>
-          <div class="progress-stat"><p class="progress-stat-value" id="completedStudents">0</p><p class="progress-stat-label">Library completed</p></div>
+        <div class="list-toolbar">
+          <input class="search-input" id="tutorialSearch" type="search" placeholder="Search title, episode or YouTube ID" aria-label="Search tutorials"/>
+          <span class="result-count" id="tutorialResultCount"></span>
         </div>
-        <div class="progress-list" id="progressList"></div>
-      </div>
+        <div class="tutorial-list" id="tutorialList"></div>
+        <div class="pagination" id="tutorialPagination"></div>
+      </section>
 
-      <div class="library-head">
-        <div>
-          <p class="eyebrow">Published library</p>
-          <h2>Current tutorials</h2>
+      <section class="tab-panel" id="studentsPanel" role="tabpanel" aria-labelledby="studentsTab" hidden>
+        <div class="panel student-panel">
+          <div class="dashboard-head">
+            <div>
+              <p class="eyebrow">Student access</p>
+              <h2>Approve a student</h2>
+            </div>
+            <span class="count" id="studentCount"></span>
+          </div>
+          <p class="intro">Add the Google email used by the student. Access starts immediately and can be revoked at any time.</p>
+          <form class="add-form" id="studentForm">
+            <input id="studentEmail" name="studentEmail" type="email" placeholder="student@gmail.com" autocomplete="email" required/>
+            <button class="primary-btn" type="submit">Approve student</button>
+          </form>
+          <p class="status" id="studentStatus" role="status"></p>
+          <div class="list-toolbar">
+            <input class="search-input" id="studentSearch" type="search" placeholder="Search approved email" aria-label="Search approved students"/>
+            <span class="result-count" id="studentResultCount"></span>
+          </div>
+          <div class="student-list" id="studentList"></div>
+          <div class="pagination" id="studentPagination"></div>
         </div>
-        <span class="count" id="tutorialCount"></span>
-      </div>
-      <div class="tutorial-list" id="tutorialList"></div>
+      </section>
+
+      <section class="tab-panel" id="progressPanel" role="tabpanel" aria-labelledby="progressTab" hidden>
+        <div class="panel progress-panel">
+          <div class="dashboard-head">
+            <div>
+              <p class="eyebrow">Learning progress</p>
+              <h2>Student activity</h2>
+            </div>
+            <span class="count" id="progressCount"></span>
+          </div>
+          <p class="intro">Track how far each approved student has moved through the published tutorial library.</p>
+          <div class="progress-summary">
+            <div class="progress-stat"><p class="progress-stat-value" id="startedStudents">0</p><p class="progress-stat-label">Students started</p></div>
+            <div class="progress-stat"><p class="progress-stat-value" id="averageProgress">0%</p><p class="progress-stat-label">Average progress</p></div>
+            <div class="progress-stat"><p class="progress-stat-value" id="completedStudents">0</p><p class="progress-stat-label">Library completed</p></div>
+          </div>
+          <div class="list-toolbar">
+            <input class="search-input" id="progressSearch" type="search" placeholder="Search student email" aria-label="Search student progress"/>
+            <span class="result-count" id="progressResultCount"></span>
+          </div>
+          <div class="progress-list" id="progressList"></div>
+          <div class="pagination" id="progressPagination"></div>
+        </div>
+      </section>
     </section>
   </main>
 
@@ -248,6 +302,8 @@
     let currentTutorials = [];
     let currentStudents = [];
     let currentProgress = [];
+    const PAGE_SIZE = 10;
+    const pages = { tutorials: 1, students: 1, progress: 1 };
 
     const loginPanel = document.getElementById('loginPanel');
     const dashboard = document.getElementById('dashboard');
@@ -261,11 +317,46 @@
     const studentStatus = document.getElementById('studentStatus');
     const studentList = document.getElementById('studentList');
     const progressList = document.getElementById('progressList');
+    const tutorialSearch = document.getElementById('tutorialSearch');
+    const studentSearch = document.getElementById('studentSearch');
+    const progressSearch = document.getElementById('progressSearch');
+    const tabButtons = Array.from(document.querySelectorAll('.admin-tab'));
+    const tabPanels = Array.from(document.querySelectorAll('.tab-panel'));
 
     document.getElementById('googleSignIn').addEventListener('click', signInWithGoogle);
     document.getElementById('signOut').addEventListener('click', signOut);
     addForm.addEventListener('submit', addTutorial);
     studentForm.addEventListener('submit', addStudent);
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => switchAdminTab(button.dataset.tab));
+      button.addEventListener('keydown', handleTabKeydown);
+    });
+    tutorialSearch.addEventListener('input', () => { pages.tutorials = 1; renderTutorials(); });
+    studentSearch.addEventListener('input', () => { pages.students = 1; renderStudents(); });
+    progressSearch.addEventListener('input', () => { pages.progress = 1; renderProgress(); });
+
+    function switchAdminTab(tabName, moveFocus = true) {
+      tabButtons.forEach(button => {
+        const active = button.dataset.tab === tabName;
+        button.setAttribute('aria-selected', String(active));
+        button.tabIndex = active ? 0 : -1;
+        if (active && moveFocus) button.focus();
+      });
+      tabPanels.forEach(panel => {
+        const active = panel.id === `${tabName}Panel`;
+        panel.classList.toggle('active', active);
+        panel.hidden = !active;
+      });
+    }
+
+    function handleTabKeydown(event) {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      const index = tabButtons.indexOf(event.currentTarget);
+      const offset = event.key === 'ArrowRight' ? 1 : -1;
+      const next = tabButtons[(index + offset + tabButtons.length) % tabButtons.length];
+      switchAdminTab(next.dataset.tab);
+    }
 
     function signInWithGoogle() {
       setStatus(loginStatus, 'Opening Google sign-in...');
@@ -325,6 +416,7 @@
       renderTutorials();
       renderStudents();
       renderProgress();
+      switchAdminTab('tutorials', false);
       videoIdInput.focus();
     }
 
@@ -332,6 +424,9 @@
       if (Array.isArray(data.tutorials)) currentTutorials = data.tutorials;
       if (Array.isArray(data.students)) currentStudents = data.students;
       if (Array.isArray(data.studentProgress)) currentProgress = data.studentProgress;
+      document.getElementById('tutorialTabCount').textContent = String(currentTutorials.length);
+      document.getElementById('studentTabCount').textContent = String(currentStudents.length);
+      document.getElementById('progressTabCount').textContent = String(currentProgress.length);
     }
 
     async function addStudent(event) {
@@ -343,6 +438,8 @@
       try {
         const data = await adminRequest('admin_student_add', { studentEmail: email });
         updateDashboardData(data);
+        studentSearch.value = '';
+        pages.students = 1;
         renderStudents();
         renderProgress();
         studentForm.reset();
@@ -375,15 +472,21 @@
     function renderStudents() {
       studentList.replaceChildren();
       document.getElementById('studentCount').textContent = `${currentStudents.length} approved`;
-      if (!currentStudents.length) {
+      const query = studentSearch.value.trim().toLowerCase();
+      const filtered = currentStudents.filter(email => email.toLowerCase().includes(query));
+      const page = getPage(filtered, 'students');
+      document.getElementById('studentResultCount').textContent = resultCount(filtered.length, currentStudents.length);
+
+      if (!filtered.length) {
         const empty = document.createElement('div');
         empty.className = 'empty';
-        empty.textContent = 'No students are currently approved.';
+        empty.textContent = currentStudents.length ? 'No approved students match that search.' : 'No students are currently approved.';
         studentList.append(empty);
+        renderPagination(document.getElementById('studentPagination'), 'students', 0, renderStudents);
         return;
       }
 
-      currentStudents.forEach(email => {
+      page.items.forEach(email => {
         const row = document.createElement('div');
         row.className = 'student-row';
         const address = document.createElement('p');
@@ -397,6 +500,7 @@
         row.append(address, revoke);
         studentList.append(row);
       });
+      renderPagination(document.getElementById('studentPagination'), 'students', filtered.length, renderStudents);
     }
 
     function renderProgress() {
@@ -411,16 +515,21 @@
       document.getElementById('startedStudents').textContent = String(started);
       document.getElementById('averageProgress').textContent = `${average}%`;
       document.getElementById('completedStudents').textContent = String(completed);
+      const query = progressSearch.value.trim().toLowerCase();
+      const filtered = currentProgress.filter(student => String(student.email || '').toLowerCase().includes(query));
+      const page = getPage(filtered, 'progress');
+      document.getElementById('progressResultCount').textContent = resultCount(filtered.length, currentProgress.length);
 
-      if (!currentProgress.length) {
+      if (!filtered.length) {
         const empty = document.createElement('div');
         empty.className = 'empty';
-        empty.textContent = 'Approve a student to begin tracking progress.';
+        empty.textContent = currentProgress.length ? 'No student progress matches that search.' : 'Approve a student to begin tracking progress.';
         progressList.append(empty);
+        renderPagination(document.getElementById('progressPagination'), 'progress', 0, renderProgress);
         return;
       }
 
-      currentProgress.forEach(student => {
+      page.items.forEach(student => {
         const row = document.createElement('article');
         row.className = 'progress-row';
         const head = document.createElement('div');
@@ -453,6 +562,7 @@
         row.append(head, track, meta);
         progressList.append(row);
       });
+      renderPagination(document.getElementById('progressPagination'), 'progress', filtered.length, renderProgress);
     }
 
     function formatActivity(value) {
@@ -474,6 +584,8 @@
       try {
         const data = await adminRequest('admin_add', { videoId: value });
         updateDashboardData(data);
+        tutorialSearch.value = '';
+        pages.tutorials = Math.max(1, Math.ceil(currentTutorials.length / PAGE_SIZE));
         renderTutorials();
         renderProgress();
         addForm.reset();
@@ -506,16 +618,24 @@
     function renderTutorials() {
       tutorialList.replaceChildren();
       document.getElementById('tutorialCount').textContent = `${currentTutorials.length} tutorial${currentTutorials.length === 1 ? '' : 's'}`;
+      const query = tutorialSearch.value.trim().toLowerCase();
+      const filtered = currentTutorials.filter(tutorial =>
+        `${tutorial.number} ${tutorial.title} ${tutorial.id}`.toLowerCase().includes(query)
+      );
+      const page = getPage(filtered, 'tutorials');
+      document.getElementById('tutorialResultCount').textContent = resultCount(filtered.length, currentTutorials.length);
 
-      if (!currentTutorials.length) {
+      if (!filtered.length) {
         const empty = document.createElement('div');
         empty.className = 'empty';
-        empty.textContent = 'No tutorials yet. Add your first YouTube ID above.';
+        empty.textContent = currentTutorials.length ? 'No tutorials match that search.' : 'No tutorials yet. Add your first YouTube ID above.';
         tutorialList.append(empty);
+        renderPagination(document.getElementById('tutorialPagination'), 'tutorials', 0, renderTutorials);
         return;
       }
 
-      currentTutorials.forEach((tutorial, index) => {
+      page.items.forEach(tutorial => {
+        const index = currentTutorials.findIndex(item => item.id === tutorial.id);
         const row = document.createElement('article');
         row.className = 'tutorial';
 
@@ -548,6 +668,54 @@
         row.append(thumbnail, details, actions);
         tutorialList.append(row);
       });
+      renderPagination(document.getElementById('tutorialPagination'), 'tutorials', filtered.length, renderTutorials);
+    }
+
+    function getPage(items, type) {
+      const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+      pages[type] = Math.max(1, Math.min(pages[type], totalPages));
+      const start = (pages[type] - 1) * PAGE_SIZE;
+      return { items: items.slice(start, start + PAGE_SIZE), totalPages: totalPages };
+    }
+
+    function resultCount(filteredCount, totalCount) {
+      return filteredCount === totalCount
+        ? `${totalCount} total`
+        : `${filteredCount} of ${totalCount} matches`;
+    }
+
+    function renderPagination(container, type, totalItems, renderFunction) {
+      container.replaceChildren();
+      const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+      if (totalPages <= 1) return;
+
+      const previous = document.createElement('button');
+      previous.type = 'button';
+      previous.className = 'page-btn';
+      previous.textContent = 'Previous';
+      previous.disabled = pages[type] === 1;
+      if (previous.disabled) previous.dataset.locked = 'true';
+      previous.addEventListener('click', () => {
+        pages[type] -= 1;
+        renderFunction();
+      });
+
+      const info = document.createElement('span');
+      info.className = 'page-info';
+      info.textContent = `Page ${pages[type]} of ${totalPages}`;
+
+      const next = document.createElement('button');
+      next.type = 'button';
+      next.className = 'page-btn';
+      next.textContent = 'Next';
+      next.disabled = pages[type] === totalPages;
+      if (next.disabled) next.dataset.locked = 'true';
+      next.addEventListener('click', () => {
+        pages[type] += 1;
+        renderFunction();
+      });
+
+      container.append(previous, info, next);
     }
 
     function actionButton(label, action, videoId, direction, disabled, danger) {
@@ -598,11 +766,18 @@
       currentTutorials = [];
       currentStudents = [];
       currentProgress = [];
+      tutorialSearch.value = '';
+      studentSearch.value = '';
+      progressSearch.value = '';
+      pages.tutorials = 1;
+      pages.students = 1;
+      pages.progress = 1;
       tutorialList.replaceChildren();
       studentList.replaceChildren();
       progressList.replaceChildren();
       dashboard.style.display = 'none';
       loginPanel.style.display = 'block';
+      switchAdminTab('tutorials', false);
       setStatus(loginStatus, 'Signed out.', 'success');
       setStatus(adminStatus, '');
       setStatus(studentStatus, '');
