@@ -9,6 +9,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/gcs-website/assets/favicon-16_2.png"/>
   <link rel="apple-touch-icon" sizes="180x180" href="/gcs-website/assets/favicon-180_2.png"/>
   <meta name="description" content="Weekly drawing classes for kids and adults at Bhuvi by Amsha, Bangalore. Realistic portrait drawing, shading, charcoal techniques."/>
+  <link rel="preload" as="image" href="/gcs-website/assets/hero1.jpg" fetchpriority="high"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
@@ -28,6 +29,7 @@
     }
     html { scroll-behavior: smooth; }
     body { font-family: 'Inter', sans-serif; background: var(--paper); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+    :focus-visible { outline:3px solid var(--gold); outline-offset:3px; }
 
     /* ── NAV ───────────────────────────────────────────── */
     nav {
@@ -85,7 +87,7 @@
       display:flex; gap:8px; z-index:3;
       padding: 0 5vw;
     }
-    .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.3); cursor:pointer; transition:all 0.3s; }
+    .dot { width:6px; height:6px; padding:0; border:0; border-radius:50%; background:rgba(255,255,255,0.3); cursor:pointer; transition:all 0.3s; }
     .dot.active { background:var(--gold); width:20px; border-radius:3px; }
     .hero-img-fade {
       position:absolute; inset:0;
@@ -419,6 +421,10 @@
       .pw-row{flex-direction:column;}
       .about-img-badge{right:0;bottom:-12px;}
     }
+    @media(prefers-reduced-motion:reduce){
+      html { scroll-behavior:auto; }
+      *,*::before,*::after { animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+    }
   </style>
 </head>
 <body>
@@ -449,10 +455,10 @@
       <a href="#gallery" class="btn btn-ghost">See the Work</a>
     </div>
     <div class="slide-dots" id="dots">
-      <div class="dot active" onclick="goSlide(0)"></div>
-      <div class="dot" onclick="goSlide(1)"></div>
-      <div class="dot" onclick="goSlide(2)"></div>
-      <div class="dot" onclick="goSlide(3)"></div>
+      <button type="button" class="dot active" onclick="goSlide(0)" aria-label="Show artwork 1"></button>
+      <button type="button" class="dot" onclick="goSlide(1)" aria-label="Show artwork 2"></button>
+      <button type="button" class="dot" onclick="goSlide(2)" aria-label="Show artwork 3"></button>
+      <button type="button" class="dot" onclick="goSlide(3)" aria-label="Show artwork 4"></button>
     </div>
   </div>
   <div class="hero-img-side">
@@ -473,18 +479,18 @@
     <h2>A decade of marks on paper.</h2>
   </div>
   <div class="gallery-scroll" id="galleryScroll">
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery-coconut.jpg" alt="Coconut drawing"/><div class="caption">Charcoal · Realistic coconut</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery1.jpg" alt="Pencil drawing"/><div class="caption">Pencil · Graphite</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery3.jpg" alt="Charcoal portrait"/><div class="caption">Charcoal · Portrait study</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery2.jpg" alt="Detailed drawing"/><div class="caption">Graphite · Detailed study</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery4.jpg" alt="Pencil study"/><div class="caption">Pencil · Observational drawing</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery5.jpg" alt="Portrait"/><div class="caption">Charcoal · Portrait</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery8.jpg" alt="Drawing"/><div class="caption">Graphite · Figure study</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery6.jpg" alt="Sketch"/><div class="caption">Pencil · Sketch</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery9.jpg" alt="Drawing"/><div class="caption">Pencil · Still life</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery7.jpg" alt="Early work"/><div class="caption">Early work · 2015</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery10.jpg" alt="Drawing"/><div class="caption">Graphite · Study</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery11.jpg" alt="Drawing"/><div class="caption">Pencil · Portrait study</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery-coconut.jpg" alt="Realistic coconut drawn in charcoal" loading="lazy" decoding="async"/><div class="caption">Charcoal · Realistic coconut</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery1.jpg" alt="Graphite pencil artwork" loading="lazy" decoding="async"/><div class="caption">Pencil · Graphite</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery3.jpg" alt="Charcoal portrait study" loading="lazy" decoding="async"/><div class="caption">Charcoal · Portrait study</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery2.jpg" alt="Detailed graphite drawing" loading="lazy" decoding="async"/><div class="caption">Graphite · Detailed study</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery4.jpg" alt="Observational pencil study" loading="lazy" decoding="async"/><div class="caption">Pencil · Observational drawing</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery5.jpg" alt="Charcoal portrait drawing" loading="lazy" decoding="async"/><div class="caption">Charcoal · Portrait</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery8.jpg" alt="Graphite figure study" loading="lazy" decoding="async"/><div class="caption">Graphite · Figure study</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery6.jpg" alt="Pencil sketch" loading="lazy" decoding="async"/><div class="caption">Pencil · Sketch</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery9.jpg" alt="Pencil still-life drawing" loading="lazy" decoding="async"/><div class="caption">Pencil · Still life</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery7.jpg" alt="Early pencil artwork from 2015" loading="lazy" decoding="async"/><div class="caption">Early work · 2015</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery10.jpg" alt="Graphite study" loading="lazy" decoding="async"/><div class="caption">Graphite · Study</div></div>
+    <div class="gallery-item"><img src="/gcs-website/assets/gallery11.jpg" alt="Pencil portrait study" loading="lazy" decoding="async"/><div class="caption">Pencil · Portrait study</div></div>
   </div>
   <p class="gallery-hint">← drag to explore →</p>
 </section>
@@ -493,11 +499,11 @@
 <section id="curriculum">
   <p class="lbl">What you will learn</p>
   <h2>Real art. Real skills.</h2>
-  <p>No shortcuts. No copying. Every topic is taught to build genuine understanding — so you can draw anything, not just follow steps.</p>
+  <p>No shortcuts. No copying. Every topic is taught to build genuine understanding - so you can draw anything, not just follow steps.</p>
   <div class="cur-grid">
     <div class="cur-card">
       <h3 class="cur-title">Tools & Materials</h3>
-      <p class="cur-desc">Pencil grades, paper types, erasers, blending stumps, charcoal — what to use, when to use it and why it matters.</p>
+      <p class="cur-desc">Pencil grades, paper types, erasers, blending stumps, charcoal - what to use, when to use it and why it matters.</p>
     </div>
     <div class="cur-card">
       <h3 class="cur-title">Pencil Grip & Line Control</h3>
@@ -505,11 +511,11 @@
     </div>
     <div class="cur-card">
       <h3 class="cur-title">Understanding Light & Shadow</h3>
-      <p class="cur-desc">Core shadow, cast shadow, reflected light, highlight — the five elements that make any object look three-dimensional.</p>
+      <p class="cur-desc">Core shadow, cast shadow, reflected light, highlight - the five elements that make any object look three-dimensional.</p>
     </div>
     <div class="cur-card">
       <h3 class="cur-title">Shading & Blending</h3>
-      <p class="cur-desc">Value scales, gradients, hatching, cross-hatching, blending stump vs brush — building smooth tonal ranges without harsh lines.</p>
+      <p class="cur-desc">Value scales, gradients, hatching, cross-hatching, blending stump vs brush - building smooth tonal ranges without harsh lines.</p>
     </div>
     <div class="cur-card">
       <h3 class="cur-title">Freehand Sketching</h3>
@@ -517,19 +523,19 @@
     </div>
     <div class="cur-card">
       <h3 class="cur-title">Grid Method</h3>
-      <p class="cur-desc">The centuries-old technique used by Renaissance masters. Accurate proportions, section by section — with and without the Android app.</p>
+      <p class="cur-desc">The centuries-old technique used by Renaissance masters. Accurate proportions, section by section - with and without the Android app.</p>
     </div>
     <div class="cur-card">
       <h3 class="cur-title">Loomis Method</h3>
-      <p class="cur-desc">Constructing the human head from any angle using the Loomis sphere and brow plane — the foundation of all portrait drawing.</p>
+      <p class="cur-desc">Constructing the human head from any angle using the Loomis sphere and brow plane - the foundation of all portrait drawing.</p>
     </div>
     <div class="cur-card">
       <h3 class="cur-title">Facial Features</h3>
-      <p class="cur-desc">Realistic eye, nose, lips and ear — each studied individually with correct proportions, soft edges and full value range.</p>
+      <p class="cur-desc">Realistic eye, nose, lips and ear - each studied individually with correct proportions, soft edges and full value range.</p>
     </div>
     <div class="cur-card">
       <h3 class="cur-title">Portrait Drawing</h3>
-      <p class="cur-desc">Full face portraits from reference — hair texture, skin tone, dramatic lighting, chiaroscuro and hyper-realistic detail.</p>
+      <p class="cur-desc">Full face portraits from reference - hair texture, skin tone, dramatic lighting, chiaroscuro and hyper-realistic detail.</p>
     </div>
     <div class="cur-card">
       <h3 class="cur-title">Charcoal Techniques</h3>
@@ -537,7 +543,7 @@
     </div>
     <div class="cur-card">
       <h3 class="cur-title">Hard & Soft Edges</h3>
-      <p class="cur-desc">When to sharpen an edge and when to let it melt away — the single skill that separates a flat drawing from a realistic one.</p>
+      <p class="cur-desc">When to sharpen an edge and when to let it melt away - the single skill that separates a flat drawing from a realistic one.</p>
     </div>
     <div class="cur-card">
       <h3 class="cur-title">Texture Drawing</h3>
@@ -590,7 +596,7 @@
     <div class="ep-grid">
       <div class="ep-card" onclick="openPlayer('naUyVYZzo2Y','Episode 01','Every Drawing Tool You Need as a Beginner | Pencils, Paper, Erasers and More')">
         <div class="ep-thumb">
-          <img class="ep-thumb-img" src="https://img.youtube.com/vi/naUyVYZzo2Y/mqdefault.jpg" alt="EP01 thumbnail"/>
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/naUyVYZzo2Y/mqdefault.jpg" alt="Episode 01 drawing tools tutorial" loading="lazy" decoding="async"/>
           <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
           <span class="ep-badge">EP 01</span>
         </div>
@@ -598,7 +604,7 @@
       </div>
       <div class="ep-card" onclick="openPlayer('rGCoXfIMats','Episode 02','Drawing Warm Up Exercises Every Beginner Must Know | Lines, Curves, Circles and More')">
         <div class="ep-thumb">
-          <img class="ep-thumb-img" src="https://img.youtube.com/vi/rGCoXfIMats/mqdefault.jpg" alt="EP02 thumbnail"/>
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/rGCoXfIMats/mqdefault.jpg" alt="Episode 02 drawing warm-up tutorial" loading="lazy" decoding="async"/>
           <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
           <span class="ep-badge">EP 02</span>
         </div>
@@ -606,7 +612,7 @@
       </div>
       <div class="ep-card" onclick="openPlayer('snltJhqqrb0','Episode 03','Grid Method for Beginners | How to Draw Accurate Portraits + Free Android App Tutorial')">
         <div class="ep-thumb">
-          <img class="ep-thumb-img" src="https://img.youtube.com/vi/snltJhqqrb0/mqdefault.jpg" alt="EP03 thumbnail"/>
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/snltJhqqrb0/mqdefault.jpg" alt="Episode 03 grid method tutorial" loading="lazy" decoding="async"/>
           <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
           <span class="ep-badge">EP 03</span>
         </div>
@@ -614,7 +620,7 @@
       </div>
       <div class="ep-card" onclick="openPlayer('oxrkTgeYBkU','Episode 04','How to Draw Pikachu Using Grid Method | Realistic Grid Drawing for Beginners')">
         <div class="ep-thumb">
-          <img class="ep-thumb-img" src="https://img.youtube.com/vi/oxrkTgeYBkU/mqdefault.jpg" alt="EP04 thumbnail"/>
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/oxrkTgeYBkU/mqdefault.jpg" alt="Episode 04 Pikachu grid drawing tutorial" loading="lazy" decoding="async"/>
           <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
           <span class="ep-badge">EP 04</span>
         </div>
@@ -622,7 +628,7 @@
       </div>
       <div class="ep-card" onclick="openPlayer('4p0U-0fJeZY','Episode 05','11 Shading Mistakes Every Beginner Makes | Pencil Drawing Tips')">
         <div class="ep-thumb">
-          <img class="ep-thumb-img" src="https://img.youtube.com/vi/4p0U-0fJeZY/mqdefault.jpg" alt="EP05 thumbnail"/>
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/4p0U-0fJeZY/mqdefault.jpg" alt="Episode 05 shading mistakes tutorial" loading="lazy" decoding="async"/>
           <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
           <span class="ep-badge">EP 05</span>
         </div>
@@ -630,7 +636,7 @@
       </div>
       <div class="ep-card" onclick="openPlayer('H8Kurhpb1xc','Episode 06','Every Shading Technique You Need | Hatching, Blending, Cross Hatching and More')">
         <div class="ep-thumb">
-          <img class="ep-thumb-img" src="https://img.youtube.com/vi/H8Kurhpb1xc/mqdefault.jpg" alt="EP06 thumbnail"/>
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/H8Kurhpb1xc/mqdefault.jpg" alt="Episode 06 shading techniques tutorial" loading="lazy" decoding="async"/>
           <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
           <span class="ep-badge">EP 06</span>
         </div>
@@ -638,7 +644,7 @@
       </div>
       <div class="ep-card" onclick="openPlayer('b81-VX1EGOQ','Episode 07','How to Draw a Realistic Coconut | Texture, Fibres and Shading | Charcoal Pencil Tutorial')">
         <div class="ep-thumb">
-          <img class="ep-thumb-img" src="https://img.youtube.com/vi/b81-VX1EGOQ/mqdefault.jpg" alt="EP07 thumbnail"/>
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/b81-VX1EGOQ/mqdefault.jpg" alt="Episode 07 realistic coconut tutorial" loading="lazy" decoding="async"/>
           <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
           <span class="ep-badge">EP 07</span>
         </div>
@@ -646,7 +652,7 @@
       </div>
       <div class="ep-card" onclick="openPlayer('pNVg8riocAg','Episode 08','How to Draw a Realistic Lipstick | Metallic Shading | Charcoal Pencil Drawing Tutorial')">
         <div class="ep-thumb">
-          <img class="ep-thumb-img" src="https://img.youtube.com/vi/pNVg8riocAg/mqdefault.jpg" alt="EP08 thumbnail"/>
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/pNVg8riocAg/mqdefault.jpg" alt="Episode 08 realistic lipstick tutorial" loading="lazy" decoding="async"/>
           <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
           <span class="ep-badge">EP 08</span>
         </div>
@@ -654,7 +660,7 @@
       </div>
       <div class="ep-card" onclick="openPlayer('GiJ8tPFneIU','Episode 09','How to Draw Realistic Drapery | Fabric Folds, Light and Shadow | Pencil Drawing')">
         <div class="ep-thumb">
-          <img class="ep-thumb-img" src="https://img.youtube.com/vi/GiJ8tPFneIU/mqdefault.jpg" alt="EP09 thumbnail"/>
+          <img class="ep-thumb-img" src="https://img.youtube.com/vi/GiJ8tPFneIU/mqdefault.jpg" alt="Episode 09 realistic drapery tutorial" loading="lazy" decoding="async"/>
           <div class="ep-thumb-overlay"><div class="ep-play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
           <span class="ep-badge">EP 09</span>
         </div>
@@ -671,7 +677,7 @@
       <p class="modal-ep" id="modalEp"></p>
       <p class="modal-title" id="modalTitle"></p>
     </div>
-    <button class="modal-close" onclick="closePlayer(null)">✕</button>
+    <button class="modal-close" onclick="closePlayer(null)" aria-label="Close video player">✕</button>
   </div>
   <div class="modal-player">
     <iframe id="modalIframe" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
@@ -686,10 +692,10 @@
   <p class="lbl">How it works</p>
   <h2>Watch. Practise. Grow.</h2>
   <div class="steps">
-    <div class="step"><div class="step-n">01</div><p class="step-t">Get access</p><p class="step-d">Fill in the form and Vivek reaches out personally. Once enrolled, your email is added to the library — no passwords, just sign in with Google.</p></div>
-    <div class="step"><div class="step-n">02</div><p class="step-t">Watch at your pace</p><p class="step-d">Every tutorial is scripted as a personal teaching session. Pause, rewind, watch again — it is designed to feel like Vivek is sitting right next to you.</p></div>
+    <div class="step"><div class="step-n">01</div><p class="step-t">Get access</p><p class="step-d">Fill in the form and Vivek reaches out personally. Once enrolled, your email is added to the library - no passwords, just sign in with Google.</p></div>
+    <div class="step"><div class="step-n">02</div><p class="step-t">Watch at your pace</p><p class="step-d">Every tutorial is scripted as a personal teaching session. Pause, rewind, watch again - it is designed to feel like Vivek is sitting right next to you.</p></div>
     <div class="step"><div class="step-n">03</div><p class="step-t">Draw along</p><p class="step-d">Set up your drawing book next to the screen. Follow each step, practise the same subject, and build the muscle memory that only comes from actually drawing.</p></div>
-    <div class="step"><div class="step-n">04</div><p class="step-t">New episodes every week</p><p class="step-d">The library grows continuously. Each new episode builds on the last — from foundations to hyper-realism, at a pace that never overwhelms.</p></div>
+    <div class="step"><div class="step-n">04</div><p class="step-t">New episodes every week</p><p class="step-d">The library grows continuously. Each new episode builds on the last - from foundations to hyper-realism, at a pace that never overwhelms.</p></div>
   </div>
 </section>
 
@@ -730,7 +736,7 @@
     </div>
     <div class="about-img-wrap">
       <div style="position:relative;border-radius:16px;overflow:hidden;">
-        <img src="/gcs-website/assets/caricature.jpeg" alt="Vivek Patil - Principal Engineer and Artist" style="width:100%;display:block;"/>
+        <img src="/gcs-website/assets/caricature.jpeg" alt="Vivek Patil - Principal Engineer and Artist" loading="lazy" decoding="async" style="width:100%;display:block;"/>
         <div style="position:absolute;inset:0;background:linear-gradient(to right, var(--ink) 0%, rgba(13,13,13,0.3) 25%, transparent 55%);"></div>
       </div>
     </div>
@@ -796,16 +802,16 @@
           <label for="preferredFormat">Preferred format <span class="required-mark">*</span></label>
           <select id="preferredFormat" name="entry.642261483" required>
             <option value="" selected disabled>Select a format</option>
-            <option value="Studio Access (video library)">Studio Access — video library</option>
-            <option value="Studio Live (video library + community where live Q&amp;A happens once or twice in a month)">Studio Live — video library, community and live Q&amp;A</option>
+            <option value="Studio Access (video library)">Studio Access - video library</option>
+            <option value="Studio Live (video library + community where live Q&amp;A happens once or twice in a month)">Studio Live - video library, community and live Q&amp;A</option>
           </select>
         </div>
         <div class="form-field full">
           <label for="experience">Prior drawing or art experience <span class="required-mark">*</span></label>
           <select id="experience" name="entry.2137461231" required>
             <option value="" selected disabled>Select experience level</option>
-            <option value="None at all - complete beginner">None at all — complete beginner</option>
-            <option value="A little - school level or doodles at home">A little — school level or doodles at home</option>
+            <option value="None at all - complete beginner">None at all - complete beginner</option>
+            <option value="A little - school level or doodles at home">A little - school level or doodles at home</option>
             <option value="Some hobby experience">Some hobby experience</option>
             <option value="Has attended art classes before">Has attended art classes before</option>
           </select>
@@ -817,7 +823,7 @@
             <label class="form-option"><input name="entry.1952310009" type="checkbox" value="Animals and nature"/> Animals and nature</label>
             <label class="form-option"><input name="entry.1952310009" type="checkbox" value="Cartoon characters and pop culture"/> Cartoon characters and pop culture</label>
             <label class="form-option"><input name="entry.1952310009" type="checkbox" value="Objects and still life"/> Objects and still life</label>
-            <label class="form-option"><input name="entry.1952310009" type="checkbox" value="No preference - open to everything"/> No preference — open to everything</label>
+            <label class="form-option"><input name="entry.1952310009" type="checkbox" value="No preference - open to everything"/> No preference - open to everything</label>
           </div>
         </fieldset>
         <div class="form-field full">
