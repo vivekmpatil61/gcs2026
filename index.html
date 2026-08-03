@@ -3,17 +3,53 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Graphite & Charcoal Studio | Vivek Patil</title>
+  <title>Online Drawing Classes | Graphite &amp; Charcoal Studio</title>
   <link rel="icon" type="image/x-icon" href="/gcs-website/assets/favicon_2.ico"/>
   <link rel="icon" type="image/png" sizes="32x32" href="/gcs-website/assets/favicon-32_2.png"/>
   <link rel="icon" type="image/png" sizes="16x16" href="/gcs-website/assets/favicon-16_2.png"/>
   <link rel="apple-touch-icon" sizes="180x180" href="/gcs-website/assets/favicon-180_2.png"/>
-  <meta name="description" content="Weekly drawing classes for kids and adults at Bhuvi by Amsha, Bangalore. Realistic portrait drawing, shading, charcoal techniques."/>
+  <meta name="description" content="Online and in-person drawing classes for kids and adults by artist Vivek Patil. Learn realistic portraits, pencil shading and charcoal techniques."/>
+  <meta name="robots" content="index,follow,max-image-preview:large"/>
+  <meta name="theme-color" content="#0d0d0d"/>
+  <link rel="canonical" href="https://universeofvivek.in/"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:locale" content="en_IN"/>
+  <meta property="og:site_name" content="Graphite &amp; Charcoal Studio"/>
+  <meta property="og:title" content="Online Drawing Classes | Graphite &amp; Charcoal Studio"/>
+  <meta property="og:description" content="Learn realistic drawing, pencil shading and charcoal techniques through online and in-person classes with artist Vivek Patil."/>
+  <meta property="og:url" content="https://universeofvivek.in/"/>
+  <meta property="og:image" content="https://universeofvivek.in/gcs-website/assets/hero1.jpg"/>
+  <meta property="og:image:alt" content="Realistic artwork from Graphite and Charcoal Studio"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Online Drawing Classes | Graphite &amp; Charcoal Studio"/>
+  <meta name="twitter:description" content="Learn realistic drawing, pencil shading and charcoal techniques with artist Vivek Patil."/>
+  <meta name="twitter:image" content="https://universeofvivek.in/gcs-website/assets/hero1.jpg"/>
   <link rel="preload" as="image" href="/gcs-website/assets/hero1.jpg" fetchpriority="high"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "Graphite & Charcoal Studio",
+    "url": "https://universeofvivek.in/",
+    "email": "hello@universeofvivek.in",
+    "image": "https://universeofvivek.in/gcs-website/assets/hero1.jpg",
+    "description": "Online and in-person drawing classes for kids and adults, focused on realistic portraits, pencil shading and charcoal techniques.",
+    "founder": {
+      "@type": "Person",
+      "name": "Vivek Patil",
+      "url": "https://universeofvivek.in/"
+    },
+    "sameAs": [
+      "https://instagram.com/universeofvivek",
+      "https://youtube.com/@universeofvivek"
+    ],
+    "areaServed": ["Bangalore", "India", "Worldwide"]
+  }
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -396,6 +432,10 @@
     .registration-status.error { display:block; color:#8b2018; background:#fff0ee; border:1px solid #e8c0bc; }
     .registration-note { grid-column:1 / -1; font-size:0.7rem; color:#888880; line-height:1.5; text-align:center; }
     .registration-note a { color:var(--gold-dim); }
+    .privacy-details { grid-column:1 / -1; border-top:1px solid var(--border); padding-top:0.8rem; color:#777770; font-size:0.72rem; line-height:1.55; }
+    .privacy-details summary { color:var(--ink); font-weight:600; cursor:pointer; width:fit-content; margin:0 auto; }
+    .privacy-details p { margin-top:0.7rem; }
+    .privacy-details a { color:var(--gold-dim); }
     .form-submit-frame { position:absolute; width:1px; height:1px; border:0; opacity:0; pointer-events:none; }
 
     /* ── FOOTER ────────────────────────────────────────── */
@@ -759,11 +799,11 @@
         </div>
         <div>
           <p style="font-size:0.68rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#555555;margin-bottom:0.3rem;">Instagram</p>
-          <a href="https://instagram.com/universeofvivek" target="_blank" style="font-size:1rem;font-weight:500;color:var(--gold);text-decoration:none;">@universeofvivek</a>
+          <a href="https://instagram.com/universeofvivek" target="_blank" rel="noopener noreferrer" style="font-size:1rem;font-weight:500;color:var(--gold);text-decoration:none;">@universeofvivek</a>
         </div>
         <div>
           <p style="font-size:0.68rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#555555;margin-bottom:0.3rem;">YouTube</p>
-          <a href="https://youtube.com/@universeofvivek" target="_blank" style="font-size:1rem;font-weight:500;color:var(--gold);text-decoration:none;">@universeofvivek</a>
+          <a href="https://youtube.com/@universeofvivek" target="_blank" rel="noopener noreferrer" style="font-size:1rem;font-weight:500;color:var(--gold);text-decoration:none;">@universeofvivek</a>
         </div>
       </div>
     </div>
@@ -840,6 +880,10 @@
         <button id="registrationSubmit" class="registration-submit" type="submit">Send registration</button>
         <p id="registrationStatus" class="registration-status" role="status" aria-live="polite"></p>
         <p class="registration-note">Your details are sent securely to the studio's registration system. If you have trouble submitting, email <a href="mailto:hello@universeofvivek.in">hello@universeofvivek.in</a>.</p>
+        <details class="privacy-details" id="privacy">
+          <summary>Privacy notice</summary>
+          <p>We use the information you submit only to respond to your enquiry, arrange classes and manage student access. Registration responses are stored in the studio's Google Forms and Sheets account and are not sold. To request a correction or deletion, email <a href="mailto:hello@universeofvivek.in">hello@universeofvivek.in</a>.</p>
+        </details>
       </form>
       <iframe id="registrationResponseFrame" class="form-submit-frame" name="registrationResponseFrame" title="Registration submission response"></iframe>
     </div>
