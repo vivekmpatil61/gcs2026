@@ -7,7 +7,7 @@ const DEFAULT_REGISTRATIONS_SHEET = 'Form Responses 1';
 const REGISTRATION_STATUSES = ['New', 'Contacted', 'Enrolled', 'Closed'];
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 9 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 10 });
 }
 
 function doPost(event) {
@@ -103,7 +103,7 @@ function submitRegistration_(user, email, parameters) {
     const rows = sheet.getDataRange().getValues();
     const headers = rows.length ? rows[0].map(normalizeHeader_) : [];
     const timestampColumn = findHeaderColumn_(headers, ['timestamp']);
-    const participantColumn = findHeaderColumn_(headers, ['participant s full name', 'participant full name', 'student name']);
+    const participantColumn = findHeaderColumn_(headers, ['participant s full name', 'participant full name', 'full name of the participant', 'student name']);
     const emailColumn = findHeaderColumn_(headers, ['email address', 'email']);
     if (timestampColumn === -1 || participantColumn === -1 || emailColumn === -1) {
       return jsonResponse_({ approved: false, code: 'registration_sheet_invalid' });
@@ -137,16 +137,16 @@ function submitRegistration_(user, email, parameters) {
 
     const newRow = new Array(headers.length).fill('');
     setRegistrationValue_(newRow, headers, ['timestamp'], now);
-    setRegistrationValue_(newRow, headers, ['participant s full name', 'participant full name', 'student name'], registration.participantName);
-    setRegistrationValue_(newRow, headers, ['participant s age', 'participant age', 'age'], registration.age);
+    setRegistrationValue_(newRow, headers, ['participant s full name', 'participant full name', 'full name of the participant', 'student name'], registration.participantName);
+    setRegistrationValue_(newRow, headers, ['participant s age', 'participant age', 'age of the participant', 'age'], registration.age);
     setRegistrationValue_(newRow, headers, ['parent or guardian s name', 'parent or guardian name', 'guardian name'], registration.guardianName);
     setRegistrationValue_(newRow, headers, ['whatsapp number', 'phone number', 'mobile number'], registration.whatsapp);
     setRegistrationValue_(newRow, headers, ['email address', 'email'], email);
     setRegistrationValue_(newRow, headers, ['city country', 'city or country', 'location'], registration.location);
     setRegistrationValue_(newRow, headers, ['preferred format', 'preferred programme', 'programme'], registration.programme);
-    setRegistrationValue_(newRow, headers, ['prior drawing or art experience', 'drawing experience', 'experience'], registration.experience);
-    setRegistrationValue_(newRow, headers, ['what would the participant enjoy drawing', 'drawing interests', 'subjects'], registration.subjects.join(', '));
-    setRegistrationValue_(newRow, headers, ['questions or special requests for vivek', 'questions or special requests', 'special requests'], registration.requests);
+    setRegistrationValue_(newRow, headers, ['prior drawing or art experience', 'does the participant have any prior drawing or art experience', 'drawing experience', 'experience'], registration.experience);
+    setRegistrationValue_(newRow, headers, ['what would the participant enjoy drawing', 'what subjects would the participant enjoy drawing most', 'drawing interests', 'subjects'], registration.subjects.join(', '));
+    setRegistrationValue_(newRow, headers, ['questions or special requests for vivek', 'any questions or special requests for vivek', 'questions or special requests', 'special requests'], registration.requests);
     setRegistrationValue_(newRow, headers, ['consent'], registration.consentText);
     setRegistrationValue_(newRow, headers, ['follow up status', 'followup status', 'status'], 'New');
     sheet.appendRow(newRow);
@@ -439,16 +439,16 @@ function getRegistrations_() {
   const headers = rows[0].map(normalizeHeader_);
   const columns = {
     timestamp: findHeaderColumn_(headers, ['timestamp']),
-    participantName: findHeaderColumn_(headers, ['participant s full name', 'participant full name', 'student name']),
-    age: findHeaderColumn_(headers, ['participant s age', 'participant age', 'age']),
+    participantName: findHeaderColumn_(headers, ['participant s full name', 'participant full name', 'full name of the participant', 'student name']),
+    age: findHeaderColumn_(headers, ['participant s age', 'participant age', 'age of the participant', 'age']),
     guardianName: findHeaderColumn_(headers, ['parent or guardian s name', 'parent or guardian name', 'guardian name']),
     whatsapp: findHeaderColumn_(headers, ['whatsapp number', 'phone number', 'mobile number']),
     email: findHeaderColumn_(headers, ['email address', 'email']),
     location: findHeaderColumn_(headers, ['city country', 'city or country', 'location']),
     programme: findHeaderColumn_(headers, ['preferred format', 'preferred programme', 'programme']),
-    experience: findHeaderColumn_(headers, ['prior drawing or art experience', 'drawing experience', 'experience']),
-    subjects: findHeaderColumn_(headers, ['what would the participant enjoy drawing', 'drawing interests', 'subjects']),
-    requests: findHeaderColumn_(headers, ['questions or special requests for vivek', 'questions or special requests', 'special requests']),
+    experience: findHeaderColumn_(headers, ['prior drawing or art experience', 'does the participant have any prior drawing or art experience', 'drawing experience', 'experience']),
+    subjects: findHeaderColumn_(headers, ['what would the participant enjoy drawing', 'what subjects would the participant enjoy drawing most', 'drawing interests', 'subjects']),
+    requests: findHeaderColumn_(headers, ['questions or special requests for vivek', 'any questions or special requests for vivek', 'questions or special requests', 'special requests']),
     status: findHeaderColumn_(headers, ['follow up status', 'followup status', 'status'])
   };
 
@@ -513,7 +513,7 @@ function getRegistrationSheet_() {
     if (sheet.getLastColumn() === 0) return false;
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn())
       .getDisplayValues()[0].map(normalizeHeader_);
-    return findHeaderColumn_(headers, ['participant s full name', 'participant full name']) !== -1 &&
+    return findHeaderColumn_(headers, ['participant s full name', 'participant full name', 'full name of the participant']) !== -1 &&
       findHeaderColumn_(headers, ['email address', 'email']) !== -1;
   });
   if (!detectedSheet) throw new Error('registration_sheet_missing');
