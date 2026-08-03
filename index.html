@@ -143,9 +143,13 @@
     .btn-ghost:hover { border-color:var(--gold); color:var(--gold); }
     @media(max-width:720px){
       .hero { grid-template-columns:1fr; }
-      .hero-img-side { height:115vw; min-height:360px; max-height:520px; background:#000000; }
-      .hero-slide { background-size:contain; background-position:center; background-color:#ffffff; }
-      .hero-img-fade { background: linear-gradient(to top, rgba(13,13,13,0.55) 0%, transparent 14%); }
+      .hero-img-side { height:115vw; min-height:360px; max-height:520px; background:var(--ink); }
+      .hero-slide { background-size:contain; background-position:center; background-color:var(--ink); }
+      .hero-img-fade {
+        background:
+          linear-gradient(to right, var(--ink) 0%, transparent 11%, transparent 89%, var(--ink) 100%),
+          linear-gradient(to bottom, var(--ink) 0%, transparent 16%, transparent 82%, var(--ink) 100%);
+      }
       .hero-text-side { padding: 6.2rem 5vw 4rem; }
       .hero-studio-name { font-size:clamp(2.7rem,13vw,3.2rem); margin-bottom:1.4rem; }
       .hero h1 { font-size:1.65rem; }
@@ -362,6 +366,7 @@
     .enrol-box small { display:block; margin-top:1rem; font-size:0.75rem; color:#444444; }
     .contact-layout { display:grid; grid-template-columns:minmax(240px,0.7fr) minmax(0,1.3fr); gap:1.5rem; max-width:1040px; align-items:start; }
     .registration-card { background:#ffffff; border:1px solid var(--border); border-radius:16px; padding:2.5rem; box-shadow:0 16px 45px rgba(0,0,0,0.06); }
+    #registration { scroll-margin-top:74px; }
     .registration-card h3 { font-family:'Playfair Display',serif; font-size:1.55rem; color:var(--ink); line-height:1.25; margin-bottom:0.5rem; }
     .registration-intro { font-size:0.85rem; color:var(--muted); line-height:1.65; margin-bottom:1.8rem; }
     .registration-form { display:grid; grid-template-columns:1fr 1fr; gap:1rem 1.2rem; }
@@ -429,7 +434,7 @@
   </ul>
   <div style="display:flex;align-items:center;gap:0.6rem;">
     <a class="nav-student-btn" href="#videos" onclick="document.getElementById('videos').scrollIntoView({behavior:'smooth'});return false;">Student Login</a>
-    <a class="nav-cta" href="#contact">Enrol Now</a>
+    <a class="nav-cta" href="#registration">Enrol Now</a>
   </div>
 </nav>
 
@@ -440,7 +445,7 @@
     <h1>Where pencils<br/>meet <em>patience.</em></h1>
     <p class="hero-sub">Weekly drawing classes for kids and adults. Realistic portraits, shading, charcoal - taught with individual attention.</p>
     <div class="hero-btns">
-      <a href="#contact" class="btn btn-gold">Enrol Now</a>
+      <a href="#registration" class="btn btn-gold">Enrol Now</a>
       <a href="#gallery" class="btn btn-ghost">See the Work</a>
     </div>
     <div class="slide-dots" id="dots">
@@ -757,7 +762,7 @@
       </div>
     </div>
 
-    <div class="registration-card">
+    <div class="registration-card" id="registration">
       <p class="lbl">Express interest</p>
       <h3>Ready to pick up the pencil?</h3>
       <p class="registration-intro">Share a few details below and Vivek will reach out personally to discuss availability, format and everything you need to get started.</p>
