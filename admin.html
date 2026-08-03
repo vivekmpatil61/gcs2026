@@ -128,7 +128,10 @@
     .student-panel { margin-top:1rem; }
     .student-list { display:grid; gap:0.55rem; margin-top:1rem; }
     .student-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0.75rem 0.9rem; background:var(--paper); border:1px solid var(--border); border-radius:10px; }
-    .student-email { margin:0; min-width:0; overflow-wrap:anywhere; font-size:0.88rem; }
+    .student-identity,.progress-identity { min-width:0; }
+    .student-name,.progress-name { margin:0 0 0.18rem; color:var(--ink); font-size:0.86rem; font-weight:700; line-height:1.35; overflow-wrap:anywhere; }
+    .student-email { margin:0; min-width:0; overflow-wrap:anywhere; color:var(--muted); font-size:0.78rem; }
+    .student-identity.email-only .student-email,.progress-identity.email-only .progress-email { color:var(--ink); font-size:0.84rem; font-weight:600; }
     .revoke-btn { border:0; background:none; color:var(--danger); padding:0.35rem; font-size:0.78rem; text-decoration:underline; }
     .progress-panel { margin-top:1rem; }
     .progress-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin:1.4rem 0; }
@@ -138,7 +141,7 @@
     .progress-list { display:grid; gap:0.7rem; }
     .progress-row { padding:0.9rem 1rem; border:1px solid var(--border); border-radius:10px; background:#fff; }
     .progress-row-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
-    .progress-email { margin:0; min-width:0; overflow-wrap:anywhere; font-size:0.84rem; font-weight:600; }
+    .progress-email { margin:0; min-width:0; overflow-wrap:anywhere; color:var(--muted); font-size:0.74rem; }
     .progress-total { margin:0; color:var(--ink); font-size:0.78rem; font-weight:700; white-space:nowrap; }
     .progress-track { height:7px; margin:0.7rem 0 0.5rem; overflow:hidden; border-radius:999px; background:#e7e4da; }
     .progress-fill { height:100%; border-radius:inherit; background:var(--gold-dark); }
@@ -354,6 +357,7 @@
     let activeAccessToken = '';
     let currentTutorials = [];
     let currentStudents = [];
+    let currentStudentProfiles = [];
     let currentProgress = [];
     let currentRegistrations = [];
     let registrationsLoaded = false;
@@ -488,6 +492,11 @@
     function updateDashboardData(data) {
       if (Array.isArray(data.tutorials)) currentTutorials = data.tutorials;
       if (Array.isArray(data.students)) currentStudents = data.students;
+      if (Array.isArray(data.studentProfiles)) {
+        currentStudentProfiles = data.studentProfiles;
+      } else if (Array.isArray(data.students)) {
+        currentStudentProfiles = data.students.map(email => ({ email: email, name: '' }));
+      }
       if (Array.isArray(data.studentProgress)) currentProgress = data.studentProgress;
       document.getElementById('tutorialTabCount').textContent = String(currentTutorials.length);
       document.getElementById('studentTabCount').textContent = String(currentStudents.length);
@@ -558,33 +567,45 @@
 
     function renderStudents() {
       studentList.replaceChildren();
-      document.getElementById('studentCount').textContent = `${currentStudents.length} approved`;
+      document.getElementById('studentCount').textContent = `${currentStudentProfiles.length} approved`;
       const query = studentSearch.value.trim().toLowerCase();
-      const filtered = currentStudents.filter(email => email.toLowerCase().includes(query));
+      const filtered = currentStudentProfiles.filter(student =>
+        `${student.name || ''} ${student.email || ''}`.toLowerCase().includes(query)
+      );
       const page = getPage(filtered, 'students');
-      document.getElementById('studentResultCount').textContent = resultCount(filtered.length, currentStudents.length);
+      document.getElementById('studentResultCount').textContent = resultCount(filtered.length, currentStudentProfiles.length);
 
       if (!filtered.length) {
         const empty = document.createElement('div');
         empty.className = 'empty';
-        empty.textContent = currentStudents.length ? 'No approved students match that search.' : 'No students are currently approved.';
+        empty.textContent = currentStudentProfiles.length ? 'No approved students match that search.' : 'No students are currently approved.';
         studentList.append(empty);
         renderPagination(document.getElementById('studentPagination'), 'students', 0, renderStudents);
         return;
       }
 
-      page.items.forEach(email => {
+      page.items.forEach(student => {
         const row = document.createElement('div');
         row.className = 'student-row';
+        const identity = document.createElement('div');
+        identity.className = 'student-identity';
+        identity.classList.toggle('email-only', !student.name);
+        if (student.name) {
+          const name = document.createElement('p');
+          name.className = 'student-name';
+          name.textContent = student.name;
+          identity.append(name);
+        }
         const address = document.createElement('p');
         address.className = 'student-email';
-        address.textContent = email;
+        address.textContent = student.email;
+        identity.append(address);
         const revoke = document.createElement('button');
         revoke.type = 'button';
         revoke.className = 'revoke-btn';
         revoke.textContent = 'Revoke';
-        revoke.addEventListener('click', () => removeStudent(email));
-        row.append(address, revoke);
+        revoke.addEventListener('click', () => removeStudent(student.email));
+        row.append(identity, revoke);
         studentList.append(row);
       });
       renderPagination(document.getElementById('studentPagination'), 'students', filtered.length, renderStudents);
@@ -603,7 +624,9 @@
       document.getElementById('averageProgress').textContent = `${average}%`;
       document.getElementById('completedStudents').textContent = String(completed);
       const query = progressSearch.value.trim().toLowerCase();
-      const filtered = currentProgress.filter(student => String(student.email || '').toLowerCase().includes(query));
+      const filtered = currentProgress.filter(student =>
+        `${student.name || ''} ${student.email || ''}`.toLowerCase().includes(query)
+      );
       const page = getPage(filtered, 'progress');
       document.getElementById('progressResultCount').textContent = resultCount(filtered.length, currentProgress.length);
 
@@ -621,13 +644,23 @@
         row.className = 'progress-row';
         const head = document.createElement('div');
         head.className = 'progress-row-head';
+        const identity = document.createElement('div');
+        identity.className = 'progress-identity';
+        identity.classList.toggle('email-only', !student.name);
+        if (student.name) {
+          const name = document.createElement('p');
+          name.className = 'progress-name';
+          name.textContent = student.name;
+          identity.append(name);
+        }
         const email = document.createElement('p');
         email.className = 'progress-email';
         email.textContent = student.email;
+        identity.append(email);
         const total = document.createElement('p');
         total.className = 'progress-total';
         total.textContent = `${student.completedCount} of ${student.totalCount}`;
-        head.append(email, total);
+        head.append(identity, total);
 
         const track = document.createElement('div');
         track.className = 'progress-track';
@@ -1000,6 +1033,7 @@
       activeAccessToken = '';
       currentTutorials = [];
       currentStudents = [];
+      currentStudentProfiles = [];
       currentProgress = [];
       currentRegistrations = [];
       registrationsLoaded = false;

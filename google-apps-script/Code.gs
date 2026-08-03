@@ -7,7 +7,7 @@ const DEFAULT_REGISTRATIONS_SHEET = 'Form Responses 1';
 const REGISTRATION_STATUSES = ['New', 'Contacted', 'Enrolled', 'Closed'];
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 10 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 11 });
 }
 
 function doPost(event) {
@@ -397,6 +397,7 @@ function mutateTutorials_(user, mutation) {
 
 function adminDashboardResponse_(user, tutorials) {
   const students = getApprovedStudents_();
+  const studentNames = getStudentNamesByEmail_();
   const payload = {
     approved: true,
     admin: true,
@@ -407,7 +408,10 @@ function adminDashboardResponse_(user, tutorials) {
     },
     tutorials: tutorials,
     students: students,
-    studentProgress: getStudentProgressSummary_(students, tutorials)
+    studentProfiles: students.map(function(email) {
+      return { email: email, name: studentNames[email] || '' };
+    }),
+    studentProgress: getStudentProgressSummary_(students, tutorials, studentNames)
   };
   return jsonResponse_(payload);
 }
@@ -539,7 +543,35 @@ function valueAt_(row, column) {
   return column === -1 ? '' : row[column];
 }
 
-function getStudentProgressSummary_(students, tutorials) {
+function getStudentNamesByEmail_() {
+  try {
+    const rows = getRegistrationSheet_().getDataRange().getValues();
+    if (rows.length < 2) return {};
+    const headers = rows[0].map(normalizeHeader_);
+    const emailColumn = findHeaderColumn_(headers, ['email address', 'email']);
+    const nameColumn = findHeaderColumn_(headers, ['participant s full name', 'participant full name', 'full name of the participant', 'student name']);
+    if (emailColumn === -1 || nameColumn === -1) return {};
+
+    const namesByEmail = {};
+    rows.slice(1).forEach(function(row) {
+      const email = normalizeEmail_(row[emailColumn]);
+      const name = String(row[nameColumn] || '').trim();
+      if (!email || !name) return;
+      if (!namesByEmail[email]) namesByEmail[email] = [];
+      if (namesByEmail[email].indexOf(name) === -1) namesByEmail[email].push(name);
+    });
+
+    Object.keys(namesByEmail).forEach(function(email) {
+      namesByEmail[email] = namesByEmail[email].join(', ');
+    });
+    return namesByEmail;
+  } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
+    return {};
+  }
+}
+
+function getStudentProgressSummary_(students, tutorials, studentNames) {
   const publishedIds = tutorials.map(function(tutorial) { return tutorial.id; });
   const progressRows = getProgressSheet_().getDataRange().getValues();
   const progressByEmail = {};
@@ -565,6 +597,7 @@ function getStudentProgressSummary_(students, tutorials) {
     const totalCount = tutorials.length;
     return {
       email: email,
+      name: studentNames[email] || '',
       completedCount: completedCount,
       totalCount: totalCount,
       percent: totalCount ? Math.round(completedCount / totalCount * 100) : 0,
