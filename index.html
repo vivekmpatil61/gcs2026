@@ -217,6 +217,7 @@
       transform-origin: bottom center;
     }
     .gallery-item img { display:block; height:280px; width:220px; object-fit:cover; object-position:center top; transition: width 0.3s ease, height 0.3s ease; }
+    .gallery-item.gallery-contain img { object-fit:contain; object-position:center; }
     .gallery-item .caption {
       position:absolute; bottom:0; left:0; right:0;
       background:linear-gradient(to top, rgba(0,0,0,0.8), transparent);
@@ -594,6 +595,7 @@
     <h2>A decade of marks on paper.</h2>
   </div>
   <div class="gallery-scroll" id="galleryScroll">
+    <div class="gallery-item gallery-contain"><img src="/gcs-website/assets/gallery-fabric.jpg" alt="Realistic charcoal study of folded fabric" loading="lazy" decoding="async"/><div class="caption">Charcoal - Fabric study</div></div>
     <div class="gallery-item"><img src="/gcs-website/assets/gallery-coconut.jpg" alt="Realistic coconut drawn in charcoal" loading="lazy" decoding="async"/><div class="caption">Charcoal · Realistic coconut</div></div>
     <div class="gallery-item"><img src="/gcs-website/assets/gallery1.jpg" alt="Graphite pencil artwork" loading="lazy" decoding="async"/><div class="caption">Pencil · Graphite</div></div>
     <div class="gallery-item"><img src="/gcs-website/assets/gallery3.jpg" alt="Charcoal portrait study" loading="lazy" decoding="async"/><div class="caption">Charcoal · Portrait study</div></div>
