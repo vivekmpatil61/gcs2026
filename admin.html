@@ -115,6 +115,19 @@
     .student-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0.75rem 0.9rem; background:var(--paper); border:1px solid var(--border); border-radius:10px; }
     .student-email { margin:0; min-width:0; overflow-wrap:anywhere; font-size:0.88rem; }
     .revoke-btn { border:0; background:none; color:var(--danger); padding:0.35rem; font-size:0.78rem; text-decoration:underline; }
+    .progress-panel { margin-top:1rem; }
+    .progress-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin:1.4rem 0; }
+    .progress-stat { padding:1rem; border:1px solid var(--border); border-radius:10px; background:var(--paper); }
+    .progress-stat-value { margin:0; color:var(--ink); font-family:'DM Serif Display',serif; font-size:1.7rem; line-height:1; }
+    .progress-stat-label { margin:0.35rem 0 0; color:var(--muted); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; }
+    .progress-list { display:grid; gap:0.7rem; }
+    .progress-row { padding:0.9rem 1rem; border:1px solid var(--border); border-radius:10px; background:#fff; }
+    .progress-row-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+    .progress-email { margin:0; min-width:0; overflow-wrap:anywhere; font-size:0.84rem; font-weight:600; }
+    .progress-total { margin:0; color:var(--ink); font-size:0.78rem; font-weight:700; white-space:nowrap; }
+    .progress-track { height:7px; margin:0.7rem 0 0.5rem; overflow:hidden; border-radius:999px; background:#e7e4da; }
+    .progress-fill { height:100%; border-radius:inherit; background:var(--gold-dark); }
+    .progress-meta { margin:0; color:var(--muted); font-size:0.7rem; }
     @media (max-width:700px) {
       .topbar { align-items:flex-start; }
       main { width:min(100% - 1rem,960px); margin:1rem auto 3rem; }
@@ -125,6 +138,7 @@
       .tutorial img { width:100px; }
       .actions { grid-column:1 / -1; grid-template-columns:repeat(4,1fr); }
       .action-btn { padding:0.55rem 0.3rem; }
+      .progress-summary { grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -192,6 +206,23 @@
         <div class="student-list" id="studentList"></div>
       </div>
 
+      <div class="panel progress-panel">
+        <div class="dashboard-head">
+          <div>
+            <p class="eyebrow">Learning progress</p>
+            <h2>Student activity</h2>
+          </div>
+          <span class="count" id="progressCount"></span>
+        </div>
+        <p class="intro">Track how far each approved student has moved through the published tutorial library.</p>
+        <div class="progress-summary">
+          <div class="progress-stat"><p class="progress-stat-value" id="startedStudents">0</p><p class="progress-stat-label">Students started</p></div>
+          <div class="progress-stat"><p class="progress-stat-value" id="averageProgress">0%</p><p class="progress-stat-label">Average progress</p></div>
+          <div class="progress-stat"><p class="progress-stat-value" id="completedStudents">0</p><p class="progress-stat-label">Library completed</p></div>
+        </div>
+        <div class="progress-list" id="progressList"></div>
+      </div>
+
       <div class="library-head">
         <div>
           <p class="eyebrow">Published library</p>
@@ -216,6 +247,7 @@
     let activeAccessToken = '';
     let currentTutorials = [];
     let currentStudents = [];
+    let currentProgress = [];
 
     const loginPanel = document.getElementById('loginPanel');
     const dashboard = document.getElementById('dashboard');
@@ -228,6 +260,7 @@
     const studentEmailInput = document.getElementById('studentEmail');
     const studentStatus = document.getElementById('studentStatus');
     const studentList = document.getElementById('studentList');
+    const progressList = document.getElementById('progressList');
 
     document.getElementById('googleSignIn').addEventListener('click', signInWithGoogle);
     document.getElementById('signOut').addEventListener('click', signOut);
@@ -288,11 +321,17 @@
       dashboard.style.display = 'block';
       document.getElementById('adminAvatar').src = data.user.picture || '';
       document.getElementById('adminEmail').textContent = data.user.email || '';
-      currentTutorials = Array.isArray(data.tutorials) ? data.tutorials : [];
-      currentStudents = Array.isArray(data.students) ? data.students : [];
+      updateDashboardData(data);
       renderTutorials();
       renderStudents();
+      renderProgress();
       videoIdInput.focus();
+    }
+
+    function updateDashboardData(data) {
+      if (Array.isArray(data.tutorials)) currentTutorials = data.tutorials;
+      if (Array.isArray(data.students)) currentStudents = data.students;
+      if (Array.isArray(data.studentProgress)) currentProgress = data.studentProgress;
     }
 
     async function addStudent(event) {
@@ -303,8 +342,9 @@
       setStatus(studentStatus, 'Approving student access...');
       try {
         const data = await adminRequest('admin_student_add', { studentEmail: email });
-        currentStudents = data.students;
+        updateDashboardData(data);
         renderStudents();
+        renderProgress();
         studentForm.reset();
         studentEmailInput.focus();
         setStatus(studentStatus, `${email} can now access the tutorial library.`, 'success');
@@ -321,8 +361,9 @@
       setStatus(studentStatus, 'Revoking student access...');
       try {
         const data = await adminRequest('admin_student_remove', { studentEmail: email });
-        currentStudents = data.students;
+        updateDashboardData(data);
         renderStudents();
+        renderProgress();
         setStatus(studentStatus, `${email} no longer has tutorial access.`, 'success');
       } catch (error) {
         setStatus(studentStatus, error.message, 'error');
@@ -358,6 +399,72 @@
       });
     }
 
+    function renderProgress() {
+      progressList.replaceChildren();
+      const started = currentProgress.filter(student => Number(student.completedCount) > 0).length;
+      const completed = currentProgress.filter(student => Number(student.totalCount) > 0 && Number(student.completedCount) >= Number(student.totalCount)).length;
+      const average = currentProgress.length
+        ? Math.round(currentProgress.reduce((sum, student) => sum + Number(student.percent || 0), 0) / currentProgress.length)
+        : 0;
+
+      document.getElementById('progressCount').textContent = `${started} of ${currentProgress.length} started`;
+      document.getElementById('startedStudents').textContent = String(started);
+      document.getElementById('averageProgress').textContent = `${average}%`;
+      document.getElementById('completedStudents').textContent = String(completed);
+
+      if (!currentProgress.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'Approve a student to begin tracking progress.';
+        progressList.append(empty);
+        return;
+      }
+
+      currentProgress.forEach(student => {
+        const row = document.createElement('article');
+        row.className = 'progress-row';
+        const head = document.createElement('div');
+        head.className = 'progress-row-head';
+        const email = document.createElement('p');
+        email.className = 'progress-email';
+        email.textContent = student.email;
+        const total = document.createElement('p');
+        total.className = 'progress-total';
+        total.textContent = `${student.completedCount} of ${student.totalCount}`;
+        head.append(email, total);
+
+        const track = document.createElement('div');
+        track.className = 'progress-track';
+        track.setAttribute('role', 'progressbar');
+        track.setAttribute('aria-label', `${student.email} tutorial progress`);
+        track.setAttribute('aria-valuemin', '0');
+        track.setAttribute('aria-valuemax', '100');
+        track.setAttribute('aria-valuenow', String(student.percent || 0));
+        const fill = document.createElement('div');
+        fill.className = 'progress-fill';
+        fill.style.width = `${Math.max(0, Math.min(100, Number(student.percent) || 0))}%`;
+        track.append(fill);
+
+        const meta = document.createElement('p');
+        meta.className = 'progress-meta';
+        meta.textContent = student.lastActivity
+          ? `Last activity: ${formatActivity(student.lastActivity)}`
+          : 'Not started yet';
+        row.append(head, track, meta);
+        progressList.append(row);
+      });
+    }
+
+    function formatActivity(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return 'Date unavailable';
+      return new Intl.DateTimeFormat('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      }).format(date);
+    }
+
     async function addTutorial(event) {
       event.preventDefault();
       const value = videoIdInput.value.trim();
@@ -366,8 +473,9 @@
       setStatus(adminStatus, 'Fetching the YouTube title and adding the tutorial...');
       try {
         const data = await adminRequest('admin_add', { videoId: value });
-        currentTutorials = data.tutorials;
+        updateDashboardData(data);
         renderTutorials();
+        renderProgress();
         addForm.reset();
         videoIdInput.focus();
         setStatus(adminStatus, 'Tutorial added and published automatically.', 'success');
@@ -384,8 +492,9 @@
       setStatus(adminStatus, action === 'admin_refresh' ? 'Refreshing the YouTube title...' : 'Updating the tutorial library...');
       try {
         const data = await adminRequest(action, { videoId: videoId, direction: direction || '' });
-        currentTutorials = data.tutorials;
+        updateDashboardData(data);
         renderTutorials();
+        renderProgress();
         setStatus(adminStatus, 'Tutorial library updated automatically.', 'success');
       } catch (error) {
         setStatus(adminStatus, error.message, 'error');
@@ -488,8 +597,10 @@
       activeAccessToken = '';
       currentTutorials = [];
       currentStudents = [];
+      currentProgress = [];
       tutorialList.replaceChildren();
       studentList.replaceChildren();
+      progressList.replaceChildren();
       dashboard.style.display = 'none';
       loginPanel.style.display = 'block';
       setStatus(loginStatus, 'Signed out.', 'success');

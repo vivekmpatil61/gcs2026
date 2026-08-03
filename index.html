@@ -50,6 +50,78 @@
     "areaServed": ["Bangalore", "India", "Worldwide"]
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Who are the drawing tutorials for?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The tutorials are designed for children and adults, including complete beginners. Younger learners may benefit from a parent helping them set up materials and the video."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How often are new tutorials added?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "A new guided drawing tutorial is added every week. Lessons build progressively from drawing foundations toward realistic portraits, shading and charcoal techniques."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is included in Studio Access?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Studio Access includes lifetime access to the guided video library, with detailed tutorials that can be paused, repeated and revisited at your own pace."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is included in Studio Live?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Studio Live includes everything in Studio Access, plus two live doubt-clearing sessions each month and access to the private WhatsApp student community."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Are the programmes fully online?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Tutorial access and live support are online, so students can learn from anywhere."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do students access the tutorial library?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Students sign in with the approved Google account provided during enrolment. No separate studio password is required."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What drawing materials are needed?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Students can begin with basic drawing pencils, an eraser and a sketchbook or drawing paper. Individual tutorials explain any additional materials before they are needed."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How much do the programmes cost?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Pricing has not been announced yet. Submit the registration form and Vivek will share current pricing and availability personally before you enrol."
+        }
+      }
+    ]
+  }
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -443,6 +515,19 @@
     .step-n { font-family:'Playfair Display',serif; font-size:2.2rem; color:var(--gold); line-height:1; margin-bottom:0.8rem; }
     .step-t { font-size:0.88rem; font-weight:600; color:#ffffff; margin-bottom:0.4rem; }
     .step-d { font-size:0.82rem; color:#777777; line-height:1.6; }
+
+    /* FAQ */
+    #faq { background:var(--paper2); padding:90px 5vw; }
+    #faq .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:0.8rem; }
+    #faq h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); color:var(--ink); margin-bottom:0.8rem; }
+    .faq-intro { max-width:620px; margin-bottom:2.2rem; color:var(--muted); font-size:0.95rem; line-height:1.75; }
+    .faq-list { display:grid; gap:0.7rem; max-width:900px; }
+    .faq-item { background:#ffffff; border:1px solid var(--border); border-radius:var(--r); overflow:hidden; }
+    .faq-item summary { position:relative; padding:1.1rem 3rem 1.1rem 1.2rem; color:var(--ink); font-size:0.9rem; font-weight:600; line-height:1.5; cursor:pointer; list-style:none; }
+    .faq-item summary::-webkit-details-marker { display:none; }
+    .faq-item summary::after { content:'+'; position:absolute; top:50%; right:1.2rem; transform:translateY(-50%); color:var(--gold-dim); font-size:1.4rem; font-weight:400; }
+    .faq-item[open] summary::after { content:'-'; }
+    .faq-item p { padding:0 1.2rem 1.2rem; color:var(--muted); font-size:0.84rem; line-height:1.7; }
 
     /* ── CONTACT ───────────────────────────────────────── */
     #contact { background:var(--paper); padding:90px 5vw; }
@@ -880,6 +965,47 @@
         <div style="position:absolute;inset:0;background:linear-gradient(to right, var(--ink) 0%, rgba(13,13,13,0.3) 25%, transparent 55%);"></div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <p class="lbl">Frequently asked questions</p>
+  <h2>Everything you need to begin.</h2>
+  <p class="faq-intro">Clear answers about the tutorials, access and learning format. If your question is not here, email Vivek directly.</p>
+  <div class="faq-list">
+    <details class="faq-item">
+      <summary>Who are the drawing tutorials for?</summary>
+      <p>The tutorials are designed for children and adults, including complete beginners. Younger learners may benefit from a parent helping them set up materials and the video.</p>
+    </details>
+    <details class="faq-item">
+      <summary>How often are new tutorials added?</summary>
+      <p>A new guided drawing tutorial is added every week. Lessons build progressively from drawing foundations toward realistic portraits, shading and charcoal techniques.</p>
+    </details>
+    <details class="faq-item">
+      <summary>What is included in Studio Access?</summary>
+      <p>Studio Access includes lifetime access to the guided video library, with detailed tutorials that can be paused, repeated and revisited at your own pace.</p>
+    </details>
+    <details class="faq-item">
+      <summary>What is included in Studio Live?</summary>
+      <p>Studio Live includes everything in Studio Access, plus two live doubt-clearing sessions each month and access to the private WhatsApp student community.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Are the programmes fully online?</summary>
+      <p>Yes. Tutorial access and live support are online, so students can learn from anywhere.</p>
+    </details>
+    <details class="faq-item">
+      <summary>How do students access the tutorial library?</summary>
+      <p>Students sign in with the approved Google account provided during enrolment. No separate studio password is required.</p>
+    </details>
+    <details class="faq-item">
+      <summary>What drawing materials are needed?</summary>
+      <p>Students can begin with basic drawing pencils, an eraser and a sketchbook or drawing paper. Individual tutorials explain any additional materials before they are needed.</p>
+    </details>
+    <details class="faq-item">
+      <summary>How much do the programmes cost?</summary>
+      <p>Pricing has not been announced yet. Submit the registration form and Vivek will share current pricing and availability personally before you enrol.</p>
+    </details>
   </div>
 </section>
 

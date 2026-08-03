@@ -5,7 +5,7 @@ const DEFAULT_STUDENTS_SHEET = 'Distribution list';
 const DEFAULT_PROGRESS_SHEET = 'Tutorial progress';
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 6 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 7 });
 }
 
 function doPost(event) {
@@ -123,7 +123,7 @@ function getCompletedVideoIds_(email) {
 
 function handleAdminAction_(action, parameters, user) {
   if (action === 'admin_list') {
-    return adminResponse_(user, getTutorials_(), getApprovedStudents_());
+    return adminDashboardResponse_(user, getTutorials_());
   }
 
   if (action === 'admin_student_add' || action === 'admin_student_remove') {
@@ -195,7 +195,7 @@ function mutateTutorials_(user, mutation) {
     const normalized = renumberTutorials_(tutorials);
     PropertiesService.getScriptProperties()
       .setProperty('TUTORIAL_CATALOG_JSON', JSON.stringify(normalized));
-    return adminResponse_(user, normalized);
+    return adminDashboardResponse_(user, normalized);
   } catch (error) {
     return jsonResponse_({
       approved: false,
@@ -206,7 +206,8 @@ function mutateTutorials_(user, mutation) {
   }
 }
 
-function adminResponse_(user, tutorials, students) {
+function adminDashboardResponse_(user, tutorials) {
+  const students = getApprovedStudents_();
   const payload = {
     approved: true,
     admin: true,
@@ -215,10 +216,45 @@ function adminResponse_(user, tutorials, students) {
       givenName: String(user.given_name || ''),
       picture: String(user.picture || '')
     },
-    tutorials: tutorials
+    tutorials: tutorials,
+    students: students,
+    studentProgress: getStudentProgressSummary_(students, tutorials)
   };
-  if (Array.isArray(students)) payload.students = students;
   return jsonResponse_(payload);
+}
+
+function getStudentProgressSummary_(students, tutorials) {
+  const publishedIds = tutorials.map(function(tutorial) { return tutorial.id; });
+  const progressRows = getProgressSheet_().getDataRange().getValues();
+  const progressByEmail = {};
+
+  progressRows.slice(1).forEach(function(row) {
+    const email = normalizeEmail_(row[0]);
+    const videoId = String(row[1] || '');
+    if (!email || publishedIds.indexOf(videoId) === -1) return;
+    if (!progressByEmail[email]) {
+      progressByEmail[email] = { videoIds: {}, lastActivity: null };
+    }
+    progressByEmail[email].videoIds[videoId] = true;
+    const activity = row[2] instanceof Date ? row[2] : new Date(row[2]);
+    if (!isNaN(activity.getTime()) &&
+        (!progressByEmail[email].lastActivity || activity > progressByEmail[email].lastActivity)) {
+      progressByEmail[email].lastActivity = activity;
+    }
+  });
+
+  return students.map(function(email) {
+    const progress = progressByEmail[email];
+    const completedCount = progress ? Object.keys(progress.videoIds).length : 0;
+    const totalCount = tutorials.length;
+    return {
+      email: email,
+      completedCount: completedCount,
+      totalCount: totalCount,
+      percent: totalCount ? Math.round(completedCount / totalCount * 100) : 0,
+      lastActivity: progress && progress.lastActivity ? progress.lastActivity.toISOString() : ''
+    };
+  });
 }
 
 function updateStudentAccess_(user, studentEmail, shouldApprove) {
@@ -256,7 +292,7 @@ function updateStudentAccess_(user, studentEmail, shouldApprove) {
       sheet.getRange('A1').setValue(emails.join(', '));
     }
 
-    return adminResponse_(user, getTutorials_(), getApprovedStudents_());
+    return adminDashboardResponse_(user, getTutorials_());
   } catch (error) {
     console.error(error && error.stack ? error.stack : error);
     return jsonResponse_({ approved: false, code: 'student_update_failed' });

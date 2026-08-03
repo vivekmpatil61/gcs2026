@@ -51,3 +51,5 @@ The same admin page lists approved student emails. Adding or revoking an email u
 ## Student progress
 
 Signed-in students can mark tutorials complete from the library or video player. The backend automatically creates a `Tutorial progress` tab in the student spreadsheet and stores completion by verified Google email and YouTube video ID. Progress follows the student across devices and can be undone at any time.
+
+The private admin page summarizes this data for every approved student, including completed tutorials, completion percentage and the most recent completion activity. Revoked students keep their stored history in the Sheet so progress can resume if access is approved again later.
