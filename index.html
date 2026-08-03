@@ -302,7 +302,8 @@
     .student-work { position:relative; overflow:hidden; border-radius:14px; background:#181817; aspect-ratio:3/4; }
     .student-work img { width:100%; height:100%; display:block; object-fit:cover; transition:transform 0.35s ease; }
     .student-work:hover img { transform:scale(1.025); }
-    .student-work figcaption { position:absolute; inset:auto 0 0; padding:2.5rem 1rem 0.9rem; background:linear-gradient(transparent,rgba(0,0,0,0.82)); color:#ffffff; font-size:0.72rem; letter-spacing:0.04em; }
+    .student-work figcaption { position:absolute; inset:auto 0 0; padding:2.5rem 1rem 0.9rem; background:linear-gradient(transparent,rgba(0,0,0,0.82)); color:#ffffff; font-size:0.72rem; letter-spacing:0.04em; display:flex; align-items:end; justify-content:space-between; gap:0.75rem; }
+    .student-work-age { color:var(--gold); font-size:0.66rem; font-weight:700; white-space:nowrap; text-transform:uppercase; }
     .testimonial-heading { font-family:'Playfair Display',serif; font-size:clamp(1.45rem,2.6vw,2rem); color:#ffffff; margin-bottom:1.4rem; }
     .testimonial-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
     .testimonial-card { border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:1.6rem; background:rgba(255,255,255,0.035); }
@@ -548,11 +549,9 @@
 <nav>
   <a class="nav-logo" href="#top"><span class="nav-logo-full">Graphite &amp; Charcoal Studio</span><span class="nav-logo-short">G&amp;C Studio</span></a>
   <ul class="nav-links">
-    <li><a href="#gallery">Work</a></li>
+    <li><a href="#results">Results</a></li>
     <li><a href="#programmes">Programmes</a></li>
-    <li><a href="#videos">Tutorials</a></li>
     <li><a href="#about">About</a></li>
-    <li><a href="#contact">Contact</a></li>
   </ul>
   <div style="display:flex;align-items:center;gap:0.6rem;">
     <a class="nav-student-btn" href="#videos" onclick="document.getElementById('videos').scrollIntoView({behavior:'smooth'});return false;">Student Login</a>
@@ -722,28 +721,28 @@
   <p class="results-intro">Real work created by students while learning observation, proportion, shading and patient practice.</p>
   <div class="student-work-grid">
     <figure class="student-work">
-      <img src="/gcs-website/assets/student-shading.jpg" alt="Student pencil study of cubes showing light and shadow" loading="lazy" decoding="async"/>
-      <figcaption>Light and shadow study</figcaption>
+      <img src="/gcs-website/assets/student-shading.jpg" alt="Cube shading study created by a 5-year-old student" loading="lazy" decoding="async"/>
+      <figcaption><span>Cube shading</span><span class="student-work-age">Age 5</span></figcaption>
     </figure>
     <figure class="student-work">
-      <img src="/gcs-website/assets/student-eye.jpg" alt="Realistic eye drawn in graphite by a student" loading="lazy" decoding="async"/>
-      <figcaption>Realistic eye study</figcaption>
+      <img src="/gcs-website/assets/student-eye.jpg" alt="Realistic eye drawn in graphite by a 7-year-old student" loading="lazy" decoding="async"/>
+      <figcaption><span>Realistic eye</span><span class="student-work-age">Age 7</span></figcaption>
     </figure>
     <figure class="student-work">
-      <img src="/gcs-website/assets/student-harry-potter.jpg" alt="Harry Potter portrait drawn in pencil by a student" loading="lazy" decoding="async"/>
-      <figcaption>Character portrait</figcaption>
+      <img src="/gcs-website/assets/student-harry-potter.jpg" alt="Harry Potter portrait drawn in pencil by a 9-year-old student" loading="lazy" decoding="async"/>
+      <figcaption><span>Harry Potter portrait</span><span class="student-work-age">Age 9</span></figcaption>
     </figure>
     <figure class="student-work">
-      <img src="/gcs-website/assets/student-character.jpg" alt="Stylised character portrait drawn in pencil by a student" loading="lazy" decoding="async"/>
-      <figcaption>Stylised portrait</figcaption>
+      <img src="/gcs-website/assets/student-character.jpg" alt="Stylised portrait drawn in pencil by a 9-year-old student" loading="lazy" decoding="async"/>
+      <figcaption><span>Stylised portrait</span><span class="student-work-age">Age 9</span></figcaption>
     </figure>
     <figure class="student-work">
-      <img src="/gcs-website/assets/student-dobby.jpg" alt="Dobby character drawn in graphite by a student" loading="lazy" decoding="async"/>
-      <figcaption>Expression and character</figcaption>
+      <img src="/gcs-website/assets/student-dobby.jpg" alt="Dobby character drawn in graphite by an 8-year-old student" loading="lazy" decoding="async"/>
+      <figcaption><span>Dobby character</span><span class="student-work-age">Age 8</span></figcaption>
     </figure>
     <figure class="student-work">
-      <img src="/gcs-website/assets/student-krishna.jpg" alt="Young Krishna drawn in pencil using the grid method by a student" loading="lazy" decoding="async"/>
-      <figcaption>Grid method drawing</figcaption>
+      <img src="/gcs-website/assets/student-krishna.jpg" alt="Young Krishna drawn using the grid method by a 10-year-old student" loading="lazy" decoding="async"/>
+      <figcaption><span>Krishna grid drawing</span><span class="student-work-age">Age 10</span></figcaption>
     </figure>
   </div>
   <h3 class="testimonial-heading">What parents noticed</h3>
