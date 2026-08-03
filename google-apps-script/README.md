@@ -4,7 +4,9 @@ This Apps Script replaces the current email-only approval endpoint.
 
 ## Sheet setup
 
-Create a tab named `Students` in the Google Sheet with these headers:
+The current `Distribution list` tab is supported as-is. Its cell A1 can contain the comma-separated approved email list.
+
+For easier management later, the script also supports a tab with these headers:
 
 | Email | Status |
 | --- | --- |
@@ -21,7 +23,7 @@ In Apps Script, open Project Settings and add:
 - Property: `TUTORIAL_CATALOG_JSON`
 - Value: the complete JSON array from the local `tutorial-catalog.private.json` file
 
-The optional `STUDENTS_SHEET_NAME` property can point to a different tab name.
+Set `STUDENTS_SHEET_NAME` to `Distribution list` for the current Sheet. It can point to a different tab name later.
 
 ## Deployment
 

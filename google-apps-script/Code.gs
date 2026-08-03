@@ -1,5 +1,5 @@
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo';
-const DEFAULT_STUDENTS_SHEET = 'Students';
+const DEFAULT_STUDENTS_SHEET = 'Distribution list';
 
 function doGet() {
   return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 2 });
@@ -89,19 +89,25 @@ function isActiveStudent_(email) {
   }
 
   const rows = sheet.getDataRange().getDisplayValues();
-  if (rows.length < 2) return false;
+  if (rows.length === 0) return false;
 
   const headers = rows[0].map(function(value) { return String(value).trim().toLowerCase(); });
   const emailColumn = headers.indexOf('email');
   const statusColumn = headers.indexOf('status');
-  if (emailColumn === -1 || statusColumn === -1) {
-    throw new Error('The Students sheet must contain Email and Status headers.');
+
+  if (emailColumn !== -1 && statusColumn !== -1) {
+    return rows.slice(1).some(function(row) {
+      return normalizeEmail_(row[emailColumn]) === email &&
+        String(row[statusColumn]).trim().toLowerCase() === 'active';
+    });
   }
 
-  return rows.slice(1).some(function(row) {
-    return normalizeEmail_(row[emailColumn]) === email &&
-      String(row[statusColumn]).trim().toLowerCase() === 'active';
-  });
+  const approvedEmails = String(rows[0][0] || '')
+    .split(',')
+    .map(normalizeEmail_)
+    .filter(Boolean);
+
+  return approvedEmails.indexOf(email) !== -1;
 }
 
 function normalizeEmail_(value) {
