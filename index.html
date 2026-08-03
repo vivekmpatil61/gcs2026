@@ -293,6 +293,23 @@
     .programme-cta { display:block; border-radius:var(--r); padding:0.8rem 1rem; background:var(--ink); color:#ffffff; text-decoration:none; text-align:center; font-size:0.84rem; font-weight:700; }
     .programme-card.featured .programme-cta { background:var(--gold); color:var(--ink); }
 
+    /* STUDENT RESULTS */
+    #results { background:var(--ink); padding:90px 5vw; }
+    #results .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:0.8rem; }
+    #results h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); color:#ffffff; margin-bottom:0.8rem; }
+    .results-intro { font-size:0.97rem; color:#8f8f88; max-width:650px; line-height:1.8; margin-bottom:2.5rem; }
+    .student-work-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; margin-bottom:3.5rem; }
+    .student-work { position:relative; overflow:hidden; border-radius:14px; background:#181817; aspect-ratio:3/4; }
+    .student-work img { width:100%; height:100%; display:block; object-fit:cover; transition:transform 0.35s ease; }
+    .student-work:hover img { transform:scale(1.025); }
+    .student-work figcaption { position:absolute; inset:auto 0 0; padding:2.5rem 1rem 0.9rem; background:linear-gradient(transparent,rgba(0,0,0,0.82)); color:#ffffff; font-size:0.72rem; letter-spacing:0.04em; }
+    .testimonial-heading { font-family:'Playfair Display',serif; font-size:clamp(1.45rem,2.6vw,2rem); color:#ffffff; margin-bottom:1.4rem; }
+    .testimonial-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+    .testimonial-card { border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:1.6rem; background:rgba(255,255,255,0.035); }
+    .testimonial-card blockquote { color:#d2d2ca; font-family:'Playfair Display',serif; font-size:1rem; line-height:1.75; margin-bottom:1rem; }
+    .testimonial-card blockquote::before { content:'“'; color:var(--gold); font-size:2rem; line-height:0; vertical-align:-0.35em; margin-right:0.2rem; }
+    .testimonial-card cite { color:var(--gold); font-size:0.72rem; font-style:normal; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; }
+
     /* ── VIDEO LIBRARY ─────────────────────────────────── */
     #videos { background:var(--paper); padding:90px 5vw; }
     #videos .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:0.8rem; }
@@ -477,6 +494,8 @@
       .nav-student-btn,.nav-cta { padding:0.4rem 0.62rem; font-size:0.68rem; white-space:nowrap; }
       .about-wrap,.contact-grid{grid-template-columns:1fr;gap:2.5rem;}
       .programme-grid{grid-template-columns:1fr;}
+      .student-work-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0.65rem;}
+      .testimonial-grid{grid-template-columns:1fr;}
       .contact-layout,.registration-form{grid-template-columns:1fr;}
       .form-field.full,.registration-submit,.registration-status,.registration-note{grid-column:1;}
       .registration-card{padding:1.5rem;}
@@ -661,6 +680,58 @@
       </ul>
       <p class="programme-pricing">Price to be announced. Register your interest for updates.</p>
       <a class="programme-cta" href="#registration" onclick="chooseProgramme('live')">Enquire about Studio Live</a>
+    </article>
+  </div>
+</section>
+
+<!-- STUDENT RESULTS -->
+<section id="results">
+  <p class="lbl">Student results</p>
+  <h2>Skills built one drawing at a time.</h2>
+  <p class="results-intro">Real work created by students while learning observation, proportion, shading and patient practice.</p>
+  <div class="student-work-grid">
+    <figure class="student-work">
+      <img src="/gcs-website/assets/student-shading.jpg" alt="Student pencil study of cubes showing light and shadow" loading="lazy" decoding="async"/>
+      <figcaption>Light and shadow study</figcaption>
+    </figure>
+    <figure class="student-work">
+      <img src="/gcs-website/assets/student-eye.jpg" alt="Realistic eye drawn in graphite by a student" loading="lazy" decoding="async"/>
+      <figcaption>Realistic eye study</figcaption>
+    </figure>
+    <figure class="student-work">
+      <img src="/gcs-website/assets/student-harry-potter.jpg" alt="Harry Potter portrait drawn in pencil by a student" loading="lazy" decoding="async"/>
+      <figcaption>Character portrait</figcaption>
+    </figure>
+    <figure class="student-work">
+      <img src="/gcs-website/assets/student-character.jpg" alt="Stylised character portrait drawn in pencil by a student" loading="lazy" decoding="async"/>
+      <figcaption>Stylised portrait</figcaption>
+    </figure>
+    <figure class="student-work">
+      <img src="/gcs-website/assets/student-dobby.jpg" alt="Dobby character drawn in graphite by a student" loading="lazy" decoding="async"/>
+      <figcaption>Expression and character</figcaption>
+    </figure>
+    <figure class="student-work">
+      <img src="/gcs-website/assets/student-krishna.jpg" alt="Young Krishna drawn in pencil using the grid method by a student" loading="lazy" decoding="async"/>
+      <figcaption>Grid method drawing</figcaption>
+    </figure>
+  </div>
+  <h3 class="testimonial-heading">What parents noticed</h3>
+  <div class="testimonial-grid">
+    <article class="testimonial-card">
+      <blockquote>Thank you, Vivek, for all the guidance and love for the kids. It was one of the best summer camps, and my child enjoyed it a lot. Keep inspiring.</blockquote>
+      <cite>Sunita - Parent</cite>
+    </article>
+    <article class="testimonial-card">
+      <blockquote>My child was reluctant to join at first, but you taught so well that he ended up really enjoying the four weeks. He learned many useful techniques. We really appreciate your patience and guidance.</blockquote>
+      <cite>Vandana - Parent</cite>
+    </article>
+    <article class="testimonial-card">
+      <blockquote>Thank you for taking the effort and showing infinite patience in teaching the kids almost professional-level techniques. I would have loved to join your classes myself.</blockquote>
+      <cite>Meenakshi - Parent</cite>
+    </article>
+    <article class="testimonial-card">
+      <blockquote>Really appreciate your effort in shaping the kids' artistic skills. It is great to see their improvement and enthusiasm. My child is already looking forward to the next session.</blockquote>
+      <cite>Neethi - Parent</cite>
     </article>
   </div>
 </section>
