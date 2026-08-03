@@ -5,9 +5,11 @@ const DEFAULT_STUDENTS_SHEET = 'Distribution list';
 const DEFAULT_PROGRESS_SHEET = 'Tutorial progress';
 const DEFAULT_REGISTRATIONS_SHEET = 'Form Responses 1';
 const REGISTRATION_STATUSES = ['New', 'Contacted', 'Enrolled', 'Closed'];
+const WELCOME_FROM_EMAIL = 'hello@universeofvivek.in';
+const STUDENT_LOGIN_URL = 'https://universeofvivek.in/#videos';
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 11 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 13 });
 }
 
 function doPost(event) {
@@ -315,6 +317,14 @@ function handleAdminAction_(action, parameters, user) {
     return updateRegistrationStatus_(user, rowNumber, status);
   }
 
+  if (action === 'admin_registration_approve') {
+    const rowNumber = Number(parameters.rowNumber);
+    if (!Number.isInteger(rowNumber) || rowNumber < 2) {
+      return jsonResponse_({ approved: false, code: 'registration_not_found' });
+    }
+    return approveRegistration_(user, rowNumber);
+  }
+
   if (action === 'admin_student_add' || action === 'admin_student_remove') {
     const studentEmail = normalizeEmail_(parameters.studentEmail);
     if (!isValidEmail_(studentEmail)) {
@@ -396,9 +406,13 @@ function mutateTutorials_(user, mutation) {
 }
 
 function adminDashboardResponse_(user, tutorials) {
+  return jsonResponse_(adminDashboardPayload_(user, tutorials));
+}
+
+function adminDashboardPayload_(user, tutorials) {
   const students = getApprovedStudents_();
   const studentNames = getStudentNamesByEmail_();
-  const payload = {
+  return {
     approved: true,
     admin: true,
     user: {
@@ -413,7 +427,6 @@ function adminDashboardResponse_(user, tutorials) {
     }),
     studentProgress: getStudentProgressSummary_(students, tutorials, studentNames)
   };
-  return jsonResponse_(payload);
 }
 
 function adminRegistrationsResponse_(user) {
@@ -489,14 +502,7 @@ function updateRegistrationStatus_(user, rowNumber, status) {
     if (rowNumber > sheet.getLastRow()) {
       return jsonResponse_({ approved: false, code: 'registration_not_found' });
     }
-    const lastColumn = Math.max(1, sheet.getLastColumn());
-    const headers = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0].map(normalizeHeader_);
-    let statusColumn = findHeaderColumn_(headers, ['follow up status', 'followup status']);
-    if (statusColumn === -1) {
-      statusColumn = lastColumn;
-      sheet.getRange(1, statusColumn + 1).setValue('Follow-up status');
-    }
-    sheet.getRange(rowNumber, statusColumn + 1).setValue(status);
+    setRegistrationStatusInSheet_(sheet, rowNumber, status);
     return adminRegistrationsResponse_(user);
   } catch (error) {
     console.error(error && error.stack ? error.stack : error);
@@ -504,6 +510,109 @@ function updateRegistrationStatus_(user, rowNumber, status) {
   } finally {
     lock.releaseLock();
   }
+}
+
+function approveRegistration_(user, rowNumber) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return jsonResponse_({ approved: false, code: 'registration_list_busy' });
+  }
+
+  let registration;
+  let alreadyActive = false;
+  try {
+    const registrationSheet = getRegistrationSheet_();
+    if (rowNumber > registrationSheet.getLastRow()) {
+      return jsonResponse_({ approved: false, code: 'registration_not_found' });
+    }
+
+    registration = getRegistrationAtRow_(registrationSheet, rowNumber);
+    if (!isValidEmail_(registration.email)) {
+      return jsonResponse_({ approved: false, code: 'registration_email_missing' });
+    }
+
+    alreadyActive = getApprovedStudents_().indexOf(registration.email) !== -1;
+    setStudentAccessInSheet_(registration.email, true);
+    setRegistrationStatusInSheet_(registrationSheet, rowNumber, 'Enrolled');
+  } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
+    return jsonResponse_({ approved: false, code: 'registration_approval_failed' });
+  } finally {
+    lock.releaseLock();
+  }
+
+  let welcomeEmailSent = false;
+  let welcomeEmailCode = alreadyActive ? 'student_already_active' : '';
+  if (!alreadyActive) {
+    try {
+      sendWelcomeEmail_(registration);
+      welcomeEmailSent = true;
+    } catch (error) {
+      console.error(error && error.stack ? error.stack : error);
+      welcomeEmailCode = String(error && error.message ? error.message : 'welcome_email_failed');
+    }
+  }
+
+  const payload = adminDashboardPayload_(user, getTutorials_());
+  payload.registrations = getRegistrations_();
+  payload.welcomeEmailSent = welcomeEmailSent;
+  payload.welcomeEmailCode = welcomeEmailCode;
+  return jsonResponse_(payload);
+}
+
+function getRegistrationAtRow_(sheet, rowNumber) {
+  const lastColumn = Math.max(1, sheet.getLastColumn());
+  const headers = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0].map(normalizeHeader_);
+  const row = sheet.getRange(rowNumber, 1, 1, lastColumn).getDisplayValues()[0];
+  return {
+    participantName: String(valueAt_(row, findHeaderColumn_(headers, [
+      'participant s full name', 'participant full name', 'full name of the participant', 'student name'
+    ])) || '').trim(),
+    email: normalizeEmail_(valueAt_(row, findHeaderColumn_(headers, ['email address', 'email'])))
+  };
+}
+
+function setRegistrationStatusInSheet_(sheet, rowNumber, status) {
+  const lastColumn = Math.max(1, sheet.getLastColumn());
+  const headers = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0].map(normalizeHeader_);
+  let statusColumn = findHeaderColumn_(headers, ['follow up status', 'followup status']);
+  if (statusColumn === -1) {
+    statusColumn = lastColumn;
+    sheet.getRange(1, statusColumn + 1).setValue('Follow-up status');
+  }
+  sheet.getRange(rowNumber, statusColumn + 1).setValue(status);
+}
+
+function sendWelcomeEmail_(registration) {
+  const effectiveEmail = normalizeEmail_(Session.getEffectiveUser().getEmail());
+  const aliases = GmailApp.getAliases().map(normalizeEmail_);
+  if (effectiveEmail !== WELCOME_FROM_EMAIL && aliases.indexOf(WELCOME_FROM_EMAIL) === -1) {
+    throw new Error('welcome_sender_unavailable');
+  }
+
+  const greeting = registration.participantName ? 'Hello ' + registration.participantName + ',' : 'Hello,';
+  const options = {
+    name: 'Graphite & Charcoal Studio',
+    replyTo: WELCOME_FROM_EMAIL,
+    htmlBody: '<p>' + escapeHtml_(greeting) + '</p>' +
+      '<p>Your Studio Access is now active. Sign in with this approved Google email to open the tutorial library:</p>' +
+      '<p><a href="' + STUDENT_LOGIN_URL + '">Open Student Login</a></p>' +
+      '<p>Happy drawing!<br>Vivek<br>Graphite &amp; Charcoal Studio</p>'
+  };
+  if (effectiveEmail !== WELCOME_FROM_EMAIL) options.from = WELCOME_FROM_EMAIL;
+  GmailApp.sendEmail(
+    registration.email,
+    'Welcome to Graphite & Charcoal Studio',
+    greeting + '\n\nYour Studio Access is now active. Sign in with this approved Google email to open the tutorial library:\n' +
+      STUDENT_LOGIN_URL + '\n\nHappy drawing!\nVivek\nGraphite & Charcoal Studio',
+    options
+  );
+}
+
+function escapeHtml_(value) {
+  return String(value || '').replace(/[&<>"']/g, function(character) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
+  });
 }
 
 function getRegistrationSheet_() {
@@ -613,40 +722,43 @@ function updateStudentAccess_(user, studentEmail, shouldApprove) {
   }
 
   try {
-    const sheet = getStudentSheet_();
-    const rows = sheet.getDataRange().getDisplayValues();
-    const headers = rows.length ? rows[0].map(function(value) {
-      return String(value).trim().toLowerCase();
-    }) : [];
-    const emailColumn = headers.indexOf('email');
-    const statusColumn = headers.indexOf('status');
-
-    if (emailColumn !== -1 && statusColumn !== -1) {
-      const existingIndex = rows.slice(1).findIndex(function(row) {
-        return normalizeEmail_(row[emailColumn]) === studentEmail;
-      });
-      if (existingIndex !== -1) {
-        sheet.getRange(existingIndex + 2, statusColumn + 1)
-          .setValue(shouldApprove ? 'Active' : 'Inactive');
-      } else if (shouldApprove) {
-        const newRow = new Array(headers.length).fill('');
-        newRow[emailColumn] = studentEmail;
-        newRow[statusColumn] = 'Active';
-        sheet.appendRow(newRow);
-      }
-    } else {
-      let emails = parseEmailList_(rows.length ? rows[0][0] : '');
-      if (shouldApprove && emails.indexOf(studentEmail) === -1) emails.push(studentEmail);
-      if (!shouldApprove) emails = emails.filter(function(email) { return email !== studentEmail; });
-      sheet.getRange('A1').setValue(emails.join(', '));
-    }
-
+    setStudentAccessInSheet_(studentEmail, shouldApprove);
     return adminDashboardResponse_(user, getTutorials_());
   } catch (error) {
     console.error(error && error.stack ? error.stack : error);
     return jsonResponse_({ approved: false, code: 'student_update_failed' });
   } finally {
     lock.releaseLock();
+  }
+}
+
+function setStudentAccessInSheet_(studentEmail, shouldApprove) {
+  const sheet = getStudentSheet_();
+  const rows = sheet.getDataRange().getDisplayValues();
+  const headers = rows.length ? rows[0].map(function(value) {
+    return String(value).trim().toLowerCase();
+  }) : [];
+  const emailColumn = headers.indexOf('email');
+  const statusColumn = headers.indexOf('status');
+
+  if (emailColumn !== -1 && statusColumn !== -1) {
+    const existingIndex = rows.slice(1).findIndex(function(row) {
+      return normalizeEmail_(row[emailColumn]) === studentEmail;
+    });
+    if (existingIndex !== -1) {
+      sheet.getRange(existingIndex + 2, statusColumn + 1)
+        .setValue(shouldApprove ? 'Active' : 'Inactive');
+    } else if (shouldApprove) {
+      const newRow = new Array(headers.length).fill('');
+      newRow[emailColumn] = studentEmail;
+      newRow[statusColumn] = 'Active';
+      sheet.appendRow(newRow);
+    }
+  } else {
+    let emails = parseEmailList_(rows.length ? rows[0][0] : '');
+    if (shouldApprove && emails.indexOf(studentEmail) === -1) emails.push(studentEmail);
+    if (!shouldApprove) emails = emails.filter(function(email) { return email !== studentEmail; });
+    sheet.getRange('A1').setValue(emails.join(', '));
   }
 }
 
