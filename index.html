@@ -269,6 +269,30 @@
     .cur-title { font-family:'Playfair Display',serif; font-size:1.05rem; color:#ffffff; margin-bottom:0.5rem; }
     .cur-desc { font-size:0.82rem; color:#777777; line-height:1.6; }
 
+    /* ── PROGRAMMES ────────────────────────────────────── */
+    #programmes { background:var(--paper2); padding:90px 5vw; }
+    #programmes .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:0.8rem; }
+    #programmes h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); color:var(--ink); margin-bottom:0.8rem; }
+    .programmes-intro { font-size:0.97rem; color:var(--muted); max-width:620px; line-height:1.8; margin-bottom:2.5rem; }
+    .programme-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; max-width:950px; }
+    .programme-card { background:#ffffff; border:1px solid var(--border); border-radius:16px; padding:2rem; display:flex; flex-direction:column; }
+    .programme-card.featured { background:var(--ink); border-color:rgba(244,201,72,0.35); }
+    .programme-kicker { color:var(--gold-dim); font-size:0.68rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:0.55rem; }
+    .programme-card.featured .programme-kicker { color:var(--gold); }
+    .programme-title { font-family:'Playfair Display',serif; font-size:1.55rem; color:var(--ink); margin-bottom:0.5rem; }
+    .programme-card.featured .programme-title { color:#ffffff; }
+    .programme-summary { font-size:0.86rem; color:var(--muted); line-height:1.65; margin-bottom:1.4rem; }
+    .programme-card.featured .programme-summary { color:#999990; }
+    .programme-list { list-style:none; display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1.7rem; }
+    .programme-list li { position:relative; padding-left:1.4rem; color:#4f4f49; font-size:0.83rem; line-height:1.5; }
+    .programme-list li::before { content:'✓'; position:absolute; left:0; color:var(--gold-dim); font-weight:700; }
+    .programme-card.featured .programme-list li { color:#c2c2b8; }
+    .programme-card.featured .programme-list li::before { color:var(--gold); }
+    .programme-pricing { margin-top:auto; margin-bottom:1rem; color:#777770; font-size:0.74rem; }
+    .programme-card.featured .programme-pricing { color:#777770; }
+    .programme-cta { display:block; border-radius:var(--r); padding:0.8rem 1rem; background:var(--ink); color:#ffffff; text-decoration:none; text-align:center; font-size:0.84rem; font-weight:700; }
+    .programme-card.featured .programme-cta { background:var(--gold); color:var(--ink); }
+
     /* ── VIDEO LIBRARY ─────────────────────────────────── */
     #videos { background:var(--paper); padding:90px 5vw; }
     #videos .lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold-dim); margin-bottom:0.8rem; }
@@ -452,6 +476,7 @@
       nav > div { gap:0.4rem !important; margin-left:auto; }
       .nav-student-btn,.nav-cta { padding:0.4rem 0.62rem; font-size:0.68rem; white-space:nowrap; }
       .about-wrap,.contact-grid{grid-template-columns:1fr;gap:2.5rem;}
+      .programme-grid{grid-template-columns:1fr;}
       .contact-layout,.registration-form{grid-template-columns:1fr;}
       .form-field.full,.registration-submit,.registration-status,.registration-note{grid-column:1;}
       .registration-card{padding:1.5rem;}
@@ -474,6 +499,7 @@
   <a class="nav-logo" href="#top"><span class="nav-logo-full">Graphite &amp; Charcoal Studio</span><span class="nav-logo-short">G&amp;C Studio</span></a>
   <ul class="nav-links">
     <li><a href="#gallery">Work</a></li>
+    <li><a href="#programmes">Programmes</a></li>
     <li><a href="#videos">Tutorials</a></li>
     <li><a href="#about">About</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -601,6 +627,41 @@
       <h3 class="cur-title">Perspective Drawing</h3>
       <p class="cur-desc">One-point and two-point perspective, horizon lines, vanishing points - how to draw rooms, buildings and objects that feel real in space.</p>
     </div>
+  </div>
+</section>
+
+<!-- PROGRAMMES -->
+<section id="programmes">
+  <p class="lbl">Choose your studio</p>
+  <h2>Learn independently.<br/>Or learn together.</h2>
+  <p class="programmes-intro">Both programmes begin with the same detailed, guided library. Choose self-paced access or add regular live support and a student community.</p>
+  <div class="programme-grid">
+    <article class="programme-card">
+      <p class="programme-kicker">Self-paced learning</p>
+      <h3 class="programme-title">Studio Access</h3>
+      <p class="programme-summary">A complete guided drawing library you can revisit whenever you need it.</p>
+      <ul class="programme-list">
+        <li>Lifetime access to the studio video library</li>
+        <li>Detailed tutorials from foundations to realistic drawing</li>
+        <li>Pause, practise and repeat at your own pace</li>
+        <li>Suitable for beginners, hobby artists and returning learners</li>
+      </ul>
+      <p class="programme-pricing">Price to be announced. Register your interest for updates.</p>
+      <a class="programme-cta" href="#registration" onclick="chooseProgramme('access')">Enquire about Studio Access</a>
+    </article>
+    <article class="programme-card featured">
+      <p class="programme-kicker">Guided learning</p>
+      <h3 class="programme-title">Studio Live</h3>
+      <p class="programme-summary">Everything in Studio Access, with live guidance and a community around your practice.</p>
+      <ul class="programme-list">
+        <li>Complete Studio Access video library</li>
+        <li>Two live doubt-clearing sessions every month</li>
+        <li>Sessions hosted on Zoom or Google Meet</li>
+        <li>Private WhatsApp student community</li>
+      </ul>
+      <p class="programme-pricing">Price to be announced. Register your interest for updates.</p>
+      <a class="programme-cta" href="#registration" onclick="chooseProgramme('live')">Enquire about Studio Live</a>
+    </article>
   </div>
 </section>
 
@@ -843,7 +904,7 @@
           <select id="preferredFormat" name="entry.642261483" required>
             <option value="" selected disabled>Select a format</option>
             <option value="Studio Access (video library)">Studio Access - video library</option>
-            <option value="Studio Live (video library + community where live Q&amp;A happens once or twice in a month)">Studio Live - video library, community and live Q&amp;A</option>
+            <option value="Studio Live (video library + community with two live doubt-clearing sessions every month)">Studio Live - video library, community and two live sessions monthly</option>
           </select>
         </div>
         <div class="form-field full">
@@ -1031,6 +1092,17 @@
     document.getElementById('pwGate').style.display = 'block';
     document.getElementById('pwWelcome').style.display = 'none';
     document.getElementById('pwErr').style.display = 'none';
+  }
+
+  function chooseProgramme(programme) {
+    const programmeValues = {
+      access: 'Studio Access (video library)',
+      live: 'Studio Live (video library + community with two live doubt-clearing sessions every month)'
+    };
+    const preferredFormat = document.getElementById('preferredFormat');
+    if (preferredFormat && programmeValues[programme]) {
+      preferredFormat.value = programmeValues[programme];
+    }
   }
 
   /* ── Registration form submission ── */
