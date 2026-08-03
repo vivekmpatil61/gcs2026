@@ -47,3 +47,7 @@ The website includes an unlinked `admin.html` page. The owner signs in with Goog
 The admin can also move tutorials up or down, refresh a YouTube title, and delete a tutorial. Episode numbers are recalculated after every change.
 
 The same admin page lists approved student emails. Adding or revoking an email updates the existing `Distribution list` Sheet immediately, so the owner no longer needs to edit the Sheet manually.
+
+## Student progress
+
+Signed-in students can mark tutorials complete from the library or video player. The backend automatically creates a `Tutorial progress` tab in the student spreadsheet and stores completion by verified Google email and YouTube video ID. Progress follows the student across devices and can be undone at any time.

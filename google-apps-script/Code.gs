@@ -2,9 +2,10 @@ const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo';
 const GOOGLE_TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo?access_token=';
 const GOOGLE_CLIENT_ID = '120662687568-hbekineb2q7eah307s6ug5nlf65neija.apps.googleusercontent.com';
 const DEFAULT_STUDENTS_SHEET = 'Distribution list';
+const DEFAULT_PROGRESS_SHEET = 'Tutorial progress';
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 5 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 6 });
 }
 
 function doPost(event) {
@@ -33,16 +34,20 @@ function doPost(event) {
       return jsonResponse_({ approved: false, code: 'not_registered' });
     }
 
-    return jsonResponse_({
-      approved: true,
-      user: {
-        email: email,
-        givenName: String(user.given_name || ''),
-        picture: String(user.picture || '')
-      },
-      expiresIn: 3000,
-      tutorials: getTutorials_()
-    });
+    if (action === 'student_progress_set') {
+      const videoId = normalizeYouTubeId_(event.parameter.videoId);
+      const completed = String(event.parameter.completed || '').toLowerCase() === 'true';
+      if (!videoId || !getTutorials_().some(function(tutorial) { return tutorial.id === videoId; })) {
+        return jsonResponse_({ approved: false, code: 'video_not_found' });
+      }
+      return updateStudentProgress_(user, email, videoId, completed);
+    }
+
+    if (action !== 'student_library') {
+      return jsonResponse_({ approved: false, code: 'unknown_student_action' });
+    }
+
+    return studentResponse_(user, email);
   } catch (error) {
     console.error(error && error.stack ? error.stack : error);
     const safeCodes = [
@@ -57,6 +62,63 @@ function doPost(event) {
       code: safeCodes.indexOf(errorCode) !== -1 ? errorCode : 'authorization_failed'
     });
   }
+}
+
+function studentResponse_(user, email) {
+  return jsonResponse_({
+      approved: true,
+      user: {
+        email: email,
+        givenName: String(user.given_name || ''),
+        picture: String(user.picture || '')
+      },
+      expiresIn: 3000,
+      tutorials: getTutorials_(),
+      completedVideoIds: getCompletedVideoIds_(email)
+    });
+}
+
+function updateStudentProgress_(user, email, videoId, completed) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return jsonResponse_({ approved: false, code: 'progress_busy' });
+  }
+
+  try {
+    const sheet = getProgressSheet_();
+    const rows = sheet.getDataRange().getDisplayValues();
+    const existingIndex = rows.slice(1).findIndex(function(row) {
+      return normalizeEmail_(row[0]) === email && String(row[1] || '') === videoId;
+    });
+
+    if (completed && existingIndex === -1) {
+      sheet.appendRow([email, videoId, new Date()]);
+    } else if (completed) {
+      sheet.getRange(existingIndex + 2, 3).setValue(new Date());
+    } else if (existingIndex !== -1) {
+      sheet.deleteRow(existingIndex + 2);
+    }
+
+    return studentResponse_(user, email);
+  } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
+    return jsonResponse_({ approved: false, code: 'progress_update_failed' });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function getCompletedVideoIds_(email) {
+  const rows = getProgressSheet_().getDataRange().getDisplayValues();
+  if (rows.length < 2) return [];
+  const publishedIds = getTutorials_().map(function(tutorial) { return tutorial.id; });
+  return rows.slice(1).filter(function(row) {
+    return normalizeEmail_(row[0]) === email && publishedIds.indexOf(String(row[1] || '')) !== -1;
+  }).map(function(row) {
+    return String(row[1]);
+  }).filter(function(videoId, index, list) {
+    return list.indexOf(videoId) === index;
+  });
 }
 
 function handleAdminAction_(action, parameters, user) {
@@ -348,19 +410,41 @@ function isActiveStudent_(email) {
 }
 
 function getStudentSheet_() {
+  const spreadsheet = getStudentSpreadsheet_();
   const properties = PropertiesService.getScriptProperties();
-  const spreadsheetId = properties.getProperty('STUDENTS_SPREADSHEET_ID');
   const sheetName = properties.getProperty('STUDENTS_SHEET_NAME') || DEFAULT_STUDENTS_SHEET;
-
-  if (!spreadsheetId) {
-    throw new Error('STUDENTS_SPREADSHEET_ID is not configured.');
-  }
-
-  const sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName(sheetName);
+  const sheet = spreadsheet.getSheetByName(sheetName);
   if (!sheet) {
     throw new Error('Student access sheet was not found: ' + sheetName);
   }
   return sheet;
+}
+
+function getProgressSheet_() {
+  const spreadsheet = getStudentSpreadsheet_();
+  let sheet = spreadsheet.getSheetByName(DEFAULT_PROGRESS_SHEET);
+  if (!sheet) {
+    try {
+      sheet = spreadsheet.insertSheet(DEFAULT_PROGRESS_SHEET);
+    } catch (error) {
+      sheet = spreadsheet.getSheetByName(DEFAULT_PROGRESS_SHEET);
+      if (!sheet) throw error;
+    }
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['Email', 'Video ID', 'Completed At']);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function getStudentSpreadsheet_() {
+  const spreadsheetId = PropertiesService.getScriptProperties()
+    .getProperty('STUDENTS_SPREADSHEET_ID');
+  if (!spreadsheetId) {
+    throw new Error('STUDENTS_SPREADSHEET_ID is not configured.');
+  }
+  return SpreadsheetApp.openById(spreadsheetId);
 }
 
 function normalizeEmail_(value) {

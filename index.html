@@ -343,12 +343,21 @@
     .vid-user-chip img { width:24px; height:24px; border-radius:50%; }
     .vid-user-chip span { font-size:0.78rem; color:var(--muted); }
     .vid-signout-btn { font-size:0.75rem; color:var(--muted); background:none; border:none; cursor:pointer; text-decoration:underline; }
+    .course-progress { max-width:1100px; margin:1.4rem 0 0.5rem; padding:1rem 1.2rem; background:#ffffff; border:1px solid var(--border); border-radius:var(--r); }
+    .course-progress-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:0.65rem; }
+    .course-progress-title { color:var(--ink); font-size:0.82rem; font-weight:700; }
+    .course-progress-count { color:var(--muted); font-size:0.75rem; }
+    .course-progress-track { height:8px; overflow:hidden; background:#e8e8e1; border-radius:999px; }
+    .course-progress-fill { width:0; height:100%; background:var(--gold-dim); border-radius:inherit; transition:width 0.35s ease; }
+    .course-progress-status { min-height:1.2em; margin-top:0.55rem; color:var(--muted); font-size:0.72rem; }
+    .course-progress-status.error { color:#a6281d; }
     .vid-lib { display:none; }
     .vid-lib.open { display:block; }
     .ep-lbl { font-size:0.7rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin:2.5rem 0 1rem; padding-bottom:0.5rem; border-bottom:1px solid var(--border); }
     .ep-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.2rem; max-width:1100px; }
     .ep-card { background:#ffffff; border:1px solid var(--border); border-radius:var(--r); overflow:hidden; transition:box-shadow 0.2s,transform 0.2s; cursor:pointer; }
     .ep-card:hover { box-shadow:0 8px 30px rgba(0,0,0,0.12); transform:translateY(-2px); }
+    .ep-card.completed { border-color:rgba(139,116,22,0.55); }
     .ep-thumb {
       width:100%; aspect-ratio:16/9; background:var(--ink); position:relative; overflow:hidden;
     }
@@ -378,6 +387,9 @@
     .ep-num { font-size:0.68rem; font-weight:700; color:var(--gold-dim); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.3rem; }
     .ep-title { font-size:0.9rem; font-weight:600; color:var(--ink); line-height:1.4; margin-bottom:0.4rem; }
     .ep-dur { font-size:0.78rem; color:var(--muted); }
+    .ep-complete-btn { margin-top:0.65rem; padding:0.4rem 0.7rem; border:1px solid #d7d7cf; border-radius:6px; background:var(--paper); color:var(--muted); font:inherit; font-size:0.72rem; font-weight:600; cursor:pointer; }
+    .ep-complete-btn:hover { border-color:var(--gold-dim); color:var(--ink); }
+    .ep-complete-btn.completed { background:rgba(244,201,72,0.2); border-color:var(--gold-dim); color:#5f4d0a; }
 
     /* ── MODAL PLAYER ──────────────────────────────────── */
     .modal-overlay {
@@ -414,10 +426,12 @@
     .modal-footer {
       width:100%; max-width:900px;
       padding:0.8rem 1.5rem;
-      display:flex; align-items:center; gap:1rem;
+      display:flex; align-items:center; justify-content:space-between; gap:1rem;
     }
     .modal-studio { font-size:0.75rem; color:rgba(255,255,255,0.3); letter-spacing:0.05em; }
     .modal-studio span { color:var(--gold); }
+    .modal-complete-btn { padding:0.55rem 0.9rem; border:1px solid rgba(255,255,255,0.25); border-radius:6px; background:rgba(255,255,255,0.08); color:#ffffff; font:inherit; font-size:0.75rem; font-weight:600; cursor:pointer; }
+    .modal-complete-btn.completed { background:var(--gold); border-color:var(--gold); color:var(--ink); }
 
     /* ── HOW ───────────────────────────────────────────── */
     #how { background:var(--ink); padding:90px 5vw; }
@@ -782,6 +796,16 @@
       </div>
       <button class="vid-signout-btn" onclick="signOut()">Sign out</button>
     </div>
+    <div class="course-progress" aria-live="polite">
+      <div class="course-progress-head">
+        <p class="course-progress-title">Your course progress</p>
+        <p class="course-progress-count" id="courseProgressCount">0 of 0 complete</p>
+      </div>
+      <div class="course-progress-track" role="progressbar" id="courseProgressTrack" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="course-progress-fill" id="courseProgressFill"></div>
+      </div>
+      <p class="course-progress-status" id="courseProgressStatus"></p>
+    </div>
     <div class="ep-grid" id="episodeGrid"></div>
   </div>
 </section>
@@ -800,6 +824,7 @@
   </div>
   <div class="modal-footer">
     <p class="modal-studio"><span>Graphite & Charcoal Studio</span> · @universeofvivek</p>
+    <button class="modal-complete-btn" id="modalCompleteBtn" type="button" onclick="toggleCurrentTutorialProgress()">Mark as complete</button>
   </div>
 </div>
 
@@ -1060,6 +1085,8 @@
   let activeAccessToken = '';
   let accessExpiryTimer;
   let authorizedTutorials = new Map();
+  let completedTutorials = new Set();
+  let currentVideoId = '';
 
   function signInWithGoogle() {
     if (!googleClient) {
@@ -1093,6 +1120,7 @@
 
       if (data.approved && data.user && Array.isArray(data.tutorials)) {
         activeAccessToken = tokenResponse.access_token;
+        completedTutorials = new Set(Array.isArray(data.completedVideoIds) ? data.completedVideoIds : []);
         renderTutorials(data.tutorials);
         document.getElementById('vidUserAvatar').src = data.user.picture || '';
         document.getElementById('vidUserEmail').textContent = data.user.email || '';
@@ -1137,7 +1165,11 @@
     window.clearTimeout(accessExpiryTimer);
     activeAccessToken = '';
     authorizedTutorials.clear();
+    completedTutorials.clear();
+    currentVideoId = '';
     document.getElementById('episodeGrid').replaceChildren();
+    updateProgressDisplay();
+    setProgressStatus('');
     closePlayer(null);
     document.getElementById('vidLib').classList.remove('open');
     document.getElementById('pwGate').style.display = 'block';
@@ -1162,6 +1194,7 @@
 
       const card = document.createElement('div');
       card.className = 'ep-card';
+      card.dataset.videoId = videoId;
       card.setAttribute('role', 'button');
       card.setAttribute('tabindex', '0');
       card.setAttribute('aria-label', `${epNum}: ${title}`);
@@ -1193,7 +1226,15 @@
       heading.className = 'ep-title';
       heading.textContent = title;
 
-      body.append(number, heading);
+      const completeButton = document.createElement('button');
+      completeButton.className = 'ep-complete-btn';
+      completeButton.type = 'button';
+      completeButton.addEventListener('click', event => {
+        event.stopPropagation();
+        toggleTutorialProgress(videoId);
+      });
+
+      body.append(number, heading, completeButton);
       thumb.append(image, overlay, badge);
       card.append(thumb, body);
       card.addEventListener('click', () => openPlayer(videoId));
@@ -1205,6 +1246,77 @@
       });
       grid.append(card);
     });
+    updateProgressDisplay();
+  }
+
+  async function toggleTutorialProgress(videoId) {
+    if (!activeAccessToken || !authorizedTutorials.has(videoId)) {
+      clearTutorialAccess();
+      showErr('Please sign in again to update your progress.');
+      return;
+    }
+
+    const shouldComplete = !completedTutorials.has(videoId);
+    setProgressStatus(shouldComplete ? 'Saving lesson as complete...' : 'Updating your progress...');
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: new URLSearchParams({
+          accessToken: activeAccessToken,
+          action: 'student_progress_set',
+          videoId,
+          completed: String(shouldComplete)
+        })
+      });
+      if (!response.ok) throw new Error('progress_update_failed');
+      const data = await response.json();
+      if (!data.approved || !Array.isArray(data.completedVideoIds)) {
+        throw new Error(data.code || 'progress_update_failed');
+      }
+      completedTutorials = new Set(data.completedVideoIds);
+      updateProgressDisplay();
+      setProgressStatus(shouldComplete ? 'Lesson completed. Great work!' : 'Lesson returned to your learning list.');
+    } catch (error) {
+      const message = error.message === 'progress_busy'
+        ? 'Another update is in progress. Please try again.'
+        : 'Progress could not be saved. Please try again.';
+      setProgressStatus(message, true);
+    }
+  }
+
+  function toggleCurrentTutorialProgress() {
+    if (currentVideoId) toggleTutorialProgress(currentVideoId);
+  }
+
+  function updateProgressDisplay() {
+    const total = authorizedTutorials.size;
+    const completed = Array.from(completedTutorials).filter(videoId => authorizedTutorials.has(videoId)).length;
+    const percent = total ? Math.round((completed / total) * 100) : 0;
+    document.getElementById('courseProgressCount').textContent = `${completed} of ${total} complete`;
+    document.getElementById('courseProgressFill').style.width = `${percent}%`;
+    const progressTrack = document.getElementById('courseProgressTrack');
+    progressTrack.setAttribute('aria-valuenow', String(percent));
+
+    document.querySelectorAll('.ep-card[data-video-id]').forEach(card => {
+      const isCompleted = completedTutorials.has(card.dataset.videoId);
+      card.classList.toggle('completed', isCompleted);
+      const button = card.querySelector('.ep-complete-btn');
+      button.classList.toggle('completed', isCompleted);
+      button.textContent = isCompleted ? 'Completed - undo' : 'Mark complete';
+      button.setAttribute('aria-label', `${isCompleted ? 'Undo completion for' : 'Mark complete'} ${authorizedTutorials.get(card.dataset.videoId).title}`);
+    });
+
+    const modalButton = document.getElementById('modalCompleteBtn');
+    const modalCompleted = currentVideoId && completedTutorials.has(currentVideoId);
+    modalButton.classList.toggle('completed', Boolean(modalCompleted));
+    modalButton.textContent = modalCompleted ? 'Completed - undo' : 'Mark as complete';
+  }
+
+  function setProgressStatus(message, isError = false) {
+    const status = document.getElementById('courseProgressStatus');
+    status.textContent = message;
+    status.classList.toggle('error', isError);
   }
 
   function chooseProgramme(programme) {
@@ -1298,12 +1410,14 @@
       showErr('Please sign in again to watch this tutorial.');
       return;
     }
+    currentVideoId = videoId;
     document.getElementById('modalEp').textContent = tutorial.epNum;
     document.getElementById('modalTitle').textContent = tutorial.title;
     document.getElementById('modalIframe').src =
       `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
     document.getElementById('modalOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
+    updateProgressDisplay();
   }
 
   function closePlayer(e) {
@@ -1311,6 +1425,8 @@
     document.getElementById('modalIframe').src = '';
     document.getElementById('modalOverlay').classList.remove('open');
     document.body.style.overflow = '';
+    currentVideoId = '';
+    updateProgressDisplay();
   }
 
   document.addEventListener('keydown', e => {
