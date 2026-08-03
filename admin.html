@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Tutorial Admin | Graphite &amp; Charcoal Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --ink:#11110f;
+      --paper:#f7f5ef;
+      --card:#ffffff;
+      --gold:#f4c948;
+      --gold-dark:#a77e00;
+      --muted:#69675f;
+      --border:#dedbd1;
+      --danger:#a62f2f;
+      --success:#22733a;
+      --radius:14px;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0;
+      min-height:100vh;
+      background:var(--paper);
+      color:var(--ink);
+      font-family:'Inter',sans-serif;
+    }
+    button,input { font:inherit; }
+    button { cursor:pointer; }
+    .topbar {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:1rem;
+      padding:1rem clamp(1rem,4vw,3rem);
+      background:var(--ink);
+      color:#fff;
+      border-bottom:2px solid var(--gold);
+    }
+    .brand {
+      margin:0;
+      font-family:'DM Serif Display',serif;
+      font-size:clamp(1.25rem,3vw,1.8rem);
+      font-weight:400;
+      color:var(--gold);
+    }
+    .site-link { color:#fff; font-size:0.85rem; text-decoration:none; }
+    main { width:min(960px,calc(100% - 2rem)); margin:clamp(2rem,6vw,5rem) auto; }
+    .panel {
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:0 14px 40px rgba(17,17,15,0.07);
+      padding:clamp(1.4rem,4vw,2.5rem);
+    }
+    .login-panel { max-width:560px; margin:8vh auto 0; text-align:center; }
+    .eyebrow { margin:0 0 0.7rem; color:var(--gold-dark); font-size:0.72rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; }
+    h1,h2 { font-family:'DM Serif Display',serif; font-weight:400; }
+    h1 { margin:0 0 0.8rem; font-size:clamp(2.2rem,7vw,4rem); line-height:1; }
+    h2 { margin:0; font-size:clamp(1.7rem,4vw,2.5rem); }
+    .intro { color:var(--muted); line-height:1.7; margin:0 auto 1.6rem; max-width:46rem; }
+    .google-btn,.primary-btn {
+      border:0;
+      border-radius:10px;
+      padding:0.8rem 1.2rem;
+      font-weight:700;
+      transition:transform 0.15s,box-shadow 0.15s;
+    }
+    .google-btn { display:inline-flex; align-items:center; gap:0.7rem; background:#fff; border:1px solid var(--border); color:var(--ink); }
+    .google-btn svg { width:20px; height:20px; }
+    .primary-btn { background:var(--gold); color:var(--ink); white-space:nowrap; }
+    .google-btn:hover,.primary-btn:hover { transform:translateY(-1px); box-shadow:0 7px 20px rgba(17,17,15,0.12); }
+    button:disabled { cursor:wait; opacity:0.55; transform:none !important; }
+    .status { min-height:1.4rem; margin:1rem 0 0; font-size:0.86rem; color:var(--muted); }
+    .status.error { color:var(--danger); }
+    .status.success { color:var(--success); }
+    #dashboard { display:none; }
+    .dashboard-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.5rem; }
+    .admin-chip { display:flex; align-items:center; gap:0.6rem; color:var(--muted); font-size:0.78rem; }
+    .admin-chip img { width:30px; height:30px; border-radius:50%; background:var(--paper); }
+    .signout { padding:0; border:0; background:none; color:var(--muted); text-decoration:underline; }
+    .add-form { display:flex; gap:0.7rem; margin:1.5rem 0 0.6rem; }
+    .add-form input { width:100%; min-width:0; border:1px solid var(--border); border-radius:10px; padding:0.85rem 1rem; background:#fff; color:var(--ink); }
+    .add-form input:focus { outline:3px solid rgba(244,201,72,0.35); border-color:var(--gold-dark); }
+    .help { margin:0; color:var(--muted); font-size:0.78rem; }
+    .library-head { display:flex; align-items:end; justify-content:space-between; gap:1rem; margin:2.4rem 0 1rem; }
+    .count { color:var(--muted); font-size:0.82rem; }
+    .tutorial-list { display:grid; gap:0.8rem; }
+    .tutorial {
+      display:grid;
+      grid-template-columns:150px minmax(0,1fr) auto;
+      gap:1rem;
+      align-items:center;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:0.75rem;
+    }
+    .tutorial img { width:150px; aspect-ratio:16/9; object-fit:cover; border-radius:9px; background:#ddd; }
+    .episode { margin:0 0 0.3rem; color:var(--gold-dark); font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; }
+    .title { margin:0 0 0.35rem; font-weight:600; line-height:1.4; }
+    .video-id { margin:0; color:var(--muted); font-family:monospace; font-size:0.76rem; }
+    .actions { display:grid; grid-template-columns:repeat(2,auto); gap:0.4rem; }
+    .action-btn { border:1px solid var(--border); border-radius:8px; background:#fff; color:var(--ink); padding:0.5rem 0.65rem; font-size:0.75rem; }
+    .action-btn:hover { border-color:var(--gold-dark); }
+    .delete-btn { color:var(--danger); }
+    .empty { padding:2rem; border:1px dashed var(--border); border-radius:var(--radius); color:var(--muted); text-align:center; }
+    @media (max-width:700px) {
+      .topbar { align-items:flex-start; }
+      main { width:min(100% - 1rem,960px); margin:1rem auto 3rem; }
+      .panel { padding:1.2rem; }
+      .dashboard-head,.library-head { align-items:flex-start; flex-direction:column; }
+      .add-form { flex-direction:column; }
+      .tutorial { grid-template-columns:100px minmax(0,1fr); align-items:start; }
+      .tutorial img { width:100px; }
+      .actions { grid-column:1 / -1; grid-template-columns:repeat(4,1fr); }
+      .action-btn { padding:0.55rem 0.3rem; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <p class="brand">Graphite &amp; Charcoal Studio</p>
+    <a class="site-link" href="./">View website</a>
+  </header>
+
+  <main>
+    <section class="panel login-panel" id="loginPanel">
+      <p class="eyebrow">Private owner area</p>
+      <h1>Tutorial Admin</h1>
+      <p class="intro">Sign in with the studio owner's Google account. No separate admin password is stored.</p>
+      <button class="google-btn" id="googleSignIn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Sign in with Google
+      </button>
+      <p class="status" id="loginStatus" role="status"></p>
+    </section>
+
+    <section id="dashboard">
+      <div class="panel">
+        <div class="dashboard-head">
+          <div>
+            <p class="eyebrow">Tutorial manager</p>
+            <h2>Add your next lesson</h2>
+          </div>
+          <div>
+            <div class="admin-chip">
+              <img id="adminAvatar" src="" alt=""/>
+              <span id="adminEmail"></span>
+            </div>
+            <button class="signout" id="signOut" type="button">Sign out</button>
+          </div>
+        </div>
+        <p class="intro">Paste a YouTube video ID or full YouTube link. The title is fetched automatically and the tutorial is added as the next episode.</p>
+        <form class="add-form" id="addForm">
+          <input id="videoId" name="videoId" type="text" placeholder="Example: dQw4w9WgXcQ" autocomplete="off" required/>
+          <button class="primary-btn" type="submit">Add tutorial</button>
+        </form>
+        <p class="help">You can reorder, refresh the YouTube title, or remove a tutorial below.</p>
+        <p class="status" id="adminStatus" role="status"></p>
+      </div>
+
+      <div class="library-head">
+        <div>
+          <p class="eyebrow">Published library</p>
+          <h2>Current tutorials</h2>
+        </div>
+        <span class="count" id="tutorialCount"></span>
+      </div>
+      <div class="tutorial-list" id="tutorialList"></div>
+    </section>
+  </main>
+
+  <script>
+    const GOOGLE_CLIENT_ID = '120662687568-hbekineb2q7eah307s6ug5nlf65neija.apps.googleusercontent.com';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKiL-qYGP5t-Fg7-IdtNUHsWGtrFJTHHQeDwIocM7iKf3WTDr0ztkrpwpT3Fk9o3andQ/exec';
+
+    let googleClient;
+    let activeAccessToken = '';
+    let currentTutorials = [];
+
+    const loginPanel = document.getElementById('loginPanel');
+    const dashboard = document.getElementById('dashboard');
+    const loginStatus = document.getElementById('loginStatus');
+    const adminStatus = document.getElementById('adminStatus');
+    const addForm = document.getElementById('addForm');
+    const videoIdInput = document.getElementById('videoId');
+    const tutorialList = document.getElementById('tutorialList');
+
+    document.getElementById('googleSignIn').addEventListener('click', signInWithGoogle);
+    document.getElementById('signOut').addEventListener('click', signOut);
+    addForm.addEventListener('submit', addTutorial);
+
+    function signInWithGoogle() {
+      setStatus(loginStatus, 'Opening Google sign-in...');
+      if (!window.google || !google.accounts || !google.accounts.oauth2) {
+        setStatus(loginStatus, 'Google sign-in is still loading. Please try again.', 'error');
+        return;
+      }
+      if (!googleClient) {
+        googleClient = google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_CLIENT_ID,
+          scope: 'email profile',
+          callback: handleGoogleResponse
+        });
+      }
+      googleClient.requestAccessToken();
+    }
+
+    async function handleGoogleResponse(response) {
+      if (response.error || !response.access_token) {
+        setStatus(loginStatus, 'Google sign-in was cancelled. Please try again.', 'error');
+        return;
+      }
+      activeAccessToken = response.access_token;
+      setStatus(loginStatus, 'Checking owner access...');
+      try {
+        const data = await adminRequest('admin_list');
+        showDashboard(data);
+      } catch (error) {
+        activeAccessToken = '';
+        setStatus(loginStatus, error.message, 'error');
+      }
+    }
+
+    async function adminRequest(action, extra) {
+      if (!activeAccessToken) throw new Error('Please sign in again.');
+      const body = new URLSearchParams(Object.assign({
+        action: action,
+        accessToken: activeAccessToken
+      }, extra || {}));
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: body
+      });
+      if (!response.ok) throw new Error('The admin service is unavailable. Please try again.');
+      const data = await response.json();
+      if (!data.approved || !data.admin) throw new Error(messageForCode(data.code));
+      return data;
+    }
+
+    function showDashboard(data) {
+      loginPanel.style.display = 'none';
+      dashboard.style.display = 'block';
+      document.getElementById('adminAvatar').src = data.user.picture || '';
+      document.getElementById('adminEmail').textContent = data.user.email || '';
+      currentTutorials = Array.isArray(data.tutorials) ? data.tutorials : [];
+      renderTutorials();
+      videoIdInput.focus();
+    }
+
+    async function addTutorial(event) {
+      event.preventDefault();
+      const value = videoIdInput.value.trim();
+      if (!value) return;
+      setBusy(true);
+      setStatus(adminStatus, 'Fetching the YouTube title and adding the tutorial...');
+      try {
+        const data = await adminRequest('admin_add', { videoId: value });
+        currentTutorials = data.tutorials;
+        renderTutorials();
+        addForm.reset();
+        videoIdInput.focus();
+        setStatus(adminStatus, 'Tutorial added and published automatically.', 'success');
+      } catch (error) {
+        setStatus(adminStatus, error.message, 'error');
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function updateTutorial(action, videoId, direction) {
+      if (action === 'admin_delete' && !window.confirm('Remove this tutorial from the student library?')) return;
+      setBusy(true);
+      setStatus(adminStatus, action === 'admin_refresh' ? 'Refreshing the YouTube title...' : 'Updating the tutorial library...');
+      try {
+        const data = await adminRequest(action, { videoId: videoId, direction: direction || '' });
+        currentTutorials = data.tutorials;
+        renderTutorials();
+        setStatus(adminStatus, 'Tutorial library updated automatically.', 'success');
+      } catch (error) {
+        setStatus(adminStatus, error.message, 'error');
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function renderTutorials() {
+      tutorialList.replaceChildren();
+      document.getElementById('tutorialCount').textContent = `${currentTutorials.length} tutorial${currentTutorials.length === 1 ? '' : 's'}`;
+
+      if (!currentTutorials.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No tutorials yet. Add your first YouTube ID above.';
+        tutorialList.append(empty);
+        return;
+      }
+
+      currentTutorials.forEach((tutorial, index) => {
+        const row = document.createElement('article');
+        row.className = 'tutorial';
+
+        const thumbnail = document.createElement('img');
+        thumbnail.src = `https://img.youtube.com/vi/${tutorial.id}/mqdefault.jpg`;
+        thumbnail.alt = `${tutorial.number} thumbnail`;
+        thumbnail.loading = 'lazy';
+
+        const details = document.createElement('div');
+        const episode = document.createElement('p');
+        episode.className = 'episode';
+        episode.textContent = tutorial.number;
+        const title = document.createElement('p');
+        title.className = 'title';
+        title.textContent = tutorial.title;
+        const id = document.createElement('p');
+        id.className = 'video-id';
+        id.textContent = tutorial.id;
+        details.append(episode, title, id);
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        actions.append(
+          actionButton('Up', 'admin_move', tutorial.id, 'up', index === 0),
+          actionButton('Down', 'admin_move', tutorial.id, 'down', index === currentTutorials.length - 1),
+          actionButton('Refresh', 'admin_refresh', tutorial.id),
+          actionButton('Delete', 'admin_delete', tutorial.id, '', false, true)
+        );
+
+        row.append(thumbnail, details, actions);
+        tutorialList.append(row);
+      });
+    }
+
+    function actionButton(label, action, videoId, direction, disabled, danger) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `action-btn${danger ? ' delete-btn' : ''}`;
+      button.textContent = label;
+      button.disabled = Boolean(disabled);
+      if (disabled) button.dataset.locked = 'true';
+      button.addEventListener('click', () => updateTutorial(action, videoId, direction));
+      return button;
+    }
+
+    function setBusy(isBusy) {
+      document.querySelectorAll('button,input').forEach(element => {
+        element.disabled = isBusy || element.dataset.locked === 'true';
+      });
+    }
+
+    function setStatus(element, message, type) {
+      element.textContent = message || '';
+      element.className = `status${type ? ` ${type}` : ''}`;
+    }
+
+    function messageForCode(code) {
+      const messages = {
+        admin_forbidden: 'This Google account is not the studio owner account.',
+        authorization_failed: 'Google authorization failed. Please sign in again.',
+        invalid_video_id: 'Enter a valid 11-character YouTube ID or YouTube link.',
+        duplicate_video: 'That tutorial is already in the library.',
+        youtube_video_not_found: 'YouTube could not find that video. Check the ID and its visibility.',
+        youtube_title_unavailable: 'YouTube did not return a title for that video.',
+        video_not_found: 'That tutorial is no longer in the library. Refresh and try again.',
+        catalog_busy: 'Another update is in progress. Please try again in a moment.'
+      };
+      return messages[code] || 'The update could not be completed. Please try again.';
+    }
+
+    function signOut() {
+      const token = activeAccessToken;
+      activeAccessToken = '';
+      currentTutorials = [];
+      tutorialList.replaceChildren();
+      dashboard.style.display = 'none';
+      loginPanel.style.display = 'block';
+      setStatus(loginStatus, 'Signed out.', 'success');
+      setStatus(adminStatus, '');
+      if (token && window.google && google.accounts && google.accounts.oauth2) {
+        google.accounts.oauth2.revoke(token, function() {});
+      }
+    }
+  </script>
+</body>
+</html>

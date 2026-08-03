@@ -22,6 +22,8 @@ In Apps Script, open Project Settings and add:
 - Value: the ID between `/d/` and `/edit` in the Google Sheet URL
 - Property: `TUTORIAL_CATALOG_JSON`
 - Value: the complete JSON array from the local `tutorial-catalog.private.json` file
+- Property: `ADMIN_EMAIL`
+- Value: the Google account allowed to manage tutorials, currently `vivekmpatil61@gmail.com`
 
 Set `STUDENTS_SHEET_NAME` to `Distribution list` for the current Sheet. It can point to a different tab name later.
 
@@ -37,3 +39,9 @@ Set `STUDENTS_SHEET_NAME` to `Distribution list` for the current Sheet. It can p
 Do not activate the matching website change until this endpoint is deployed and tested.
 
 The private catalogue file is ignored by Git and must never be committed to the public website repository.
+
+## Tutorial admin
+
+The website includes an unlinked `admin.html` page. The owner signs in with Google and submits only a YouTube ID or full YouTube link. The Apps Script verifies the owner email, fetches the title from YouTube, derives the thumbnail, assigns the next episode number, and updates `TUTORIAL_CATALOG_JSON`.
+
+The admin can also move tutorials up or down, refresh a YouTube title, and delete a tutorial. Episode numbers are recalculated after every change.
