@@ -449,6 +449,7 @@
     .registration-card h3 { font-family:'Playfair Display',serif; font-size:1.55rem; color:var(--ink); line-height:1.25; margin-bottom:0.5rem; }
     .registration-intro { font-size:0.85rem; color:var(--muted); line-height:1.65; margin-bottom:1.8rem; }
     .registration-form { display:grid; grid-template-columns:1fr 1fr; gap:1rem 1.2rem; }
+    .registration-form[hidden] { display:none; }
     .form-field { display:flex; flex-direction:column; gap:0.4rem; }
     .form-field.full { grid-column:1 / -1; }
     .form-field label, .form-legend { font-size:0.75rem; font-weight:600; color:var(--ink); line-height:1.4; }
@@ -478,6 +479,22 @@
     .privacy-details p { margin-top:0.7rem; }
     .privacy-details a { color:var(--gold-dim); }
     .form-submit-frame { position:absolute; width:1px; height:1px; border:0; opacity:0; pointer-events:none; }
+    .registration-confirmation { text-align:center; padding:1rem 0 0.25rem; scroll-margin-top:82px; }
+    .registration-confirmation[hidden] { display:none; }
+    .confirmation-mark { width:64px; height:64px; border-radius:50%; margin:0 auto 1.2rem; display:flex; align-items:center; justify-content:center; background:#eaf7ed; color:#185f2b; border:1px solid #b9dfc1; font-size:1.8rem; font-weight:700; }
+    .registration-confirmation .lbl { margin-bottom:0.65rem; }
+    .registration-confirmation h3 { margin-bottom:0.8rem; }
+    .confirmation-summary { color:var(--muted); font-size:0.88rem; line-height:1.7; max-width:540px; margin:0 auto 1.6rem; }
+    .confirmation-steps { text-align:left; background:var(--paper); border:1px solid var(--border); border-radius:var(--r); padding:1.2rem 1.3rem; margin-bottom:1.4rem; }
+    .confirmation-steps h4 { color:var(--ink); font-size:0.8rem; margin-bottom:0.8rem; }
+    .confirmation-steps ol { margin:0; padding-left:1.2rem; display:flex; flex-direction:column; gap:0.65rem; }
+    .confirmation-steps li { color:#5f5f59; font-size:0.78rem; line-height:1.5; padding-left:0.25rem; }
+    .confirmation-contact { font-size:0.75rem; color:#777770; line-height:1.6; margin-bottom:1.3rem; }
+    .confirmation-contact a { color:var(--gold-dim); font-weight:600; }
+    .confirmation-actions { display:flex; align-items:center; justify-content:center; gap:0.75rem; flex-wrap:wrap; }
+    .confirmation-primary, .confirmation-secondary { border-radius:var(--r); padding:0.78rem 1rem; font:inherit; font-size:0.8rem; font-weight:700; cursor:pointer; text-decoration:none; }
+    .confirmation-primary { background:var(--ink); color:#ffffff; border:1px solid var(--ink); }
+    .confirmation-secondary { background:transparent; color:var(--ink); border:1px solid #cfcfc7; }
 
     /* ── FOOTER ────────────────────────────────────────── */
     footer { background:var(--ink); border-top:1px solid #1a1a1a; padding:2rem 5vw; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; }
@@ -941,9 +958,11 @@
     </div>
 
     <div class="registration-card" id="registration">
-      <p class="lbl">Express interest</p>
-      <h3>Ready to pick up the pencil?</h3>
-      <p class="registration-intro">Share a few details below and Vivek will reach out personally to discuss availability, format and everything you need to get started.</p>
+      <div id="registrationIntroBlock">
+        <p class="lbl">Express interest</p>
+        <h3>Ready to pick up the pencil?</h3>
+        <p class="registration-intro">Share a few details below and Vivek will reach out personally to discuss availability, format and everything you need to get started.</p>
+      </div>
 
       <form id="registrationForm" class="registration-form" action="https://docs.google.com/forms/d/e/1FAIpQLSdxDJyW_3sSqE5HCJqbX9nF60AVcwEQ0LA68cQBWEudisLmwg/formResponse" method="POST" target="registrationResponseFrame">
         <div class="form-field">
@@ -1017,6 +1036,25 @@
           <p>We use the information you submit only to respond to your enquiry, arrange classes and manage student access. Registration responses are stored in the studio's Google Forms and Sheets account and are not sold. To request a correction or deletion, email <a href="mailto:hello@universeofvivek.in">hello@universeofvivek.in</a>.</p>
         </details>
       </form>
+      <div id="registrationConfirmation" class="registration-confirmation" role="status" aria-live="polite" tabindex="-1" hidden>
+        <div class="confirmation-mark" aria-hidden="true">✓</div>
+        <p class="lbl">Registration received</p>
+        <h3>Thank you, <span id="confirmationName">artist</span>.</h3>
+        <p id="confirmationSummary" class="confirmation-summary">Your interest has been recorded. Vivek will review your details and contact you personally.</p>
+        <div class="confirmation-steps">
+          <h4>What happens next</h4>
+          <ol>
+            <li>Vivek reviews the participant's experience, interests and preferred programme.</li>
+            <li>You receive a personal reply by email or WhatsApp with pricing, availability and the next starting date.</li>
+            <li>Once everything is agreed, Vivek shares the enrolment and access details.</li>
+          </ol>
+        </div>
+        <p class="confirmation-contact">Questions in the meantime? Email <a href="mailto:hello@universeofvivek.in">hello@universeofvivek.in</a>.</p>
+        <div class="confirmation-actions">
+          <a class="confirmation-primary" href="#programmes">Review programmes</a>
+          <button id="submitAnotherRegistration" class="confirmation-secondary" type="button">Submit another registration</button>
+        </div>
+      </div>
       <iframe id="registrationResponseFrame" class="form-submit-frame" name="registrationResponseFrame" title="Registration submission response"></iframe>
     </div>
   </div>
@@ -1181,10 +1219,22 @@
   const registrationFrame = document.getElementById('registrationResponseFrame');
   const registrationSubmit = document.getElementById('registrationSubmit');
   const registrationStatus = document.getElementById('registrationStatus');
+  const registrationIntroBlock = document.getElementById('registrationIntroBlock');
+  const registrationConfirmation = document.getElementById('registrationConfirmation');
+  const confirmationName = document.getElementById('confirmationName');
+  const confirmationSummary = document.getElementById('confirmationSummary');
+  const submitAnotherRegistration = document.getElementById('submitAnotherRegistration');
   let registrationSubmitted = false;
   let registrationTimeout;
+  let submittedRegistration = {};
 
   registrationForm.addEventListener('submit', () => {
+    const participantName = document.getElementById('participantName').value.trim();
+    const preferredFormat = document.getElementById('preferredFormat');
+    submittedRegistration = {
+      name: participantName.split(/\s+/)[0] || 'artist',
+      programme: preferredFormat.options[preferredFormat.selectedIndex].text
+    };
     registrationSubmitted = true;
     registrationSubmit.disabled = true;
     registrationSubmit.textContent = 'Sending…';
@@ -1208,9 +1258,23 @@
     registrationForm.reset();
     registrationSubmit.disabled = false;
     registrationSubmit.textContent = 'Send registration';
-    registrationStatus.textContent = 'Thank you! Your registration has been received. Vivek will contact you personally.';
-    registrationStatus.className = 'registration-status success';
-    registrationStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    registrationStatus.textContent = '';
+    registrationStatus.className = 'registration-status';
+    confirmationName.textContent = submittedRegistration.name || 'artist';
+    confirmationSummary.textContent = `Your interest in ${submittedRegistration.programme || 'the studio'} has been recorded. Vivek will review your details and contact you personally.`;
+    registrationForm.hidden = true;
+    registrationIntroBlock.hidden = true;
+    registrationConfirmation.hidden = false;
+    registrationConfirmation.focus({ preventScroll: true });
+    registrationConfirmation.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  submitAnotherRegistration.addEventListener('click', () => {
+    submittedRegistration = {};
+    registrationConfirmation.hidden = true;
+    registrationIntroBlock.hidden = false;
+    registrationForm.hidden = false;
+    document.getElementById('participantName').focus();
   });
 
   /* ── Active nav ── */
