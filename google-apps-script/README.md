@@ -52,6 +52,8 @@ The same admin page lists approved student emails. Adding or revoking an email u
 
 The `Registrations` tab securely loads Google Form responses for the owner only. It supports search, status filtering, pagination and the follow-up states `New`, `Contacted`, `Enrolled` and `Closed`.
 
+Public registration also uses verified Google identity. The website makes the verified email read-only, and the Apps Script independently validates the Google access token before writing a response to `Form Responses 1`. An exact repeat for the same participant and verified email is blocked for 24 hours, and each verified account is limited to three registrations per hour. This still allows a parent to register siblings without permitting rapid anonymous spam.
+
 ## Student progress
 
 Signed-in students can mark tutorials complete from the library or video player. The backend automatically creates a `Tutorial progress` tab in the student spreadsheet and stores completion by verified Google email and YouTube video ID. Progress follows the student across devices and can be undone at any time.

@@ -7,7 +7,7 @@ const DEFAULT_REGISTRATIONS_SHEET = 'Form Responses 1';
 const REGISTRATION_STATUSES = ['New', 'Contacted', 'Enrolled', 'Closed'];
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 8 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 9 });
 }
 
 function doPost(event) {
@@ -30,6 +30,14 @@ function doPost(event) {
         return jsonResponse_({ approved: false, code: 'admin_forbidden' });
       }
       return handleAdminAction_(action, event.parameter, user);
+    }
+
+    if (action === 'registration_verify') {
+      return registrationIdentityResponse_(user, email);
+    }
+
+    if (action === 'registration_submit') {
+      return submitRegistration_(user, email, event.parameter);
     }
 
     if (!isActiveStudent_(email)) {
@@ -64,6 +72,169 @@ function doPost(event) {
       code: safeCodes.indexOf(errorCode) !== -1 ? errorCode : 'authorization_failed'
     });
   }
+}
+
+function registrationIdentityResponse_(user, email) {
+  return jsonResponse_({
+    approved: true,
+    registration: true,
+    user: {
+      email: email,
+      givenName: String(user.given_name || ''),
+      picture: String(user.picture || '')
+    },
+    expiresIn: 3000
+  });
+}
+
+function submitRegistration_(user, email, parameters) {
+  const registration = validateRegistration_(parameters);
+  if (!registration.ok) {
+    return jsonResponse_({ approved: false, code: registration.code });
+  }
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return jsonResponse_({ approved: false, code: 'registration_list_busy' });
+  }
+
+  try {
+    const sheet = getRegistrationSheet_();
+    const rows = sheet.getDataRange().getValues();
+    const headers = rows.length ? rows[0].map(normalizeHeader_) : [];
+    const timestampColumn = findHeaderColumn_(headers, ['timestamp']);
+    const participantColumn = findHeaderColumn_(headers, ['participant s full name', 'participant full name', 'student name']);
+    const emailColumn = findHeaderColumn_(headers, ['email address', 'email']);
+    if (timestampColumn === -1 || participantColumn === -1 || emailColumn === -1) {
+      return jsonResponse_({ approved: false, code: 'registration_sheet_invalid' });
+    }
+
+    const now = new Date();
+    const oneHourAgo = now.getTime() - 60 * 60 * 1000;
+    const oneDayAgo = now.getTime() - 24 * 60 * 60 * 1000;
+    let recentCount = 0;
+    let exactDuplicate = false;
+
+    rows.slice(1).forEach(function(row) {
+      if (normalizeEmail_(row[emailColumn]) !== email) return;
+      const timestamp = row[timestampColumn] instanceof Date
+        ? row[timestampColumn]
+        : new Date(row[timestampColumn]);
+      if (isNaN(timestamp.getTime())) return;
+      if (timestamp.getTime() >= oneHourAgo) recentCount += 1;
+      if (timestamp.getTime() >= oneDayAgo &&
+          String(row[participantColumn] || '').trim().toLowerCase() === registration.participantName.toLowerCase()) {
+        exactDuplicate = true;
+      }
+    });
+
+    if (exactDuplicate) {
+      return jsonResponse_({ approved: false, code: 'registration_duplicate' });
+    }
+    if (recentCount >= 3) {
+      return jsonResponse_({ approved: false, code: 'registration_rate_limited' });
+    }
+
+    const newRow = new Array(headers.length).fill('');
+    setRegistrationValue_(newRow, headers, ['timestamp'], now);
+    setRegistrationValue_(newRow, headers, ['participant s full name', 'participant full name', 'student name'], registration.participantName);
+    setRegistrationValue_(newRow, headers, ['participant s age', 'participant age', 'age'], registration.age);
+    setRegistrationValue_(newRow, headers, ['parent or guardian s name', 'parent or guardian name', 'guardian name'], registration.guardianName);
+    setRegistrationValue_(newRow, headers, ['whatsapp number', 'phone number', 'mobile number'], registration.whatsapp);
+    setRegistrationValue_(newRow, headers, ['email address', 'email'], email);
+    setRegistrationValue_(newRow, headers, ['city country', 'city or country', 'location'], registration.location);
+    setRegistrationValue_(newRow, headers, ['preferred format', 'preferred programme', 'programme'], registration.programme);
+    setRegistrationValue_(newRow, headers, ['prior drawing or art experience', 'drawing experience', 'experience'], registration.experience);
+    setRegistrationValue_(newRow, headers, ['what would the participant enjoy drawing', 'drawing interests', 'subjects'], registration.subjects.join(', '));
+    setRegistrationValue_(newRow, headers, ['questions or special requests for vivek', 'questions or special requests', 'special requests'], registration.requests);
+    setRegistrationValue_(newRow, headers, ['consent'], registration.consentText);
+    setRegistrationValue_(newRow, headers, ['follow up status', 'followup status', 'status'], 'New');
+    sheet.appendRow(newRow);
+
+    return jsonResponse_({
+      approved: true,
+      registration: true,
+      submitted: true,
+      user: {
+        email: email,
+        givenName: String(user.given_name || ''),
+        picture: String(user.picture || '')
+      }
+    });
+  } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
+    return jsonResponse_({ approved: false, code: 'registration_submit_failed' });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function validateRegistration_(parameters) {
+  const participantName = cleanRegistrationText_(parameters.participantName, 100);
+  const age = Number(parameters.age);
+  const guardianName = cleanRegistrationText_(parameters.guardianName, 100);
+  const whatsapp = cleanRegistrationText_(parameters.whatsapp, 30);
+  const location = cleanRegistrationText_(parameters.location, 100);
+  const programme = cleanRegistrationText_(parameters.programme, 160);
+  const experience = cleanRegistrationText_(parameters.experience, 120);
+  const requests = cleanRegistrationText_(parameters.requests, 1000);
+  const consentFees = String(parameters.consentFees || '').toLowerCase() === 'true';
+  const consentAccuracy = String(parameters.consentAccuracy || '').toLowerCase() === 'true';
+  let subjects = [];
+
+  try {
+    const parsedSubjects = JSON.parse(String(parameters.subjects || '[]'));
+    if (Array.isArray(parsedSubjects)) {
+      subjects = parsedSubjects.slice(0, 5).map(function(value) {
+        return cleanRegistrationText_(value, 80);
+      }).filter(Boolean);
+    }
+  } catch (error) {
+    return { ok: false, code: 'registration_invalid_fields' };
+  }
+
+  const allowedProgrammes = [
+    'Studio Access (video library)',
+    'Studio Live (video library + community with two live doubt-clearing sessions every month)'
+  ];
+  const allowedExperience = [
+    'None at all - complete beginner',
+    'A little - school level or doodles at home',
+    'Some hobby experience',
+    'Has attended art classes before'
+  ];
+  const phoneDigits = whatsapp.replace(/\D/g, '');
+
+  if (participantName.length < 2 || !Number.isInteger(age) || age < 3 || age > 100 ||
+      !guardianName || phoneDigits.length < 8 || phoneDigits.length > 15 ||
+      allowedProgrammes.indexOf(programme) === -1 ||
+      allowedExperience.indexOf(experience) === -1 ||
+      !consentFees || !consentAccuracy) {
+    return { ok: false, code: 'registration_invalid_fields' };
+  }
+
+  return {
+    ok: true,
+    participantName: participantName,
+    age: age,
+    guardianName: guardianName,
+    whatsapp: whatsapp,
+    location: location,
+    programme: programme,
+    experience: experience,
+    subjects: subjects,
+    requests: requests,
+    consentText: 'Verified Google email; fees and format consent confirmed; details confirmed accurate'
+  };
+}
+
+function cleanRegistrationText_(value, maxLength) {
+  return String(value || '').trim().slice(0, maxLength);
+}
+
+function setRegistrationValue_(row, headers, candidates, value) {
+  const column = findHeaderColumn_(headers, candidates);
+  if (column !== -1) row[column] = value;
 }
 
 function studentResponse_(user, email) {

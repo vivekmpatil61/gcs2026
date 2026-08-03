@@ -576,10 +576,24 @@
     .form-field textarea { min-height:92px; resize:vertical; }
     .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color:var(--gold-dim); box-shadow:0 0 0 3px rgba(244,201,72,0.18); background:#ffffff; }
     .form-field input::placeholder, .form-field textarea::placeholder { color:#a0a09a; }
+    .form-field input[readonly] { background:#ecebe5; color:#575750; cursor:not-allowed; }
     .form-options { display:grid; grid-template-columns:1fr 1fr; gap:0.55rem 1rem; margin-top:0.15rem; }
     .form-option { display:flex; align-items:flex-start; gap:0.55rem; font-size:0.78rem; color:#4d4d48; line-height:1.45; cursor:pointer; }
     .form-option input { width:16px; height:16px; margin-top:2px; accent-color:var(--gold-dim); flex:0 0 auto; }
     .consent-options { display:flex; flex-direction:column; gap:0.65rem; }
+    .registration-verify { grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem; border:1px solid #d7d7cf; border-radius:10px; background:var(--paper); }
+    .registration-verify-copy { min-width:0; }
+    .registration-verify-title { margin:0 0 0.2rem; color:var(--ink); font-size:0.8rem; font-weight:700; }
+    .registration-verify-text { margin:0; color:var(--muted); font-size:0.72rem; line-height:1.5; }
+    .registration-verify-btn { flex:0 0 auto; border:1px solid #c9c7bf; border-radius:8px; padding:0.7rem 0.9rem; background:#ffffff; color:var(--ink); font:inherit; font-size:0.76rem; font-weight:700; cursor:pointer; }
+    .registration-verify-btn:hover { border-color:var(--gold-dim); }
+    .registration-identity { grid-column:1 / -1; display:flex; align-items:center; gap:0.7rem; padding:0.8rem 1rem; border:1px solid #b9dfc1; border-radius:10px; background:#eaf7ed; }
+    .registration-identity[hidden], .registration-verify[hidden] { display:none; }
+    .registration-identity img { width:34px; height:34px; border-radius:50%; background:#ffffff; }
+    .registration-identity-copy { min-width:0; flex:1; }
+    .registration-identity-label { margin:0 0 0.1rem; color:#185f2b; font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; }
+    .registration-identity-email { margin:0; color:#185f2b; font-size:0.78rem; overflow-wrap:anywhere; }
+    .registration-change-account { border:0; background:none; color:#185f2b; padding:0.3rem; font:inherit; font-size:0.7rem; text-decoration:underline; cursor:pointer; }
     .registration-submit { grid-column:1 / -1; margin-top:0.4rem; background:var(--ink); color:#ffffff; border:0; border-radius:var(--r); padding:0.9rem 1.4rem; font:inherit; font-size:0.9rem; font-weight:700; cursor:pointer; transition:background 0.2s,transform 0.2s; }
     .registration-submit:hover { background:#262626; transform:translateY(-1px); }
     .registration-submit:disabled { opacity:0.65; cursor:wait; transform:none; }
@@ -592,7 +606,6 @@
     .privacy-details summary { color:var(--ink); font-weight:600; cursor:pointer; width:fit-content; margin:0 auto; }
     .privacy-details p { margin-top:0.7rem; }
     .privacy-details a { color:var(--gold-dim); }
-    .form-submit-frame { position:absolute; width:1px; height:1px; border:0; opacity:0; pointer-events:none; }
     .registration-confirmation { text-align:center; padding:1rem 0 0.25rem; scroll-margin-top:82px; }
     .registration-confirmation[hidden] { display:none; }
     .confirmation-mark { width:64px; height:64px; border-radius:50%; margin:0 auto 1.2rem; display:flex; align-items:center; justify-content:center; background:#eaf7ed; color:#185f2b; border:1px solid #b9dfc1; font-size:1.8rem; font-weight:700; }
@@ -630,6 +643,9 @@
       .contact-layout,.registration-form{grid-template-columns:1fr;}
       .form-field.full,.registration-submit,.registration-status,.registration-note{grid-column:1;}
       .registration-card{padding:1.5rem;}
+      .registration-verify{align-items:stretch;flex-direction:column;}
+      .registration-verify-btn{width:100%;}
+      .registration-identity{align-items:flex-start;flex-wrap:wrap;}
       .form-options{grid-template-columns:1fr;}
       .about-stats{grid-template-columns:repeat(2,1fr);}
       .nav-links{display:none;}
@@ -1063,34 +1079,49 @@
         <p class="registration-intro">Share a few details below and Vivek will reach out personally to discuss availability, format and everything you need to get started.</p>
       </div>
 
-      <form id="registrationForm" class="registration-form" action="https://docs.google.com/forms/d/e/1FAIpQLSdxDJyW_3sSqE5HCJqbX9nF60AVcwEQ0LA68cQBWEudisLmwg/formResponse" method="POST" target="registrationResponseFrame">
+      <form id="registrationForm" class="registration-form">
+        <div class="registration-verify" id="registrationVerify">
+          <div class="registration-verify-copy">
+            <p class="registration-verify-title">Verify your email before submitting</p>
+            <p class="registration-verify-text">Google confirms that the email belongs to you. Your password is never shared with the studio.</p>
+          </div>
+          <button class="registration-verify-btn" id="registrationGoogleSignIn" type="button">Verify with Google</button>
+        </div>
+        <div class="registration-identity" id="registrationIdentity" hidden>
+          <img id="registrationAvatar" src="" alt=""/>
+          <div class="registration-identity-copy">
+            <p class="registration-identity-label">Verified Google account</p>
+            <p class="registration-identity-email" id="registrationVerifiedEmail"></p>
+          </div>
+          <button class="registration-change-account" id="registrationChangeAccount" type="button">Change account</button>
+        </div>
         <div class="form-field">
           <label for="participantName">Participant's full name <span class="required-mark">*</span></label>
-          <input id="participantName" name="entry.1057628279" type="text" autocomplete="name" required/>
+          <input id="participantName" type="text" autocomplete="name" required/>
         </div>
         <div class="form-field">
           <label for="participantAge">Participant's age <span class="required-mark">*</span></label>
-          <input id="participantAge" name="entry.2142598668" type="number" min="3" max="100" inputmode="numeric" required/>
+          <input id="participantAge" type="number" min="3" max="100" inputmode="numeric" required/>
         </div>
         <div class="form-field">
           <label for="guardianName">Parent or guardian's name <span class="required-mark">*</span></label>
-          <input id="guardianName" name="entry.1692772649" type="text" autocomplete="name" placeholder="Enter N/A for an adult participant" required/>
+          <input id="guardianName" type="text" autocomplete="name" placeholder="Enter N/A for an adult participant" required/>
         </div>
         <div class="form-field">
           <label for="whatsappNumber">WhatsApp number <span class="required-mark">*</span></label>
-          <input id="whatsappNumber" name="entry.678454679" type="tel" autocomplete="tel" inputmode="tel" pattern="[0-9+() -]{8,20}" placeholder="+91 98765 43210" required/>
+          <input id="whatsappNumber" type="tel" autocomplete="tel" inputmode="tel" pattern="[0-9+() -]{8,20}" placeholder="+91 98765 43210" required/>
         </div>
         <div class="form-field">
           <label for="emailAddress">Email address <span class="required-mark">*</span></label>
-          <input id="emailAddress" name="entry.1502528446" type="email" autocomplete="email" required/>
+          <input id="emailAddress" type="email" autocomplete="email" placeholder="Verify with Google above" readonly required/>
         </div>
         <div class="form-field">
           <label for="location">City / Country</label>
-          <input id="location" name="entry.15324375" type="text" autocomplete="address-level2" placeholder="Bangalore / India"/>
+          <input id="location" type="text" autocomplete="address-level2" placeholder="Bangalore / India"/>
         </div>
         <div class="form-field full">
           <label for="preferredFormat">Preferred format <span class="required-mark">*</span></label>
-          <select id="preferredFormat" name="entry.642261483" required>
+          <select id="preferredFormat" required>
             <option value="" selected disabled>Select a format</option>
             <option value="Studio Access (video library)">Studio Access - video library</option>
             <option value="Studio Live (video library + community with two live doubt-clearing sessions every month)">Studio Live - video library, community and two live sessions monthly</option>
@@ -1098,7 +1129,7 @@
         </div>
         <div class="form-field full">
           <label for="experience">Prior drawing or art experience <span class="required-mark">*</span></label>
-          <select id="experience" name="entry.2137461231" required>
+          <select id="experience" required>
             <option value="" selected disabled>Select experience level</option>
             <option value="None at all - complete beginner">None at all - complete beginner</option>
             <option value="A little - school level or doodles at home">A little - school level or doodles at home</option>
@@ -1109,27 +1140,27 @@
         <fieldset class="form-field full" style="border:0;">
           <legend class="form-legend">What would the participant enjoy drawing?</legend>
           <div class="form-options" id="subjectOptions">
-            <label class="form-option"><input name="entry.1952310009" type="checkbox" value="Portraits and faces"/> Portraits and faces</label>
-            <label class="form-option"><input name="entry.1952310009" type="checkbox" value="Animals and nature"/> Animals and nature</label>
-            <label class="form-option"><input name="entry.1952310009" type="checkbox" value="Cartoon characters and pop culture"/> Cartoon characters and pop culture</label>
-            <label class="form-option"><input name="entry.1952310009" type="checkbox" value="Objects and still life"/> Objects and still life</label>
-            <label class="form-option"><input name="entry.1952310009" type="checkbox" value="No preference - open to everything"/> No preference - open to everything</label>
+            <label class="form-option"><input type="checkbox" value="Portraits and faces"/> Portraits and faces</label>
+            <label class="form-option"><input type="checkbox" value="Animals and nature"/> Animals and nature</label>
+            <label class="form-option"><input type="checkbox" value="Cartoon characters and pop culture"/> Cartoon characters and pop culture</label>
+            <label class="form-option"><input type="checkbox" value="Objects and still life"/> Objects and still life</label>
+            <label class="form-option"><input type="checkbox" value="No preference - open to everything"/> No preference - open to everything</label>
           </div>
         </fieldset>
         <div class="form-field full">
           <label for="specialRequests">Questions or special requests for Vivek</label>
-          <textarea id="specialRequests" name="entry.1535594989" placeholder="Anything you would like Vivek to know?"></textarea>
+          <textarea id="specialRequests" placeholder="Anything you would like Vivek to know?"></textarea>
         </div>
         <fieldset class="form-field full" style="border:0;">
           <legend class="form-legend">Consent <span class="required-mark">*</span></legend>
           <div class="consent-options">
-            <label class="form-option"><input name="entry.1219949244" type="checkbox" value="I understand that fees, schedule and format will be discussed personally with Vivek after submitting this form" required/> I understand that fees, schedule and format will be discussed personally with Vivek after submitting this form.</label>
-            <label class="form-option"><input name="entry.1219949244" type="checkbox" value="I confirm that the details I have provided are accurate" required/> I confirm that the details I have provided are accurate.</label>
+            <label class="form-option"><input id="consentFees" type="checkbox" required/> I understand that fees, schedule and format will be discussed personally with Vivek after submitting this form.</label>
+            <label class="form-option"><input id="consentAccuracy" type="checkbox" required/> I confirm that the details I have provided are accurate.</label>
           </div>
         </fieldset>
-        <button id="registrationSubmit" class="registration-submit" type="submit">Send registration</button>
+        <button id="registrationSubmit" class="registration-submit" type="submit" disabled>Verify with Google to submit</button>
         <p id="registrationStatus" class="registration-status" role="status" aria-live="polite"></p>
-        <p class="registration-note">Your details are sent securely to the studio's registration system. If you have trouble submitting, email <a href="mailto:hello@universeofvivek.in">hello@universeofvivek.in</a>.</p>
+        <p class="registration-note">Your verified email and registration details are sent securely to the studio. If you have trouble submitting, email <a href="mailto:hello@universeofvivek.in">hello@universeofvivek.in</a>.</p>
         <details class="privacy-details" id="privacy">
           <summary>Privacy notice</summary>
           <p>We use the information you submit only to respond to your enquiry, arrange classes and manage student access. Registration responses are stored in the studio's Google Forms and Sheets account and are not sold. To request a correction or deletion, email <a href="mailto:hello@universeofvivek.in">hello@universeofvivek.in</a>.</p>
@@ -1154,7 +1185,6 @@
           <button id="submitAnotherRegistration" class="confirmation-secondary" type="button">Submit another registration</button>
         </div>
       </div>
-      <iframe id="registrationResponseFrame" class="form-submit-frame" name="registrationResponseFrame" title="Registration submission response"></iframe>
     </div>
   </div>
 </section>
@@ -1495,7 +1525,6 @@
 
   /* ── Registration form submission ── */
   const registrationForm = document.getElementById('registrationForm');
-  const registrationFrame = document.getElementById('registrationResponseFrame');
   const registrationSubmit = document.getElementById('registrationSubmit');
   const registrationStatus = document.getElementById('registrationStatus');
   const registrationIntroBlock = document.getElementById('registrationIntroBlock');
@@ -1503,56 +1532,190 @@
   const confirmationName = document.getElementById('confirmationName');
   const confirmationSummary = document.getElementById('confirmationSummary');
   const submitAnotherRegistration = document.getElementById('submitAnotherRegistration');
-  let registrationSubmitted = false;
-  let registrationTimeout;
+  const registrationVerify = document.getElementById('registrationVerify');
+  const registrationIdentity = document.getElementById('registrationIdentity');
+  const registrationGoogleSignIn = document.getElementById('registrationGoogleSignIn');
+  const registrationChangeAccount = document.getElementById('registrationChangeAccount');
+  const registrationAvatar = document.getElementById('registrationAvatar');
+  const registrationVerifiedEmail = document.getElementById('registrationVerifiedEmail');
+  const emailAddress = document.getElementById('emailAddress');
+  let registrationGoogleClient;
+  let registrationAccessToken = '';
+  let registrationExpiryTimer;
   let submittedRegistration = {};
 
-  registrationForm.addEventListener('submit', () => {
+  registrationGoogleSignIn.addEventListener('click', () => verifyRegistrationEmail());
+  registrationChangeAccount.addEventListener('click', () => {
+    clearRegistrationIdentity();
+    verifyRegistrationEmail();
+  });
+
+  function verifyRegistrationEmail() {
+    if (!window.google || !google.accounts || !google.accounts.oauth2) {
+      setRegistrationStatus('Google sign-in is still loading. Please try again.', 'error');
+      return;
+    }
+    if (!registrationGoogleClient) {
+      registrationGoogleClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: 'openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+        callback: handleRegistrationGoogleResponse
+      });
+    }
+    registrationGoogleSignIn.disabled = true;
+    registrationGoogleSignIn.textContent = 'Opening Google...';
+    setRegistrationStatus('', '');
+    registrationGoogleClient.requestAccessToken({ prompt: 'select_account' });
+  }
+
+  async function handleRegistrationGoogleResponse(tokenResponse) {
+    registrationGoogleSignIn.disabled = false;
+    registrationGoogleSignIn.textContent = 'Verify with Google';
+    if (tokenResponse.error || !tokenResponse.access_token) {
+      setRegistrationStatus('Google verification was cancelled. Please try again.', 'error');
+      return;
+    }
+
+    try {
+      const data = await registrationRequest('registration_verify', tokenResponse.access_token);
+      registrationAccessToken = tokenResponse.access_token;
+      emailAddress.value = data.user.email || '';
+      registrationVerifiedEmail.textContent = data.user.email || '';
+      registrationAvatar.src = data.user.picture || '';
+      registrationVerify.hidden = true;
+      registrationIdentity.hidden = false;
+      registrationSubmit.disabled = false;
+      registrationSubmit.textContent = 'Send registration';
+      setRegistrationStatus('Email verified. You can now submit the registration.', 'success');
+
+      window.clearTimeout(registrationExpiryTimer);
+      registrationExpiryTimer = window.setTimeout(() => {
+        clearRegistrationIdentity();
+        setRegistrationStatus('Your verification expired. Please verify with Google again.', 'error');
+      }, Math.max(60, Number(data.expiresIn) || 3000) * 1000);
+    } catch (error) {
+      clearRegistrationIdentity();
+      setRegistrationStatus(error.message, 'error');
+    }
+  }
+
+  async function registrationRequest(action, token, details) {
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: new URLSearchParams(Object.assign({
+        action: action,
+        accessToken: token
+      }, details || {}))
+    });
+    if (!response.ok) throw new Error('The registration service is unavailable. Please try again.');
+    const data = await response.json();
+    if (!data.approved || !data.registration) {
+      const error = new Error(registrationMessageForCode(data.code));
+      error.code = data.code || '';
+      throw error;
+    }
+    return data;
+  }
+
+  function clearRegistrationIdentity() {
+    window.clearTimeout(registrationExpiryTimer);
+    registrationAccessToken = '';
+    emailAddress.value = '';
+    registrationVerifiedEmail.textContent = '';
+    registrationAvatar.src = '';
+    registrationIdentity.hidden = true;
+    registrationVerify.hidden = false;
+    registrationSubmit.disabled = true;
+    registrationSubmit.textContent = 'Verify with Google to submit';
+  }
+
+  registrationForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!registrationAccessToken || !emailAddress.value) {
+      setRegistrationStatus('Verify your email with Google before submitting.', 'error');
+      return;
+    }
+
     const participantName = document.getElementById('participantName').value.trim();
     const preferredFormat = document.getElementById('preferredFormat');
     submittedRegistration = {
       name: participantName.split(/\s+/)[0] || 'artist',
       programme: preferredFormat.options[preferredFormat.selectedIndex].text
     };
-    registrationSubmitted = true;
     registrationSubmit.disabled = true;
-    registrationSubmit.textContent = 'Sending…';
-    registrationStatus.className = 'registration-status';
-    registrationStatus.textContent = '';
-    clearTimeout(registrationTimeout);
-    registrationTimeout = setTimeout(() => {
-      if (!registrationSubmitted) return;
-      registrationSubmitted = false;
+    registrationSubmit.textContent = 'Sending...';
+    setRegistrationStatus('', '');
+
+    const subjects = Array.from(document.querySelectorAll('#subjectOptions input:checked'))
+      .map(input => input.value);
+    const details = {
+      participantName: participantName,
+      age: document.getElementById('participantAge').value,
+      guardianName: document.getElementById('guardianName').value.trim(),
+      whatsapp: document.getElementById('whatsappNumber').value.trim(),
+      location: document.getElementById('location').value.trim(),
+      programme: preferredFormat.value,
+      experience: document.getElementById('experience').value,
+      subjects: JSON.stringify(subjects),
+      requests: document.getElementById('specialRequests').value.trim(),
+      consentFees: String(document.getElementById('consentFees').checked),
+      consentAccuracy: String(document.getElementById('consentAccuracy').checked)
+    };
+
+    try {
+      await registrationRequest('registration_submit', registrationAccessToken, details);
+      const verifiedEmail = emailAddress.value;
+      registrationForm.reset();
+      emailAddress.value = verifiedEmail;
       registrationSubmit.disabled = false;
       registrationSubmit.textContent = 'Send registration';
-      registrationStatus.textContent = 'The submission is taking longer than expected. Please try again or use the Google Form link below.';
-      registrationStatus.className = 'registration-status error';
-    }, 20000);
+      setRegistrationStatus('', '');
+      confirmationName.textContent = submittedRegistration.name || 'artist';
+      confirmationSummary.textContent = `Your interest in ${submittedRegistration.programme || 'the studio'} has been recorded. Vivek will review your details and contact you personally at the verified email address.`;
+      registrationForm.hidden = true;
+      registrationIntroBlock.hidden = true;
+      registrationConfirmation.hidden = false;
+      registrationConfirmation.focus({ preventScroll: true });
+      registrationConfirmation.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (error) {
+      if (['google_token_rejected', 'authorization_failed', 'unverified_email'].includes(error.code)) {
+        clearRegistrationIdentity();
+      } else {
+        registrationSubmit.disabled = false;
+        registrationSubmit.textContent = 'Send registration';
+      }
+      setRegistrationStatus(error.message, 'error');
+    }
   });
 
-  registrationFrame.addEventListener('load', () => {
-    if (!registrationSubmitted) return;
-    registrationSubmitted = false;
-    clearTimeout(registrationTimeout);
-    registrationForm.reset();
-    registrationSubmit.disabled = false;
-    registrationSubmit.textContent = 'Send registration';
-    registrationStatus.textContent = '';
-    registrationStatus.className = 'registration-status';
-    confirmationName.textContent = submittedRegistration.name || 'artist';
-    confirmationSummary.textContent = `Your interest in ${submittedRegistration.programme || 'the studio'} has been recorded. Vivek will review your details and contact you personally.`;
-    registrationForm.hidden = true;
-    registrationIntroBlock.hidden = true;
-    registrationConfirmation.hidden = false;
-    registrationConfirmation.focus({ preventScroll: true });
-    registrationConfirmation.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
+  function setRegistrationStatus(message, type) {
+    registrationStatus.textContent = message || '';
+    registrationStatus.className = `registration-status${type ? ` ${type}` : ''}`;
+  }
+
+  function registrationMessageForCode(code) {
+    const messages = {
+      google_token_rejected: 'Google could not verify this session. Please verify your email again.',
+      wrong_token_audience: 'This Google verification was not issued for the studio website.',
+      google_email_unverified: 'Choose a Google account with a verified email address.',
+      unverified_email: 'Choose a Google account with a verified email address.',
+      registration_invalid_fields: 'Please check the required fields and submit again.',
+      registration_duplicate: 'A registration for this participant was already received from this email in the last 24 hours.',
+      registration_rate_limited: 'This account has submitted several registrations recently. Please wait one hour or email Vivek directly.',
+      registration_list_busy: 'Another registration is being saved. Please try again in a moment.',
+      registration_sheet_invalid: 'The studio registration sheet needs attention. Please email Vivek directly.',
+      registration_submit_failed: 'The registration could not be saved. Please try again or email Vivek directly.'
+    };
+    return messages[code] || 'Google verification failed. Please try again.';
+  }
 
   submitAnotherRegistration.addEventListener('click', () => {
     submittedRegistration = {};
     registrationConfirmation.hidden = true;
     registrationIntroBlock.hidden = false;
     registrationForm.hidden = false;
+    if (!registrationAccessToken) clearRegistrationIdentity();
     document.getElementById('participantName').focus();
   });
 
