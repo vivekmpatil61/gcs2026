@@ -47,6 +47,7 @@
       letter-spacing:0.04em;
       font-style:italic;
     }
+    .nav-logo-short { display:none; }
     .nav-links { display:flex; gap:2rem; list-style:none; }
     .nav-links a { color:#aaaaaa; text-decoration:none; font-size:0.78rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; transition:color 0.2s; }
     .nav-links a:hover { color:var(--gold); }
@@ -142,9 +143,15 @@
     .btn-ghost:hover { border-color:var(--gold); color:var(--gold); }
     @media(max-width:720px){
       .hero { grid-template-columns:1fr; }
-      .hero-img-side { height:55vw; }
-      .hero-img-fade { background: linear-gradient(to top, var(--ink) 0%, transparent 40%); }
-      .hero-text-side { padding: 2rem 5vw 4rem; }
+      .hero-img-side { height:115vw; min-height:360px; max-height:520px; background:#000000; }
+      .hero-slide { background-size:contain,cover; background-position:center,center; }
+      .hero-img-fade { background: linear-gradient(to top, rgba(13,13,13,0.55) 0%, transparent 14%); }
+      .hero-text-side { padding: 6.2rem 5vw 4rem; }
+      .hero-studio-name { font-size:clamp(2.7rem,13vw,3.2rem); margin-bottom:1.4rem; }
+      .hero h1 { font-size:1.65rem; }
+      .hero-sub { font-size:0.92rem; line-height:1.7; margin-bottom:2rem; }
+      .hero-btns { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
+      .hero-btns .btn { padding:0.75rem 0.65rem; text-align:center; }
     }
 
     /* ── GALLERY STRIP ─────────────────────────────────── */
@@ -391,6 +398,12 @@
 
     /* ── RESPONSIVE ────────────────────────────────────── */
     @media(max-width:720px){
+      nav { height:58px; padding:0 4vw; gap:0.45rem; }
+      .nav-logo { font-size:1.05rem; white-space:nowrap; flex-shrink:0; }
+      .nav-logo-full { display:none; }
+      .nav-logo-short { display:inline; }
+      nav > div { gap:0.4rem !important; margin-left:auto; }
+      .nav-student-btn,.nav-cta { padding:0.4rem 0.62rem; font-size:0.68rem; white-space:nowrap; }
       .about-wrap,.contact-grid{grid-template-columns:1fr;gap:2.5rem;}
       .contact-layout,.registration-form{grid-template-columns:1fr;}
       .form-field.full,.registration-submit,.registration-status,.registration-note{grid-column:1;}
@@ -407,7 +420,7 @@
 
 <!-- NAV -->
 <nav>
-  <a class="nav-logo" href="#top">Graphite & Charcoal Studio</a>
+  <a class="nav-logo" href="#top"><span class="nav-logo-full">Graphite &amp; Charcoal Studio</span><span class="nav-logo-short">G&amp;C Studio</span></a>
   <ul class="nav-links">
     <li><a href="#gallery">Work</a></li>
     <li><a href="#videos">Tutorials</a></li>
@@ -439,10 +452,10 @@
   </div>
   <div class="hero-img-side">
     <div class="hero-slides">
-      <div class="hero-slide active" style="background-image:url('/gcs-website/assets/hero1.jpg')"></div>
-      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero2.jpg')"></div>
-      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero3.jpg')"></div>
-      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero4.jpg')"></div>
+      <div class="hero-slide active" style="background-image:url('/gcs-website/assets/hero1.jpg'),url('/gcs-website/assets/hero1.jpg')"></div>
+      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero2.jpg'),url('/gcs-website/assets/hero2.jpg')"></div>
+      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero3.jpg'),url('/gcs-website/assets/hero3.jpg')"></div>
+      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero4.jpg'),url('/gcs-website/assets/hero4.jpg')"></div>
     </div>
     <div class="hero-img-fade"></div>
   </div>
