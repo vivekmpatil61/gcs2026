@@ -9,7 +9,7 @@ const WELCOME_FROM_EMAIL = 'hello@universeofvivek.in';
 const STUDENT_LOGIN_URL = 'https://universeofvivek.in/#videos';
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 13 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 14 });
 }
 
 function doPost(event) {
@@ -196,8 +196,8 @@ function validateRegistration_(parameters) {
   }
 
   const allowedProgrammes = [
-    'Studio Access (video library)',
-    'Studio Live (video library + community with two live doubt-clearing sessions every month)'
+    'Studio Access - Video Library',
+    'Studio Live - Video Library, WhatsApp Community and One/Two Live Sessions per Month'
   ];
   const allowedExperience = [
     'None at all - complete beginner',
