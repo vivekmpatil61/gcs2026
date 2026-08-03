@@ -182,8 +182,13 @@
   </main>
 
   <script>
+    const LIVE_ADMIN_URL = 'https://universeofvivek.in/admin.html';
     const GOOGLE_CLIENT_ID = '120662687568-hbekineb2q7eah307s6ug5nlf65neija.apps.googleusercontent.com';
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKiL-qYGP5t-Fg7-IdtNUHsWGtrFJTHHQeDwIocM7iKf3WTDr0ztkrpwpT3Fk9o3andQ/exec';
+
+    if (window.location.protocol === 'file:') {
+      window.location.replace(LIVE_ADMIN_URL);
+    }
 
     let googleClient;
     let activeAccessToken = '';
