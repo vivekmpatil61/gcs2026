@@ -1,8 +1,10 @@
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo';
+const GOOGLE_TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo?access_token=';
+const GOOGLE_CLIENT_ID = '120662687568-hbekineb2q7eah307s6ug5nlf65neija.apps.googleusercontent.com';
 const DEFAULT_STUDENTS_SHEET = 'Distribution list';
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 3 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 4 });
 }
 
 function doPost(event) {
@@ -14,7 +16,7 @@ function doPost(event) {
     }
 
     const user = verifyGoogleToken_(accessToken);
-    if (!user.email || user.email_verified !== true) {
+    if (!user.email || user.emailVerified !== true) {
       return jsonResponse_({ approved: false, code: 'unverified_email' });
     }
 
@@ -43,7 +45,17 @@ function doPost(event) {
     });
   } catch (error) {
     console.error(error && error.stack ? error.stack : error);
-    return jsonResponse_({ approved: false, code: 'authorization_failed' });
+    const safeCodes = [
+      'google_token_rejected',
+      'wrong_token_audience',
+      'google_email_unverified',
+      'catalog_unavailable'
+    ];
+    const errorCode = String(error && error.message ? error.message : 'authorization_failed');
+    return jsonResponse_({
+      approved: false,
+      code: safeCodes.indexOf(errorCode) !== -1 ? errorCode : 'authorization_failed'
+    });
   }
 }
 
@@ -197,17 +209,39 @@ function getTutorials_() {
 }
 
 function verifyGoogleToken_(accessToken) {
-  const response = UrlFetchApp.fetch(GOOGLE_USERINFO_URL, {
+  const tokenResponse = UrlFetchApp.fetch(
+    GOOGLE_TOKENINFO_URL + encodeURIComponent(accessToken),
+    { muteHttpExceptions: true }
+  );
+
+  if (tokenResponse.getResponseCode() !== 200) {
+    throw new Error('google_token_rejected');
+  }
+
+  const tokenInfo = JSON.parse(tokenResponse.getContentText());
+  if (String(tokenInfo.aud || '') !== GOOGLE_CLIENT_ID) {
+    throw new Error('wrong_token_audience');
+  }
+  if (!tokenInfo.email || String(tokenInfo.email_verified).toLowerCase() !== 'true') {
+    throw new Error('google_email_unverified');
+  }
+
+  let profile = {};
+  const profileResponse = UrlFetchApp.fetch(GOOGLE_USERINFO_URL, {
     method: 'get',
     headers: { Authorization: 'Bearer ' + accessToken },
     muteHttpExceptions: true
   });
-
-  if (response.getResponseCode() !== 200) {
-    throw new Error('Google rejected the access token.');
+  if (profileResponse.getResponseCode() === 200) {
+    profile = JSON.parse(profileResponse.getContentText());
   }
 
-  return JSON.parse(response.getContentText());
+  return {
+    email: String(tokenInfo.email),
+    emailVerified: true,
+    given_name: String(profile.given_name || ''),
+    picture: String(profile.picture || '')
+  };
 }
 
 function isActiveStudent_(email) {
