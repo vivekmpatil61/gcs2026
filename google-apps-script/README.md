@@ -27,6 +27,8 @@ In Apps Script, open Project Settings and add:
 
 Set `STUDENTS_SHEET_NAME` to `Distribution list` for the current Sheet. It can point to a different tab name later.
 
+Registration management reads the existing Google Form response tab named `Form Responses 1`. The admin page adds a `Follow-up status` column when the first status is saved. If that tab is renamed later, add the optional `REGISTRATIONS_SHEET_NAME` property with the new tab name. Renaming the overall spreadsheet file does not affect the service because it uses the spreadsheet ID.
+
 ## Deployment
 
 1. Replace the existing Apps Script code with `Code.gs`.
@@ -47,6 +49,8 @@ The website includes an unlinked `admin.html` page. The owner signs in with Goog
 The admin can also move tutorials up or down, refresh a YouTube title, and delete a tutorial. Episode numbers are recalculated after every change.
 
 The same admin page lists approved student emails. Adding or revoking an email updates the existing `Distribution list` Sheet immediately, so the owner no longer needs to edit the Sheet manually.
+
+The `Registrations` tab securely loads Google Form responses for the owner only. It supports search, status filtering, pagination and the follow-up states `New`, `Contacted`, `Enrolled` and `Closed`.
 
 ## Student progress
 

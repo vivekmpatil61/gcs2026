@@ -3,9 +3,11 @@ const GOOGLE_TOKENINFO_URL = 'https://oauth2.googleapis.com/tokeninfo?access_tok
 const GOOGLE_CLIENT_ID = '120662687568-hbekineb2q7eah307s6ug5nlf65neija.apps.googleusercontent.com';
 const DEFAULT_STUDENTS_SHEET = 'Distribution list';
 const DEFAULT_PROGRESS_SHEET = 'Tutorial progress';
+const DEFAULT_REGISTRATIONS_SHEET = 'Form Responses 1';
+const REGISTRATION_STATUSES = ['New', 'Contacted', 'Enrolled', 'Closed'];
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 7 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 8 });
 }
 
 function doPost(event) {
@@ -126,6 +128,22 @@ function handleAdminAction_(action, parameters, user) {
     return adminDashboardResponse_(user, getTutorials_());
   }
 
+  if (action === 'admin_registrations_list') {
+    return adminRegistrationsResponse_(user);
+  }
+
+  if (action === 'admin_registration_status') {
+    const rowNumber = Number(parameters.rowNumber);
+    const status = String(parameters.status || '').trim();
+    if (!Number.isInteger(rowNumber) || rowNumber < 2) {
+      return jsonResponse_({ approved: false, code: 'registration_not_found' });
+    }
+    if (REGISTRATION_STATUSES.indexOf(status) === -1) {
+      return jsonResponse_({ approved: false, code: 'invalid_registration_status' });
+    }
+    return updateRegistrationStatus_(user, rowNumber, status);
+  }
+
   if (action === 'admin_student_add' || action === 'admin_student_remove') {
     const studentEmail = normalizeEmail_(parameters.studentEmail);
     if (!isValidEmail_(studentEmail)) {
@@ -221,6 +239,133 @@ function adminDashboardResponse_(user, tutorials) {
     studentProgress: getStudentProgressSummary_(students, tutorials)
   };
   return jsonResponse_(payload);
+}
+
+function adminRegistrationsResponse_(user) {
+  try {
+    return jsonResponse_({
+      approved: true,
+      admin: true,
+      user: {
+        email: normalizeEmail_(user.email),
+        givenName: String(user.given_name || ''),
+        picture: String(user.picture || '')
+      },
+      registrations: getRegistrations_()
+    });
+  } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
+    const code = String(error && error.message ? error.message : 'registration_sheet_unavailable');
+    return jsonResponse_({ approved: false, code: code });
+  }
+}
+
+function getRegistrations_() {
+  const sheet = getRegistrationSheet_();
+  const rows = sheet.getDataRange().getValues();
+  if (rows.length < 2) return [];
+
+  const headers = rows[0].map(normalizeHeader_);
+  const columns = {
+    timestamp: findHeaderColumn_(headers, ['timestamp']),
+    participantName: findHeaderColumn_(headers, ['participant s full name', 'participant full name', 'student name']),
+    age: findHeaderColumn_(headers, ['participant s age', 'participant age', 'age']),
+    guardianName: findHeaderColumn_(headers, ['parent or guardian s name', 'parent or guardian name', 'guardian name']),
+    whatsapp: findHeaderColumn_(headers, ['whatsapp number', 'phone number', 'mobile number']),
+    email: findHeaderColumn_(headers, ['email address', 'email']),
+    location: findHeaderColumn_(headers, ['city country', 'city or country', 'location']),
+    programme: findHeaderColumn_(headers, ['preferred format', 'preferred programme', 'programme']),
+    experience: findHeaderColumn_(headers, ['prior drawing or art experience', 'drawing experience', 'experience']),
+    subjects: findHeaderColumn_(headers, ['what would the participant enjoy drawing', 'drawing interests', 'subjects']),
+    requests: findHeaderColumn_(headers, ['questions or special requests for vivek', 'questions or special requests', 'special requests']),
+    status: findHeaderColumn_(headers, ['follow up status', 'followup status', 'status'])
+  };
+
+  return rows.slice(1).map(function(row, index) {
+    const timestampValue = valueAt_(row, columns.timestamp);
+    return {
+      rowNumber: index + 2,
+      timestamp: timestampValue instanceof Date ? timestampValue.toISOString() : String(timestampValue || ''),
+      participantName: String(valueAt_(row, columns.participantName) || ''),
+      age: String(valueAt_(row, columns.age) || ''),
+      guardianName: String(valueAt_(row, columns.guardianName) || ''),
+      whatsapp: String(valueAt_(row, columns.whatsapp) || ''),
+      email: normalizeEmail_(valueAt_(row, columns.email)),
+      location: String(valueAt_(row, columns.location) || ''),
+      programme: String(valueAt_(row, columns.programme) || ''),
+      experience: String(valueAt_(row, columns.experience) || ''),
+      subjects: String(valueAt_(row, columns.subjects) || ''),
+      requests: String(valueAt_(row, columns.requests) || ''),
+      status: String(valueAt_(row, columns.status) || 'New').trim() || 'New'
+    };
+  }).filter(function(registration) {
+    return registration.participantName || registration.email || registration.whatsapp;
+  }).reverse();
+}
+
+function updateRegistrationStatus_(user, rowNumber, status) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return jsonResponse_({ approved: false, code: 'registration_list_busy' });
+  }
+
+  try {
+    const sheet = getRegistrationSheet_();
+    if (rowNumber > sheet.getLastRow()) {
+      return jsonResponse_({ approved: false, code: 'registration_not_found' });
+    }
+    const lastColumn = Math.max(1, sheet.getLastColumn());
+    const headers = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0].map(normalizeHeader_);
+    let statusColumn = findHeaderColumn_(headers, ['follow up status', 'followup status']);
+    if (statusColumn === -1) {
+      statusColumn = lastColumn;
+      sheet.getRange(1, statusColumn + 1).setValue('Follow-up status');
+    }
+    sheet.getRange(rowNumber, statusColumn + 1).setValue(status);
+    return adminRegistrationsResponse_(user);
+  } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
+    return jsonResponse_({ approved: false, code: 'registration_update_failed' });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function getRegistrationSheet_() {
+  const spreadsheet = getStudentSpreadsheet_();
+  const configuredName = PropertiesService.getScriptProperties()
+    .getProperty('REGISTRATIONS_SHEET_NAME') || DEFAULT_REGISTRATIONS_SHEET;
+  const configuredSheet = spreadsheet.getSheetByName(configuredName);
+  if (configuredSheet) return configuredSheet;
+
+  const detectedSheet = spreadsheet.getSheets().find(function(sheet) {
+    if (sheet.getLastColumn() === 0) return false;
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn())
+      .getDisplayValues()[0].map(normalizeHeader_);
+    return findHeaderColumn_(headers, ['participant s full name', 'participant full name']) !== -1 &&
+      findHeaderColumn_(headers, ['email address', 'email']) !== -1;
+  });
+  if (!detectedSheet) throw new Error('registration_sheet_missing');
+  return detectedSheet;
+}
+
+function normalizeHeader_(value) {
+  return String(value || '').trim().toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/^\s+|\s+$/g, '');
+}
+
+function findHeaderColumn_(headers, candidates) {
+  const normalizedCandidates = candidates.map(normalizeHeader_);
+  return headers.findIndex(function(header) {
+    return normalizedCandidates.indexOf(header) !== -1 || normalizedCandidates.some(function(candidate) {
+      return candidate.length > 5 && header.indexOf(candidate) === 0;
+    });
+  });
+}
+
+function valueAt_(row, column) {
+  return column === -1 ? '' : row[column];
 }
 
 function getStudentProgressSummary_(students, tutorials) {

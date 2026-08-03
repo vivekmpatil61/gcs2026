@@ -24,7 +24,7 @@
   <meta name="twitter:title" content="Online Drawing Classes | Graphite &amp; Charcoal Studio"/>
   <meta name="twitter:description" content="Learn realistic drawing, pencil shading and charcoal techniques with artist Vivek Patil."/>
   <meta name="twitter:image" content="https://universeofvivek.in/gcs-website/assets/hero1.jpg"/>
-  <link rel="preload" as="image" href="/gcs-website/assets/hero1.jpg" fetchpriority="high"/>
+  <link rel="preload" as="image" type="image/webp" href="/gcs-website/assets/hero1.webp" imagesrcset="/gcs-website/assets/hero1-720.webp 720w, /gcs-website/assets/hero1.webp 900w" imagesizes="(max-width:720px) 100vw, 50vw" fetchpriority="high"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
@@ -184,11 +184,10 @@
       position: relative; overflow: hidden;
     }
     .hero-slides { position:absolute; inset:0; background:#000000; }
-    .hero-slide {
-      position:absolute; inset:0;
-      background-size:cover; background-position:center top; background-repeat:no-repeat;
-      opacity:0; transition:opacity 1.2s ease;
-    }
+    .hero-slide { position:absolute; inset:0; opacity:0; transition:opacity 1.2s ease; }
+    .hero-slide picture,
+    .hero-slide img { display:block; width:100%; height:100%; }
+    .hero-slide img { object-fit:cover; object-position:center top; }
     .hero-slide.active { opacity:1; }
     .slide-dots {
       position:absolute; bottom:2.5rem; left:0;
@@ -254,7 +253,8 @@
     @media(max-width:720px){
       .hero { grid-template-columns:1fr; }
       .hero-img-side { height:115vw; min-height:360px; max-height:520px; background:var(--ink); }
-      .hero-slide { background-size:contain; background-position:center; background-color:var(--ink); }
+      .hero-slide { background-color:var(--ink); }
+      .hero-slide img { object-fit:contain; object-position:center; }
       .hero-img-fade {
         background:
           linear-gradient(to right, var(--ink) 0%, transparent 11%, transparent 89%, var(--ink) 100%),
@@ -271,7 +271,8 @@
       .hero { grid-template-columns:1fr; min-height:0; }
       .hero-text-side { min-height:620px; padding:7rem 7vw 4.5rem; }
       .hero-img-side { height:min(90vw,720px); min-height:520px; max-height:720px; background:var(--ink); }
-      .hero-slide { background-size:contain; background-position:center; background-color:var(--ink); }
+      .hero-slide { background-color:var(--ink); }
+      .hero-slide img { object-fit:contain; object-position:center; }
       .hero-img-fade {
         background:
           linear-gradient(to right, var(--ink) 0%, transparent 11%, transparent 89%, var(--ink) 100%),
@@ -299,6 +300,7 @@
       transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease;
       transform-origin: bottom center;
     }
+    .gallery-item picture { display:block; }
     .gallery-item img { display:block; height:280px; width:220px; object-fit:cover; object-position:center top; transition: width 0.3s ease, height 0.3s ease; }
     .gallery-item .caption {
       position:absolute; bottom:0; left:0; right:0;
@@ -383,6 +385,7 @@
     .results-intro { font-size:0.97rem; color:#8f8f88; max-width:650px; line-height:1.8; margin-bottom:2.5rem; }
     .student-work-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; margin-bottom:3.5rem; }
     .student-work { position:relative; overflow:hidden; border-radius:14px; background:#181817; aspect-ratio:3/4; }
+    .student-work picture { display:block; width:100%; height:100%; }
     .student-work img { width:100%; height:100%; display:block; object-fit:cover; transition:transform 0.35s ease; }
     .student-work:hover img { transform:scale(1.025); }
     .student-work figcaption { position:absolute; inset:auto 0 0; padding:2.5rem 1rem 0.9rem; background:linear-gradient(transparent,rgba(0,0,0,0.82)); color:#ffffff; font-size:0.72rem; letter-spacing:0.04em; display:flex; align-items:end; justify-content:space-between; gap:0.75rem; }
@@ -674,10 +677,18 @@
   </div>
   <div class="hero-img-side">
     <div class="hero-slides">
-      <div class="hero-slide active" style="background-image:url('/gcs-website/assets/hero1.jpg')"></div>
-      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero2.jpg')"></div>
-      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero3.jpg')"></div>
-      <div class="hero-slide" style="background-image:url('/gcs-website/assets/hero4.jpg')"></div>
+      <div class="hero-slide active">
+        <picture><source type="image/webp" srcset="/gcs-website/assets/hero1-720.webp 720w, /gcs-website/assets/hero1.webp 900w" sizes="(max-width:720px) 100vw, 50vw"/><img src="/gcs-website/assets/hero1.jpg" alt="Realistic portrait artwork" fetchpriority="high" decoding="async"/></picture>
+      </div>
+      <div class="hero-slide">
+        <picture><source type="image/webp" data-srcset="/gcs-website/assets/hero2-720.webp 720w, /gcs-website/assets/hero2.webp 1684w" sizes="(max-width:720px) 100vw, 50vw"/><img data-src="/gcs-website/assets/hero2.jpg" alt="Graphite portrait artwork" decoding="async"/></picture>
+      </div>
+      <div class="hero-slide">
+        <picture><source type="image/webp" data-srcset="/gcs-website/assets/hero3-720.webp 720w, /gcs-website/assets/hero3.webp 1600w" sizes="(max-width:720px) 100vw, 50vw"/><img data-src="/gcs-website/assets/hero3.jpg" alt="Detailed pencil portrait artwork" decoding="async"/></picture>
+      </div>
+      <div class="hero-slide">
+        <picture><source type="image/webp" data-srcset="/gcs-website/assets/hero4-720.webp 720w, /gcs-website/assets/hero4.webp 1965w" sizes="(max-width:720px) 100vw, 50vw"/><img data-src="/gcs-website/assets/hero4.jpg" alt="Charcoal portrait artwork" decoding="async"/></picture>
+      </div>
     </div>
     <div class="hero-img-fade"></div>
   </div>
@@ -690,19 +701,19 @@
     <h2>A decade of marks on paper.</h2>
   </div>
   <div class="gallery-scroll" id="galleryScroll">
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery-fabric.jpg" alt="Realistic charcoal study of folded fabric" loading="lazy" decoding="async"/><div class="caption">Charcoal - Fabric study</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery-coconut.jpg" alt="Realistic coconut drawn in charcoal" loading="lazy" decoding="async"/><div class="caption">Charcoal · Realistic coconut</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery1.jpg" alt="Graphite pencil artwork" loading="lazy" decoding="async"/><div class="caption">Pencil · Graphite</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery3.jpg" alt="Charcoal portrait study" loading="lazy" decoding="async"/><div class="caption">Charcoal · Portrait study</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery2.jpg" alt="Detailed graphite drawing" loading="lazy" decoding="async"/><div class="caption">Graphite · Detailed study</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery4.jpg" alt="Observational pencil study" loading="lazy" decoding="async"/><div class="caption">Pencil · Observational drawing</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery5.jpg" alt="Charcoal portrait drawing" loading="lazy" decoding="async"/><div class="caption">Charcoal · Portrait</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery8.jpg" alt="Graphite figure study" loading="lazy" decoding="async"/><div class="caption">Graphite · Figure study</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery6.jpg" alt="Pencil sketch" loading="lazy" decoding="async"/><div class="caption">Pencil · Sketch</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery9.jpg" alt="Pencil still-life drawing" loading="lazy" decoding="async"/><div class="caption">Pencil · Still life</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery7.jpg" alt="Early pencil artwork from 2015" loading="lazy" decoding="async"/><div class="caption">Early work · 2015</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery10.jpg" alt="Graphite study" loading="lazy" decoding="async"/><div class="caption">Graphite · Study</div></div>
-    <div class="gallery-item"><img src="/gcs-website/assets/gallery11.jpg" alt="Pencil portrait study" loading="lazy" decoding="async"/><div class="caption">Pencil · Portrait study</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery-fabric-480.webp 480w, /gcs-website/assets/gallery-fabric.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery-fabric.jpg" alt="Realistic charcoal study of folded fabric" loading="lazy" decoding="async"/></picture><div class="caption">Charcoal - Fabric study</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery-coconut-480.webp 480w, /gcs-website/assets/gallery-coconut.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery-coconut.jpg" alt="Realistic coconut drawn in charcoal" loading="lazy" decoding="async"/></picture><div class="caption">Charcoal · Realistic coconut</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery1-480.webp 480w, /gcs-website/assets/gallery1.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery1.jpg" alt="Graphite pencil artwork" loading="lazy" decoding="async"/></picture><div class="caption">Pencil · Graphite</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery3-480.webp 480w, /gcs-website/assets/gallery3.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery3.jpg" alt="Charcoal portrait study" loading="lazy" decoding="async"/></picture><div class="caption">Charcoal · Portrait study</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery2-480.webp 480w, /gcs-website/assets/gallery2.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery2.jpg" alt="Detailed graphite drawing" loading="lazy" decoding="async"/></picture><div class="caption">Graphite · Detailed study</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery4-480.webp 480w, /gcs-website/assets/gallery4.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery4.jpg" alt="Observational pencil study" loading="lazy" decoding="async"/></picture><div class="caption">Pencil · Observational drawing</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery5-480.webp 480w, /gcs-website/assets/gallery5.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery5.jpg" alt="Charcoal portrait drawing" loading="lazy" decoding="async"/></picture><div class="caption">Charcoal · Portrait</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery8-480.webp 480w, /gcs-website/assets/gallery8.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery8.jpg" alt="Graphite figure study" loading="lazy" decoding="async"/></picture><div class="caption">Graphite · Figure study</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery6-480.webp 480w, /gcs-website/assets/gallery6.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery6.jpg" alt="Pencil sketch" loading="lazy" decoding="async"/></picture><div class="caption">Pencil · Sketch</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery9-480.webp 480w, /gcs-website/assets/gallery9.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery9.jpg" alt="Pencil still-life drawing" loading="lazy" decoding="async"/></picture><div class="caption">Pencil · Still life</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery7-480.webp 480w, /gcs-website/assets/gallery7.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery7.jpg" alt="Early pencil artwork from 2015" loading="lazy" decoding="async"/></picture><div class="caption">Early work · 2015</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery10-480.webp 480w, /gcs-website/assets/gallery10.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery10.jpg" alt="Graphite study" loading="lazy" decoding="async"/></picture><div class="caption">Graphite · Study</div></div>
+    <div class="gallery-item"><picture><source type="image/webp" srcset="/gcs-website/assets/gallery11-480.webp 480w, /gcs-website/assets/gallery11.webp 900w" sizes="220px"/><img src="/gcs-website/assets/gallery11.jpg" alt="Pencil portrait study" loading="lazy" decoding="async"/></picture><div class="caption">Pencil · Portrait study</div></div>
   </div>
   <p class="gallery-hint">← drag to explore →</p>
 </section>
@@ -818,27 +829,27 @@
   <p class="results-intro">Real work created by students while learning observation, proportion, shading and patient practice.</p>
   <div class="student-work-grid">
     <figure class="student-work">
-      <img src="/gcs-website/assets/student-shading.jpg" alt="Cube shading study created by a 5-year-old student" loading="lazy" decoding="async"/>
+      <picture><source type="image/webp" srcset="/gcs-website/assets/student-shading-480.webp 480w, /gcs-website/assets/student-shading.webp 675w" sizes="(max-width:720px) 50vw, 33vw"/><img src="/gcs-website/assets/student-shading.jpg" alt="Cube shading study created by a 5-year-old student" loading="lazy" decoding="async"/></picture>
       <figcaption><span>Cube shading</span><span class="student-work-age">Age 5</span></figcaption>
     </figure>
     <figure class="student-work">
-      <img src="/gcs-website/assets/student-eye.jpg" alt="Realistic eye drawn in graphite by a 7-year-old student" loading="lazy" decoding="async"/>
+      <picture><source type="image/webp" srcset="/gcs-website/assets/student-eye-480.webp 480w, /gcs-website/assets/student-eye.webp 675w" sizes="(max-width:720px) 50vw, 33vw"/><img src="/gcs-website/assets/student-eye.jpg" alt="Realistic eye drawn in graphite by a 7-year-old student" loading="lazy" decoding="async"/></picture>
       <figcaption><span>Realistic eye</span><span class="student-work-age">Age 7</span></figcaption>
     </figure>
     <figure class="student-work">
-      <img src="/gcs-website/assets/student-harry-potter.jpg" alt="Harry Potter portrait drawn in pencil by a 9-year-old student" loading="lazy" decoding="async"/>
+      <picture><source type="image/webp" srcset="/gcs-website/assets/student-harry-potter-480.webp 480w, /gcs-website/assets/student-harry-potter.webp 675w" sizes="(max-width:720px) 50vw, 33vw"/><img src="/gcs-website/assets/student-harry-potter.jpg" alt="Harry Potter portrait drawn in pencil by a 9-year-old student" loading="lazy" decoding="async"/></picture>
       <figcaption><span>Harry Potter portrait</span><span class="student-work-age">Age 9</span></figcaption>
     </figure>
     <figure class="student-work">
-      <img src="/gcs-website/assets/student-character.jpg" alt="Stylised portrait drawn in pencil by a 9-year-old student" loading="lazy" decoding="async"/>
+      <picture><source type="image/webp" srcset="/gcs-website/assets/student-character-480.webp 480w, /gcs-website/assets/student-character.webp 675w" sizes="(max-width:720px) 50vw, 33vw"/><img src="/gcs-website/assets/student-character.jpg" alt="Stylised portrait drawn in pencil by a 9-year-old student" loading="lazy" decoding="async"/></picture>
       <figcaption><span>Stylised portrait</span><span class="student-work-age">Age 9</span></figcaption>
     </figure>
     <figure class="student-work">
-      <img src="/gcs-website/assets/student-dobby.jpg" alt="Dobby character drawn in graphite by an 8-year-old student" loading="lazy" decoding="async"/>
+      <picture><source type="image/webp" srcset="/gcs-website/assets/student-dobby-480.webp 480w, /gcs-website/assets/student-dobby.webp 675w" sizes="(max-width:720px) 50vw, 33vw"/><img src="/gcs-website/assets/student-dobby.jpg" alt="Dobby character drawn in graphite by an 8-year-old student" loading="lazy" decoding="async"/></picture>
       <figcaption><span>Dobby character</span><span class="student-work-age">Age 8</span></figcaption>
     </figure>
     <figure class="student-work">
-      <img src="/gcs-website/assets/student-krishna.jpg" alt="Young Krishna drawn using the grid method by a 10-year-old student" loading="lazy" decoding="async"/>
+      <picture><source type="image/webp" srcset="/gcs-website/assets/student-krishna-480.webp 480w, /gcs-website/assets/student-krishna.webp 675w" sizes="(max-width:720px) 50vw, 33vw"/><img src="/gcs-website/assets/student-krishna.jpg" alt="Young Krishna drawn using the grid method by a 10-year-old student" loading="lazy" decoding="async"/></picture>
       <figcaption><span>Krishna grid drawing</span><span class="student-work-age">Age 10</span></figcaption>
     </figure>
   </div>
@@ -972,7 +983,7 @@
     </div>
     <div class="about-img-wrap">
       <div style="position:relative;border-radius:16px;overflow:hidden;">
-        <img src="/gcs-website/assets/caricature.jpeg" alt="Vivek Patil - Principal Engineer and Artist" loading="lazy" decoding="async" style="width:100%;display:block;"/>
+        <picture><source type="image/webp" srcset="/gcs-website/assets/caricature-600.webp 600w, /gcs-website/assets/caricature.webp 1024w" sizes="(max-width:720px) 100vw, 45vw"/><img src="/gcs-website/assets/caricature.jpeg" alt="Vivek Patil - Principal Engineer and Artist" loading="lazy" decoding="async" style="width:100%;display:block;"/></picture>
         <div style="position:absolute;inset:0;background:linear-gradient(to right, var(--ink) 0%, rgba(13,13,13,0.3) 25%, transparent 55%);"></div>
       </div>
     </div>
@@ -1159,7 +1170,22 @@
   let cur = 0;
   const slides = document.querySelectorAll('.hero-slide');
   const dots   = document.querySelectorAll('.dot');
+  function ensureSlideLoaded(index) {
+    const slide = slides[index];
+    if (!slide) return;
+    const source = slide.querySelector('source[data-srcset]');
+    const image = slide.querySelector('img[data-src]');
+    if (source) {
+      source.srcset = source.dataset.srcset;
+      source.removeAttribute('data-srcset');
+    }
+    if (image) {
+      image.src = image.dataset.src;
+      image.removeAttribute('data-src');
+    }
+  }
   function goSlide(n) {
+    ensureSlideLoaded(n);
     slides[cur].classList.remove('active');
     dots[cur].classList.remove('active');
     cur = n;
@@ -1167,6 +1193,7 @@
     dots[cur].classList.add('active');
   }
   setInterval(() => goSlide((cur + 1) % slides.length), 5000);
+  window.addEventListener('load', () => ensureSlideLoaded(1), { once:true });
 
   /* ── Gallery drag scroll ── */
   const gs = document.getElementById('galleryScroll');
