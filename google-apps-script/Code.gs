@@ -4,7 +4,7 @@ const GOOGLE_CLIENT_ID = '120662687568-hbekineb2q7eah307s6ug5nlf65neija.apps.goo
 const DEFAULT_STUDENTS_SHEET = 'Distribution list';
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 4 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 5 });
 }
 
 function doPost(event) {
@@ -61,7 +61,15 @@ function doPost(event) {
 
 function handleAdminAction_(action, parameters, user) {
   if (action === 'admin_list') {
-    return adminResponse_(user, getTutorials_());
+    return adminResponse_(user, getTutorials_(), getApprovedStudents_());
+  }
+
+  if (action === 'admin_student_add' || action === 'admin_student_remove') {
+    const studentEmail = normalizeEmail_(parameters.studentEmail);
+    if (!isValidEmail_(studentEmail)) {
+      return jsonResponse_({ approved: false, code: 'invalid_student_email' });
+    }
+    return updateStudentAccess_(user, studentEmail, action === 'admin_student_add');
   }
 
   if (action === 'admin_add') {
@@ -136,8 +144,8 @@ function mutateTutorials_(user, mutation) {
   }
 }
 
-function adminResponse_(user, tutorials) {
-  return jsonResponse_({
+function adminResponse_(user, tutorials, students) {
+  const payload = {
     approved: true,
     admin: true,
     user: {
@@ -146,7 +154,83 @@ function adminResponse_(user, tutorials) {
       picture: String(user.picture || '')
     },
     tutorials: tutorials
-  });
+  };
+  if (Array.isArray(students)) payload.students = students;
+  return jsonResponse_(payload);
+}
+
+function updateStudentAccess_(user, studentEmail, shouldApprove) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return jsonResponse_({ approved: false, code: 'student_list_busy' });
+  }
+
+  try {
+    const sheet = getStudentSheet_();
+    const rows = sheet.getDataRange().getDisplayValues();
+    const headers = rows.length ? rows[0].map(function(value) {
+      return String(value).trim().toLowerCase();
+    }) : [];
+    const emailColumn = headers.indexOf('email');
+    const statusColumn = headers.indexOf('status');
+
+    if (emailColumn !== -1 && statusColumn !== -1) {
+      const existingIndex = rows.slice(1).findIndex(function(row) {
+        return normalizeEmail_(row[emailColumn]) === studentEmail;
+      });
+      if (existingIndex !== -1) {
+        sheet.getRange(existingIndex + 2, statusColumn + 1)
+          .setValue(shouldApprove ? 'Active' : 'Inactive');
+      } else if (shouldApprove) {
+        const newRow = new Array(headers.length).fill('');
+        newRow[emailColumn] = studentEmail;
+        newRow[statusColumn] = 'Active';
+        sheet.appendRow(newRow);
+      }
+    } else {
+      let emails = parseEmailList_(rows.length ? rows[0][0] : '');
+      if (shouldApprove && emails.indexOf(studentEmail) === -1) emails.push(studentEmail);
+      if (!shouldApprove) emails = emails.filter(function(email) { return email !== studentEmail; });
+      sheet.getRange('A1').setValue(emails.join(', '));
+    }
+
+    return adminResponse_(user, getTutorials_(), getApprovedStudents_());
+  } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
+    return jsonResponse_({ approved: false, code: 'student_update_failed' });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function getApprovedStudents_() {
+  const sheet = getStudentSheet_();
+  const rows = sheet.getDataRange().getDisplayValues();
+  if (!rows.length) return [];
+  const headers = rows[0].map(function(value) { return String(value).trim().toLowerCase(); });
+  const emailColumn = headers.indexOf('email');
+  const statusColumn = headers.indexOf('status');
+
+  if (emailColumn !== -1 && statusColumn !== -1) {
+    return rows.slice(1).filter(function(row) {
+      return String(row[statusColumn]).trim().toLowerCase() === 'active';
+    }).map(function(row) {
+      return normalizeEmail_(row[emailColumn]);
+    }).filter(Boolean).sort();
+  }
+
+  return parseEmailList_(rows[0][0]).sort();
+}
+
+function parseEmailList_(value) {
+  return String(value || '')
+    .split(',')
+    .map(normalizeEmail_)
+    .filter(Boolean);
+}
+
+function isValidEmail_(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function isAdmin_(email) {
@@ -245,19 +329,7 @@ function verifyGoogleToken_(accessToken) {
 }
 
 function isActiveStudent_(email) {
-  const properties = PropertiesService.getScriptProperties();
-  const spreadsheetId = properties.getProperty('STUDENTS_SPREADSHEET_ID');
-  const sheetName = properties.getProperty('STUDENTS_SHEET_NAME') || DEFAULT_STUDENTS_SHEET;
-
-  if (!spreadsheetId) {
-    throw new Error('STUDENTS_SPREADSHEET_ID is not configured.');
-  }
-
-  const sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName(sheetName);
-  if (!sheet) {
-    throw new Error('Student access sheet was not found: ' + sheetName);
-  }
-
+  const sheet = getStudentSheet_();
   const rows = sheet.getDataRange().getDisplayValues();
   if (rows.length === 0) return false;
 
@@ -272,12 +344,23 @@ function isActiveStudent_(email) {
     });
   }
 
-  const approvedEmails = String(rows[0][0] || '')
-    .split(',')
-    .map(normalizeEmail_)
-    .filter(Boolean);
+  return parseEmailList_(rows[0][0]).indexOf(email) !== -1;
+}
 
-  return approvedEmails.indexOf(email) !== -1;
+function getStudentSheet_() {
+  const properties = PropertiesService.getScriptProperties();
+  const spreadsheetId = properties.getProperty('STUDENTS_SPREADSHEET_ID');
+  const sheetName = properties.getProperty('STUDENTS_SHEET_NAME') || DEFAULT_STUDENTS_SHEET;
+
+  if (!spreadsheetId) {
+    throw new Error('STUDENTS_SPREADSHEET_ID is not configured.');
+  }
+
+  const sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName(sheetName);
+  if (!sheet) {
+    throw new Error('Student access sheet was not found: ' + sheetName);
+  }
+  return sheet;
 }
 
 function normalizeEmail_(value) {

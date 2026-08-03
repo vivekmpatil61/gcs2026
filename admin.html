@@ -110,6 +110,11 @@
     .action-btn:hover { border-color:var(--gold-dark); }
     .delete-btn { color:var(--danger); }
     .empty { padding:2rem; border:1px dashed var(--border); border-radius:var(--radius); color:var(--muted); text-align:center; }
+    .student-panel { margin-top:1rem; }
+    .student-list { display:grid; gap:0.55rem; margin-top:1rem; }
+    .student-row { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:0.75rem 0.9rem; background:var(--paper); border:1px solid var(--border); border-radius:10px; }
+    .student-email { margin:0; min-width:0; overflow-wrap:anywhere; font-size:0.88rem; }
+    .revoke-btn { border:0; background:none; color:var(--danger); padding:0.35rem; font-size:0.78rem; text-decoration:underline; }
     @media (max-width:700px) {
       .topbar { align-items:flex-start; }
       main { width:min(100% - 1rem,960px); margin:1rem auto 3rem; }
@@ -170,6 +175,23 @@
         <p class="status" id="adminStatus" role="status"></p>
       </div>
 
+      <div class="panel student-panel">
+        <div class="dashboard-head">
+          <div>
+            <p class="eyebrow">Student access</p>
+            <h2>Approve a student</h2>
+          </div>
+          <span class="count" id="studentCount"></span>
+        </div>
+        <p class="intro">Add the Google email used by the student. Access starts immediately and can be revoked at any time.</p>
+        <form class="add-form" id="studentForm">
+          <input id="studentEmail" name="studentEmail" type="email" placeholder="student@gmail.com" autocomplete="email" required/>
+          <button class="primary-btn" type="submit">Approve student</button>
+        </form>
+        <p class="status" id="studentStatus" role="status"></p>
+        <div class="student-list" id="studentList"></div>
+      </div>
+
       <div class="library-head">
         <div>
           <p class="eyebrow">Published library</p>
@@ -193,6 +215,7 @@
     let googleClient;
     let activeAccessToken = '';
     let currentTutorials = [];
+    let currentStudents = [];
 
     const loginPanel = document.getElementById('loginPanel');
     const dashboard = document.getElementById('dashboard');
@@ -201,10 +224,15 @@
     const addForm = document.getElementById('addForm');
     const videoIdInput = document.getElementById('videoId');
     const tutorialList = document.getElementById('tutorialList');
+    const studentForm = document.getElementById('studentForm');
+    const studentEmailInput = document.getElementById('studentEmail');
+    const studentStatus = document.getElementById('studentStatus');
+    const studentList = document.getElementById('studentList');
 
     document.getElementById('googleSignIn').addEventListener('click', signInWithGoogle);
     document.getElementById('signOut').addEventListener('click', signOut);
     addForm.addEventListener('submit', addTutorial);
+    studentForm.addEventListener('submit', addStudent);
 
     function signInWithGoogle() {
       setStatus(loginStatus, 'Opening Google sign-in...');
@@ -261,8 +289,73 @@
       document.getElementById('adminAvatar').src = data.user.picture || '';
       document.getElementById('adminEmail').textContent = data.user.email || '';
       currentTutorials = Array.isArray(data.tutorials) ? data.tutorials : [];
+      currentStudents = Array.isArray(data.students) ? data.students : [];
       renderTutorials();
+      renderStudents();
       videoIdInput.focus();
+    }
+
+    async function addStudent(event) {
+      event.preventDefault();
+      const email = studentEmailInput.value.trim().toLowerCase();
+      if (!email) return;
+      setBusy(true);
+      setStatus(studentStatus, 'Approving student access...');
+      try {
+        const data = await adminRequest('admin_student_add', { studentEmail: email });
+        currentStudents = data.students;
+        renderStudents();
+        studentForm.reset();
+        studentEmailInput.focus();
+        setStatus(studentStatus, `${email} can now access the tutorial library.`, 'success');
+      } catch (error) {
+        setStatus(studentStatus, error.message, 'error');
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function removeStudent(email) {
+      if (!window.confirm(`Revoke tutorial access for ${email}?`)) return;
+      setBusy(true);
+      setStatus(studentStatus, 'Revoking student access...');
+      try {
+        const data = await adminRequest('admin_student_remove', { studentEmail: email });
+        currentStudents = data.students;
+        renderStudents();
+        setStatus(studentStatus, `${email} no longer has tutorial access.`, 'success');
+      } catch (error) {
+        setStatus(studentStatus, error.message, 'error');
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function renderStudents() {
+      studentList.replaceChildren();
+      document.getElementById('studentCount').textContent = `${currentStudents.length} approved`;
+      if (!currentStudents.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No students are currently approved.';
+        studentList.append(empty);
+        return;
+      }
+
+      currentStudents.forEach(email => {
+        const row = document.createElement('div');
+        row.className = 'student-row';
+        const address = document.createElement('p');
+        address.className = 'student-email';
+        address.textContent = email;
+        const revoke = document.createElement('button');
+        revoke.type = 'button';
+        revoke.className = 'revoke-btn';
+        revoke.textContent = 'Revoke';
+        revoke.addEventListener('click', () => removeStudent(email));
+        row.append(address, revoke);
+        studentList.append(row);
+      });
     }
 
     async function addTutorial(event) {
@@ -382,7 +475,10 @@
         youtube_video_not_found: 'YouTube could not find that video. Check the ID and its visibility.',
         youtube_title_unavailable: 'YouTube did not return a title for that video.',
         video_not_found: 'That tutorial is no longer in the library. Refresh and try again.',
-        catalog_busy: 'Another update is in progress. Please try again in a moment.'
+        catalog_busy: 'Another update is in progress. Please try again in a moment.',
+        invalid_student_email: 'Enter a valid student email address.',
+        student_list_busy: 'Another access update is in progress. Please try again in a moment.',
+        student_update_failed: 'Student access could not be updated. Please try again.'
       };
       return messages[code] || 'The update could not be completed. Please try again.';
     }
@@ -391,11 +487,14 @@
       const token = activeAccessToken;
       activeAccessToken = '';
       currentTutorials = [];
+      currentStudents = [];
       tutorialList.replaceChildren();
+      studentList.replaceChildren();
       dashboard.style.display = 'none';
       loginPanel.style.display = 'block';
       setStatus(loginStatus, 'Signed out.', 'success');
       setStatus(adminStatus, '');
+      setStatus(studentStatus, '');
       if (token && window.google && google.accounts && google.accounts.oauth2) {
         google.accounts.oauth2.revoke(token, function() {});
       }

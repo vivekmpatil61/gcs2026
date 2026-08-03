@@ -45,3 +45,5 @@ The private catalogue file is ignored by Git and must never be committed to the 
 The website includes an unlinked `admin.html` page. The owner signs in with Google and submits only a YouTube ID or full YouTube link. The Apps Script verifies the owner email, fetches the title from YouTube, derives the thumbnail, assigns the next episode number, and updates `TUTORIAL_CATALOG_JSON`.
 
 The admin can also move tutorials up or down, refresh a YouTube title, and delete a tutorial. Episode numbers are recalculated after every change.
+
+The same admin page lists approved student emails. Adding or revoking an email updates the existing `Distribution list` Sheet immediately, so the owner no longer needs to edit the Sheet manually.
