@@ -267,6 +267,17 @@
       .hero-btns { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
       .hero-btns .btn { padding:0.75rem 0.65rem; text-align:center; }
     }
+    @media(orientation:portrait) and (min-width:721px) and (max-width:1100px){
+      .hero { grid-template-columns:1fr; min-height:0; }
+      .hero-text-side { min-height:620px; padding:7rem 7vw 4.5rem; }
+      .hero-img-side { height:min(90vw,720px); min-height:520px; max-height:720px; background:var(--ink); }
+      .hero-slide { background-size:contain; background-position:center; background-color:var(--ink); }
+      .hero-img-fade {
+        background:
+          linear-gradient(to right, var(--ink) 0%, transparent 11%, transparent 89%, var(--ink) 100%),
+          linear-gradient(to bottom, var(--ink) 0%, transparent 16%, transparent 82%, var(--ink) 100%);
+      }
+    }
 
     /* ── GALLERY STRIP ─────────────────────────────────── */
     #gallery { background:var(--ink); padding:60px 0 50px; overflow:hidden; }
