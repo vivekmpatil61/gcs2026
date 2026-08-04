@@ -84,7 +84,7 @@
         "name": "What is included in Studio Live?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Studio Live includes everything in Studio Access, plus two live doubt-clearing sessions each month and access to the private WhatsApp student community."
+          "text": "Studio Live includes everything in Studio Access, plus one or two live doubt-clearing sessions each month and access to the private WhatsApp student community."
         }
       },
       {
@@ -828,7 +828,7 @@
       <p class="programme-summary">Everything in Studio Access, with live guidance and a community around your practice.</p>
       <ul class="programme-list">
         <li>Growing Studio Access video library</li>
-        <li>Two live doubt-clearing sessions every month</li>
+        <li>One or two live doubt-clearing sessions every month</li>
         <li>Sessions hosted on Zoom or Google Meet</li>
         <li>Private WhatsApp student community</li>
       </ul>
@@ -1026,7 +1026,7 @@
     </details>
     <details class="faq-item">
       <summary>What is included in Studio Live?</summary>
-      <p>Studio Live includes everything in Studio Access, plus two live doubt-clearing sessions each month and access to the private WhatsApp student community.</p>
+      <p>Studio Live includes everything in Studio Access, plus one or two live doubt-clearing sessions each month and access to the private WhatsApp student community.</p>
     </details>
     <details class="faq-item">
       <summary>Are the programmes fully online?</summary>
@@ -1124,7 +1124,7 @@
           <select id="preferredFormat" required>
             <option value="" selected disabled>Select a format</option>
             <option value="Studio Access - Video Library">Studio Access - Video Library</option>
-            <option value="Studio Live - Video Library, WhatsApp Community and Two Live Sessions per Month">Studio Live - Video Library, WhatsApp Community and Two Live Sessions per Month</option>
+            <option value="Studio Live - Video Library, WhatsApp Community and One/Two Live Sessions per Month">Studio Live - Video Library, WhatsApp Community and One/Two Live Sessions per Month</option>
           </select>
         </div>
         <div class="form-field full">
@@ -1515,7 +1515,7 @@
   function chooseProgramme(programme) {
     const programmeValues = {
       access: 'Studio Access - Video Library',
-      live: 'Studio Live - Video Library, WhatsApp Community and Two Live Sessions per Month'
+      live: 'Studio Live - Video Library, WhatsApp Community and One/Two Live Sessions per Month'
     };
     const preferredFormat = document.getElementById('preferredFormat');
     if (preferredFormat && programmeValues[programme]) {

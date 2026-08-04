@@ -197,7 +197,7 @@ function validateRegistration_(parameters) {
 
   const allowedProgrammes = [
     'Studio Access - Video Library',
-    'Studio Live - Video Library, WhatsApp Community and Two Live Sessions per Month'
+    'Studio Live - Video Library, WhatsApp Community and One/Two Live Sessions per Month'
   ];
   const allowedExperience = [
     'None at all - complete beginner',
