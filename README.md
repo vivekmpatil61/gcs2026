@@ -55,7 +55,7 @@ The Google Sheet acts as the database. The main tabs are:
 
 - `Form Responses 1` - registration details and follow-up status
 - `Distribution list` - approved student email addresses
-- `Tutorial progress` - student email, episode number, video ID, title and completion date
+- `Tutorial progress` - student name, verified email, episode number, video ID, title and completion date
 
 Apps Script uses the spreadsheet ID rather than its visible filename. Renaming the spreadsheet file does not break the integration.
 
@@ -108,7 +108,7 @@ The tutorial catalogue is returned only after successful server-side approval. I
 
 1. An approved student marks a tutorial complete.
 2. Apps Script confirms that the video belongs to the published catalogue.
-3. The email, episode number, video ID, title and completion time are stored in `Tutorial progress`.
+3. The student name, verified email, episode number, video ID, title and completion time are stored in `Tutorial progress`. The verified email is shown as the student label when no registration name is available.
 4. The saved progress follows the student across devices.
 5. The admin dashboard calculates completion totals and percentages.
 

@@ -58,6 +58,6 @@ Public registration also uses verified Google identity. The website makes the ve
 
 ## Student progress
 
-Signed-in students can mark tutorials complete from the library or video player. The backend automatically creates a `Tutorial progress` tab in the student spreadsheet and stores the verified Google email, episode number, YouTube video ID, title and completion date. Existing progress rows are migrated and backfilled automatically. Progress follows the student across devices and can be undone at any time.
+Signed-in students can mark tutorials complete from the library or video player. The backend automatically creates a `Tutorial progress` tab in the student spreadsheet and stores the student name, verified Google email, episode number, YouTube video ID, title and completion date. If no registration name is available, the Student column falls back to the verified email. Existing progress rows are migrated and backfilled automatically. Progress follows the student across devices and can be undone at any time.
 
 The private admin page summarizes this data for every approved student, including completed tutorials, completion percentage and the most recent completion activity. Revoked students keep their stored history in the Sheet so progress can resume if access is approved again later.

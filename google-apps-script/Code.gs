@@ -9,7 +9,7 @@ const WELCOME_FROM_EMAIL = 'hello@universeofvivek.in';
 const STUDENT_LOGIN_URL = 'https://universeofvivek.in/#videos';
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 15 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 16 });
 }
 
 function doPost(event) {
@@ -267,14 +267,15 @@ function updateStudentProgress_(user, email, videoId, completed) {
       return jsonResponse_({ approved: false, code: 'video_not_found' });
     }
     const existingIndex = rows.slice(1).findIndex(function(row) {
-      return normalizeEmail_(row[0]) === email && String(row[2] || '') === videoId;
+      return normalizeEmail_(row[1]) === email && String(row[3] || '') === videoId;
     });
+    const studentName = getStudentNamesByEmail_()[email] || email;
 
     if (completed && existingIndex === -1) {
-      sheet.appendRow([email, tutorial.number, videoId, tutorial.title, new Date()]);
+      sheet.appendRow([studentName, email, tutorial.number, videoId, tutorial.title, new Date()]);
     } else if (completed) {
-      sheet.getRange(existingIndex + 2, 2, 1, 4)
-        .setValues([[tutorial.number, videoId, tutorial.title, new Date()]]);
+      sheet.getRange(existingIndex + 2, 1, 1, 6)
+        .setValues([[studentName, email, tutorial.number, videoId, tutorial.title, new Date()]]);
     } else if (existingIndex !== -1) {
       sheet.deleteRow(existingIndex + 2);
     }
@@ -293,9 +294,9 @@ function getCompletedVideoIds_(email) {
   if (rows.length < 2) return [];
   const publishedIds = getTutorials_().map(function(tutorial) { return tutorial.id; });
   return rows.slice(1).filter(function(row) {
-    return normalizeEmail_(row[0]) === email && publishedIds.indexOf(String(row[2] || '')) !== -1;
+    return normalizeEmail_(row[1]) === email && publishedIds.indexOf(String(row[3] || '')) !== -1;
   }).map(function(row) {
-    return String(row[2]);
+    return String(row[3]);
   }).filter(function(videoId, index, list) {
     return list.indexOf(videoId) === index;
   });
@@ -691,14 +692,14 @@ function getStudentProgressSummary_(students, tutorials, studentNames) {
   const progressByEmail = {};
 
   progressRows.slice(1).forEach(function(row) {
-    const email = normalizeEmail_(row[0]);
-    const videoId = String(row[2] || '');
+    const email = normalizeEmail_(row[1]);
+    const videoId = String(row[3] || '');
     if (!email || publishedIds.indexOf(videoId) === -1) return;
     if (!progressByEmail[email]) {
       progressByEmail[email] = { videoIds: {}, lastActivity: null };
     }
     progressByEmail[email].videoIds[videoId] = true;
-    const activity = row[4] instanceof Date ? row[4] : new Date(row[4]);
+    const activity = row[5] instanceof Date ? row[5] : new Date(row[5]);
     if (!isNaN(activity.getTime()) &&
         (!progressByEmail[email].lastActivity || activity > progressByEmail[email].lastActivity)) {
       progressByEmail[email].lastActivity = activity;
@@ -938,7 +939,7 @@ function getProgressSheet_() {
 }
 
 function ensureProgressSheetSchema_(sheet) {
-  const desiredHeaders = ['Email', 'Episode', 'Video ID', 'Title', 'Completed At'];
+  const desiredHeaders = ['Student', 'Email', 'Episode', 'Video ID', 'Title', 'Completed At'];
   if (sheet.getLastRow() === 0) {
     sheet.getRange(1, 1, 1, desiredHeaders.length).setValues([desiredHeaders]);
     sheet.setFrozenRows(1);
@@ -948,6 +949,7 @@ function ensureProgressSheetSchema_(sheet) {
   const values = sheet.getDataRange().getValues();
   const headers = values[0].map(normalizeHeader_);
   const columns = {
+    student: findHeaderColumn_(headers, ['student', 'student name', 'participant']),
     email: findHeaderColumn_(headers, ['email']),
     episode: findHeaderColumn_(headers, ['episode']),
     videoId: findHeaderColumn_(headers, ['video id']),
@@ -962,13 +964,16 @@ function ensureProgressSheetSchema_(sheet) {
   getTutorials_().forEach(function(tutorial) {
     tutorialsById[tutorial.id] = tutorial;
   });
+  const studentNames = getStudentNamesByEmail_();
   const migratedRows = values.slice(1).filter(function(row) {
     return normalizeEmail_(valueAt_(row, columns.email)) || String(valueAt_(row, columns.videoId) || '').trim();
   }).map(function(row) {
+    const email = normalizeEmail_(valueAt_(row, columns.email));
     const videoId = String(valueAt_(row, columns.videoId) || '').trim();
     const tutorial = tutorialsById[videoId];
     return [
-      normalizeEmail_(valueAt_(row, columns.email)),
+      studentNames[email] || String(valueAt_(row, columns.student) || '').trim() || email,
+      email,
       tutorial ? tutorial.number : String(valueAt_(row, columns.episode) || ''),
       videoId,
       tutorial ? tutorial.title : String(valueAt_(row, columns.title) || ''),
@@ -982,7 +987,7 @@ function ensureProgressSheetSchema_(sheet) {
   if (!needsUpdate) {
     needsUpdate = migratedRows.some(function(row, rowIndex) {
       const existing = values[rowIndex + 1];
-      return row.slice(0, 4).some(function(value, columnIndex) {
+      return row.slice(0, 5).some(function(value, columnIndex) {
         return String(existing[columnIndex] || '') !== String(value || '');
       });
     });
