@@ -9,7 +9,7 @@ const WELCOME_FROM_EMAIL = 'hello@universeofvivek.in';
 const STUDENT_LOGIN_URL = 'https://universeofvivek.in/#videos';
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 14 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 15 });
 }
 
 function doPost(event) {
@@ -262,14 +262,19 @@ function updateStudentProgress_(user, email, videoId, completed) {
   try {
     const sheet = getProgressSheet_();
     const rows = sheet.getDataRange().getDisplayValues();
+    const tutorial = getTutorials_().find(function(item) { return item.id === videoId; });
+    if (!tutorial) {
+      return jsonResponse_({ approved: false, code: 'video_not_found' });
+    }
     const existingIndex = rows.slice(1).findIndex(function(row) {
-      return normalizeEmail_(row[0]) === email && String(row[1] || '') === videoId;
+      return normalizeEmail_(row[0]) === email && String(row[2] || '') === videoId;
     });
 
     if (completed && existingIndex === -1) {
-      sheet.appendRow([email, videoId, new Date()]);
+      sheet.appendRow([email, tutorial.number, videoId, tutorial.title, new Date()]);
     } else if (completed) {
-      sheet.getRange(existingIndex + 2, 3).setValue(new Date());
+      sheet.getRange(existingIndex + 2, 2, 1, 4)
+        .setValues([[tutorial.number, videoId, tutorial.title, new Date()]]);
     } else if (existingIndex !== -1) {
       sheet.deleteRow(existingIndex + 2);
     }
@@ -288,9 +293,9 @@ function getCompletedVideoIds_(email) {
   if (rows.length < 2) return [];
   const publishedIds = getTutorials_().map(function(tutorial) { return tutorial.id; });
   return rows.slice(1).filter(function(row) {
-    return normalizeEmail_(row[0]) === email && publishedIds.indexOf(String(row[1] || '')) !== -1;
+    return normalizeEmail_(row[0]) === email && publishedIds.indexOf(String(row[2] || '')) !== -1;
   }).map(function(row) {
-    return String(row[1]);
+    return String(row[2]);
   }).filter(function(videoId, index, list) {
     return list.indexOf(videoId) === index;
   });
@@ -687,13 +692,13 @@ function getStudentProgressSummary_(students, tutorials, studentNames) {
 
   progressRows.slice(1).forEach(function(row) {
     const email = normalizeEmail_(row[0]);
-    const videoId = String(row[1] || '');
+    const videoId = String(row[2] || '');
     if (!email || publishedIds.indexOf(videoId) === -1) return;
     if (!progressByEmail[email]) {
       progressByEmail[email] = { videoIds: {}, lastActivity: null };
     }
     progressByEmail[email].videoIds[videoId] = true;
-    const activity = row[2] instanceof Date ? row[2] : new Date(row[2]);
+    const activity = row[4] instanceof Date ? row[4] : new Date(row[4]);
     if (!isNaN(activity.getTime()) &&
         (!progressByEmail[email].lastActivity || activity > progressByEmail[email].lastActivity)) {
       progressByEmail[email].lastActivity = activity;
@@ -928,11 +933,73 @@ function getProgressSheet_() {
       if (!sheet) throw error;
     }
   }
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(['Email', 'Video ID', 'Completed At']);
-    sheet.setFrozenRows(1);
-  }
+  ensureProgressSheetSchema_(sheet);
   return sheet;
+}
+
+function ensureProgressSheetSchema_(sheet) {
+  const desiredHeaders = ['Email', 'Episode', 'Video ID', 'Title', 'Completed At'];
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, desiredHeaders.length).setValues([desiredHeaders]);
+    sheet.setFrozenRows(1);
+    return;
+  }
+
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0].map(normalizeHeader_);
+  const columns = {
+    email: findHeaderColumn_(headers, ['email']),
+    episode: findHeaderColumn_(headers, ['episode']),
+    videoId: findHeaderColumn_(headers, ['video id']),
+    title: findHeaderColumn_(headers, ['title']),
+    completedAt: findHeaderColumn_(headers, ['completed at', 'completion date'])
+  };
+  if (columns.email === -1 || columns.videoId === -1 || columns.completedAt === -1) {
+    throw new Error('progress_sheet_invalid');
+  }
+
+  const tutorialsById = {};
+  getTutorials_().forEach(function(tutorial) {
+    tutorialsById[tutorial.id] = tutorial;
+  });
+  const migratedRows = values.slice(1).filter(function(row) {
+    return normalizeEmail_(valueAt_(row, columns.email)) || String(valueAt_(row, columns.videoId) || '').trim();
+  }).map(function(row) {
+    const videoId = String(valueAt_(row, columns.videoId) || '').trim();
+    const tutorial = tutorialsById[videoId];
+    return [
+      normalizeEmail_(valueAt_(row, columns.email)),
+      tutorial ? tutorial.number : String(valueAt_(row, columns.episode) || ''),
+      videoId,
+      tutorial ? tutorial.title : String(valueAt_(row, columns.title) || ''),
+      valueAt_(row, columns.completedAt)
+    ];
+  });
+
+  const normalizedDesiredHeaders = desiredHeaders.map(normalizeHeader_);
+  let needsUpdate = headers.length !== normalizedDesiredHeaders.length ||
+    normalizedDesiredHeaders.some(function(header, index) { return headers[index] !== header; });
+  if (!needsUpdate) {
+    needsUpdate = migratedRows.some(function(row, rowIndex) {
+      const existing = values[rowIndex + 1];
+      return row.slice(0, 4).some(function(value, columnIndex) {
+        return String(existing[columnIndex] || '') !== String(value || '');
+      });
+    });
+  }
+  if (!needsUpdate) return;
+
+  const output = [desiredHeaders].concat(migratedRows);
+  const clearRows = Math.max(sheet.getLastRow(), output.length);
+  const clearColumns = Math.max(sheet.getLastColumn(), desiredHeaders.length);
+  sheet.getRange(1, 1, clearRows, clearColumns).clearContent();
+  sheet.getRange(1, 1, output.length, desiredHeaders.length).setValues(output);
+  sheet.setFrozenRows(1);
+}
+
+function migrateProgressSheet() {
+  const sheet = getProgressSheet_();
+  return Math.max(0, sheet.getLastRow() - 1);
 }
 
 function getStudentSpreadsheet_() {
