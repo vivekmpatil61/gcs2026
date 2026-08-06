@@ -556,8 +556,15 @@
       font-size:0.85rem;
       font-weight:600;
       cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
     }
     .modal-player-control-btn:hover { background:rgba(255,255,255,0.2); }
+    .modal-sound-icon { width:21px; height:21px; display:block; }
+    .modal-sound-icon-off { display:none; }
+    .modal-player-control-btn.is-muted .modal-sound-icon-on { display:none; }
+    .modal-player-control-btn.is-muted .modal-sound-icon-off { display:block; }
     .modal-player-seek { flex:1 1 auto; min-width:80px; accent-color:var(--gold); cursor:pointer; }
     .modal-player-time { flex:0 0 auto; min-width:92px; color:#ffffff; font-size:0.72rem; text-align:center; font-variant-numeric:tabular-nums; }
     .modal-player-speed {
@@ -1033,7 +1040,10 @@
       <button class="modal-player-control-btn" id="modalPlayBtn" type="button" onclick="toggleTutorialPlayback()" aria-label="Pause video">❚❚</button>
       <input class="modal-player-seek" id="modalPlayerSeek" type="range" min="0" max="100" step="0.1" value="0" oninput="seekTutorialVideo(this.value)" aria-label="Video progress"/>
       <span class="modal-player-time" id="modalPlayerTime">0:00 / 0:00</span>
-      <button class="modal-player-control-btn" id="modalMuteBtn" type="button" onclick="toggleTutorialMute()" aria-label="Mute video">Mute</button>
+      <button class="modal-player-control-btn" id="modalMuteBtn" type="button" onclick="toggleTutorialMute()" aria-label="Turn sound off" title="Sound on" aria-pressed="false">
+        <svg class="modal-sound-icon modal-sound-icon-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5c1.3 1.7 1.3 5.3 0 7M18.5 6c2.8 3.1 2.8 8.9 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="modal-sound-icon modal-sound-icon-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M4 4l16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </button>
       <button class="modal-player-control-btn" id="modalCaptionsBtn" type="button" onclick="toggleTutorialCaptions()" aria-label="Turn subtitles on" aria-pressed="false">CC Off</button>
       <select class="modal-player-speed" id="modalPlayerSpeed" onchange="setTutorialPlaybackRate(this.value)" aria-label="Playback speed">
         <option value="1">1×</option>
@@ -2000,9 +2010,17 @@
     playButton.textContent = isPlaying ? '❚❚' : '▶';
     playButton.setAttribute('aria-label', isPlaying ? 'Pause video' : 'Play video');
     const isMuted = youtubePlayer.isMuted();
-    muteButton.textContent = isMuted ? 'Unmute' : 'Mute';
-    muteButton.setAttribute('aria-label', isMuted ? 'Unmute video' : 'Mute video');
+    updateMuteButton(isMuted);
     updatePlayerProgress();
+  }
+
+  function updateMuteButton(isMuted) {
+    const button = document.getElementById('modalMuteBtn');
+    if (!button) return;
+    button.classList.toggle('is-muted', isMuted);
+    button.setAttribute('aria-label', isMuted ? 'Turn sound on' : 'Turn sound off');
+    button.setAttribute('aria-pressed', isMuted ? 'true' : 'false');
+    button.title = isMuted ? 'Sound off' : 'Sound on';
   }
 
   function startPlayerProgressTimer() {
@@ -2042,8 +2060,7 @@
       playButton.setAttribute('aria-label', 'Pause video');
     }
     if (muteButton) {
-      muteButton.textContent = 'Mute';
-      muteButton.setAttribute('aria-label', 'Mute video');
+      updateMuteButton(false);
     }
     captionsEnabled = false;
     updateCaptionsButton();
