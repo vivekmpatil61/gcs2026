@@ -565,6 +565,9 @@
     .modal-sound-icon-off { display:none; }
     .modal-player-control-btn.is-muted .modal-sound-icon-on { display:none; }
     .modal-player-control-btn.is-muted .modal-sound-icon-off { display:block; }
+    .modal-captions-btn { color:#858585; }
+    .modal-captions-btn.is-active { color:#ffffff; background:rgba(255,255,255,0.18); }
+    .modal-captions-btn:disabled { color:#555555; cursor:not-allowed; opacity:0.65; }
     .modal-player-seek { flex:1 1 auto; min-width:80px; accent-color:var(--gold); cursor:pointer; }
     .modal-player-time { flex:0 0 auto; min-width:92px; color:#ffffff; font-size:0.72rem; text-align:center; font-variant-numeric:tabular-nums; }
     .modal-player-speed {
@@ -1044,7 +1047,7 @@
         <svg class="modal-sound-icon modal-sound-icon-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5c1.3 1.7 1.3 5.3 0 7M18.5 6c2.8 3.1 2.8 8.9 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         <svg class="modal-sound-icon modal-sound-icon-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M4 4l16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
       </button>
-      <button class="modal-player-control-btn" id="modalCaptionsBtn" type="button" onclick="toggleTutorialCaptions()" aria-label="Turn subtitles on" aria-pressed="false">CC Off</button>
+      <button class="modal-player-control-btn modal-captions-btn" id="modalCaptionsBtn" type="button" onclick="toggleTutorialCaptions()" aria-label="Turn subtitles on" aria-pressed="false">CC</button>
       <select class="modal-player-speed" id="modalPlayerSpeed" onchange="setTutorialPlaybackRate(this.value)" aria-label="Playback speed">
         <option value="1">1×</option>
       </select>
@@ -1956,7 +1959,10 @@
         captionsEnabled = false;
         const button = document.getElementById('modalCaptionsBtn');
         if (button) {
-          button.textContent = 'No CC';
+          button.textContent = 'CC';
+          button.classList.remove('is-active');
+          button.disabled = true;
+          button.title = 'Subtitles are not available for this video';
           button.setAttribute('aria-label', 'Subtitles are not available for this video');
           button.setAttribute('aria-pressed', 'false');
         }
@@ -1967,7 +1973,10 @@
   function updateCaptionsButton() {
     const button = document.getElementById('modalCaptionsBtn');
     if (!button) return;
-    button.textContent = captionsEnabled ? 'CC On' : 'CC Off';
+    button.textContent = 'CC';
+    button.disabled = false;
+    button.classList.toggle('is-active', captionsEnabled);
+    button.title = captionsEnabled ? 'Subtitles on' : 'Subtitles off';
     button.setAttribute('aria-label', captionsEnabled ? 'Turn subtitles off' : 'Turn subtitles on');
     button.setAttribute('aria-pressed', captionsEnabled ? 'true' : 'false');
   }
