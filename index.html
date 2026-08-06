@@ -531,6 +531,7 @@
       font-size:1.25rem;
       line-height:1;
       cursor:pointer;
+      transition:opacity 0.2s, background 0.2s;
     }
     .modal-fullscreen-btn:hover { background:rgba(0,0,0,0.92); }
     .modal-player-controls {
@@ -542,7 +543,21 @@
       padding:0.7rem 0.85rem;
       background:#101010;
       border-top:1px solid rgba(255,255,255,0.12);
+      max-height:120px;
+      overflow:hidden;
+      transition:opacity 0.2s, transform 0.2s, max-height 0.25s, min-height 0.25s, padding 0.25s, border-color 0.25s;
     }
+    .modal-player.is-controls-hidden .modal-player-controls {
+      min-height:0;
+      max-height:0;
+      padding-top:0;
+      padding-bottom:0;
+      border-top-color:transparent;
+      opacity:0;
+      transform:translateY(8px);
+      pointer-events:none;
+    }
+    .modal-player.is-controls-hidden .modal-fullscreen-btn { opacity:0; pointer-events:none; }
     .modal-player-control-btn {
       flex:0 0 auto;
       min-width:42px;
@@ -1399,8 +1414,10 @@
   let youtubePlayerReady = false;
   let pendingYoutubeVideoId = '';
   let playerProgressTimer;
+  let playerControlsTimer;
   let captionsEnabled = false;
   let lastAudibleVolume = 100;
+  let tutorialMuted = false;
 
   function signInWithGoogle() {
     if (!googleClient) {
@@ -1901,6 +1918,8 @@
       events: {
         onReady: event => {
           youtubePlayerReady = true;
+          tutorialMuted = event.target.isMuted() || event.target.getVolume() === 0;
+          if (event.target.getVolume() > 0) lastAudibleVolume = event.target.getVolume();
           const requestedVideoId = pendingYoutubeVideoId;
           if (requestedVideoId && requestedVideoId !== videoId) {
             event.target.loadVideoById(requestedVideoId);
@@ -1943,13 +1962,11 @@
 
   function toggleTutorialMute() {
     if (!youtubePlayerReady || !youtubePlayer) return;
-    const button = document.getElementById('modalMuteBtn');
-    const shouldMute = button
-      ? !button.classList.contains('is-muted')
-      : !youtubePlayer.isMuted();
+    const shouldMute = !tutorialMuted;
 
-    // Reflect the tap immediately. The YouTube API can report its previous
-    // mute state briefly on mobile while the command is being applied.
+    // Keep the visible state tied to the user's tap. YouTube's mobile API can
+    // briefly return its previous mute state after mute/unmute is requested.
+    tutorialMuted = shouldMute;
     updateMuteButton(shouldMute);
     if (shouldMute) {
       youtubePlayer.mute();
@@ -1960,13 +1977,7 @@
       }
       youtubePlayer.unMute();
     }
-    window.setTimeout(syncMuteButtonWithPlayer, 350);
-  }
-
-  function syncMuteButtonWithPlayer() {
-    if (!youtubePlayerReady || !youtubePlayer) return;
-    updateMuteButton(youtubePlayer.isMuted());
-    updateVolumeSlider(youtubePlayer.getVolume());
+    showPlayerControls();
   }
 
   function setTutorialVolume(value) {
@@ -1975,13 +1986,16 @@
     youtubePlayer.setVolume(volume);
     if (volume > 0) {
       lastAudibleVolume = volume;
+      tutorialMuted = false;
       youtubePlayer.unMute();
       updateMuteButton(false);
     } else {
+      tutorialMuted = true;
       youtubePlayer.mute();
       updateMuteButton(true);
     }
     updateVolumeSlider(volume);
+    showPlayerControls();
   }
 
   function updateVolumeSlider(volume) {
@@ -2067,10 +2081,11 @@
     const isPlaying = youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING;
     playButton.textContent = isPlaying ? '❚❚' : '▶';
     playButton.setAttribute('aria-label', isPlaying ? 'Pause video' : 'Play video');
-    const isMuted = youtubePlayer.isMuted();
-    updateMuteButton(isMuted);
+    updateMuteButton(tutorialMuted);
     updateVolumeSlider(youtubePlayer.getVolume());
     updatePlayerProgress();
+    if (isPlaying) showPlayerControls();
+    else showPlayerControls(false);
   }
 
   function updateMuteButton(isMuted) {
@@ -2120,10 +2135,7 @@
       playButton.setAttribute('aria-label', 'Pause video');
     }
     if (muteButton) {
-      const isMuted = youtubePlayerReady && youtubePlayer
-        ? youtubePlayer.isMuted()
-        : false;
-      updateMuteButton(isMuted);
+      updateMuteButton(tutorialMuted);
     }
     if (volumeSlider) {
       const volume = youtubePlayerReady && youtubePlayer
@@ -2164,17 +2176,49 @@
     button.title = isFullscreen ? 'Exit fullscreen' : 'Fullscreen';
   }
 
+  function showPlayerControls(autoHide = true) {
+    const player = document.querySelector('.modal-player');
+    if (!player) return;
+    player.classList.remove('is-controls-hidden');
+    window.clearTimeout(playerControlsTimer);
+    const isPlaying = youtubePlayerReady && youtubePlayer
+      && youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING;
+    if (autoHide && isPlaying) {
+      playerControlsTimer = window.setTimeout(hidePlayerControls, 3000);
+    }
+  }
+
+  function hidePlayerControls() {
+    const player = document.querySelector('.modal-player');
+    const isPlaying = youtubePlayerReady && youtubePlayer
+      && youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING;
+    if (!player || !isPlaying) return;
+    player.classList.add('is-controls-hidden');
+  }
+
   document.addEventListener('fullscreenchange', updateFullscreenButton);
   document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+
+  const modalPlayerSurface = document.querySelector('.modal-player');
+  const modalVideoStage = document.querySelector('.modal-video-stage');
+  const modalPlayerControls = document.querySelector('.modal-player-controls');
+  if (modalPlayerSurface) modalPlayerSurface.addEventListener('pointermove', () => showPlayerControls());
+  if (modalVideoStage) modalVideoStage.addEventListener('pointerdown', () => showPlayerControls());
+  if (modalPlayerControls) {
+    modalPlayerControls.addEventListener('pointerdown', () => showPlayerControls());
+  }
 
   function closePlayer(e) {
     if (e && e.target !== document.getElementById('modalOverlay')) return;
     pendingYoutubeVideoId = '';
     window.clearInterval(playerProgressTimer);
+    window.clearTimeout(playerControlsTimer);
     if (youtubePlayerReady && youtubePlayer && typeof youtubePlayer.stopVideo === 'function') {
       youtubePlayer.stopVideo();
     }
     document.getElementById('modalOverlay').classList.remove('open');
+    const player = document.querySelector('.modal-player');
+    if (player) player.classList.remove('is-controls-hidden');
     document.body.style.overflow = '';
     currentVideoId = '';
     resetCustomPlayerControls();
