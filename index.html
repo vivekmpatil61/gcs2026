@@ -2046,13 +2046,15 @@
     tutorialMuted = shouldMute;
     updateMuteButton(shouldMute);
     if (shouldMute) {
+      const currentVolume = Number(youtubePlayer.getVolume()) || 0;
+      if (currentVolume > 0) lastAudibleVolume = currentVolume;
       youtubePlayer.mute();
+      updateVolumeSlider(0);
     } else {
-      if (youtubePlayer.getVolume() === 0) {
-        youtubePlayer.setVolume(lastAudibleVolume);
-        updateVolumeSlider(lastAudibleVolume);
-      }
+      const restoredVolume = lastAudibleVolume > 0 ? lastAudibleVolume : 100;
+      youtubePlayer.setVolume(restoredVolume);
       youtubePlayer.unMute();
+      updateVolumeSlider(restoredVolume);
     }
     showPlayerControls();
   }
@@ -2190,7 +2192,7 @@
     updatePlaybackButton(isPlaying);
     syncCenterPlaybackIndicator(isPlaying);
     updateMuteButton(tutorialMuted);
-    updateVolumeSlider(youtubePlayer.getVolume());
+    updateVolumeSlider(tutorialMuted ? 0 : youtubePlayer.getVolume());
     updatePlayerProgress();
     if (isPlaying) showPlayerControls();
     else showPlayerControls(false);
@@ -2248,9 +2250,11 @@
       updateMuteButton(tutorialMuted);
     }
     if (volumeSlider) {
-      const volume = youtubePlayerReady && youtubePlayer
-        ? youtubePlayer.getVolume()
-        : lastAudibleVolume;
+      const volume = tutorialMuted
+        ? 0
+        : youtubePlayerReady && youtubePlayer
+          ? youtubePlayer.getVolume()
+          : lastAudibleVolume;
       updateVolumeSlider(volume);
     }
     captionsEnabled = false;
