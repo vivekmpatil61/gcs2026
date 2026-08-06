@@ -517,6 +517,29 @@
     .modal-video-stage iframe {
       width:100%; height:100%; border:none; display:block; pointer-events:none;
     }
+    .modal-center-play-feedback {
+      position:absolute;
+      left:50%;
+      top:50%;
+      z-index:3;
+      width:68px;
+      height:68px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(0,0,0,0.68);
+      color:#ffffff;
+      font-size:1.7rem;
+      opacity:0;
+      transform:translate(-50%,-50%) scale(0.86);
+      transition:opacity 0.18s, transform 0.18s;
+      pointer-events:none;
+    }
+    .modal-center-play-feedback.is-visible {
+      opacity:1;
+      transform:translate(-50%,-50%) scale(1);
+    }
     .modal-fullscreen-btn {
       position:absolute;
       top:12px;
@@ -1058,6 +1081,7 @@
   <div class="modal-player">
     <div class="modal-video-stage">
       <div id="modalIframe"></div>
+      <div class="modal-center-play-feedback" id="modalCenterPlayFeedback" aria-hidden="true">▶</div>
       <button class="modal-fullscreen-btn" id="modalFullscreenBtn" type="button" onclick="togglePlayerFullscreen()" aria-label="Enter fullscreen" title="Fullscreen">⛶</button>
     </div>
     <div class="modal-player-controls">
@@ -1417,6 +1441,7 @@
   let pendingYoutubeVideoId = '';
   let playerProgressTimer;
   let playerControlsTimer;
+  let centerPlaybackFeedbackTimer;
   let tutorialPlaybackActive = false;
   let captionsEnabled = false;
   let lastAudibleVolume = 100;
@@ -1944,12 +1969,52 @@
 
   function toggleTutorialPlayback() {
     if (!youtubePlayerReady || !youtubePlayer) return;
-    if (youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING) {
-      youtubePlayer.pauseVideo();
-    } else {
+    const isPlaying = tutorialPlaybackActive
+      || youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING;
+    const shouldPlay = !isPlaying;
+    tutorialPlaybackActive = shouldPlay;
+    if (shouldPlay) {
       youtubePlayer.playVideo();
+    } else {
+      youtubePlayer.pauseVideo();
     }
-    updateCustomPlayerState();
+    updatePlaybackButton(shouldPlay);
+    showCenterPlaybackFeedback(shouldPlay);
+    showPlayerControls(shouldPlay);
+  }
+
+  function updatePlaybackButton(isPlaying) {
+    const button = document.getElementById('modalPlayBtn');
+    if (!button) return;
+    button.textContent = isPlaying ? '❚❚' : '▶';
+    button.setAttribute('aria-label', isPlaying ? 'Pause video' : 'Play video');
+  }
+
+  function showCenterPlaybackFeedback(isPlaying) {
+    const feedback = document.getElementById('modalCenterPlayFeedback');
+    if (!feedback) return;
+    window.clearTimeout(centerPlaybackFeedbackTimer);
+    feedback.textContent = isPlaying ? '❚❚' : '▶';
+    feedback.classList.add('is-visible');
+    feedback.classList.toggle('is-feedback', isPlaying);
+    if (isPlaying) {
+      centerPlaybackFeedbackTimer = window.setTimeout(() => {
+        feedback.classList.remove('is-visible', 'is-feedback');
+      }, 650);
+    }
+  }
+
+  function syncCenterPlaybackIndicator(isPlaying) {
+    const feedback = document.getElementById('modalCenterPlayFeedback');
+    if (!feedback) return;
+    if (isPlaying) {
+      if (!feedback.classList.contains('is-feedback')) feedback.classList.remove('is-visible');
+      return;
+    }
+    window.clearTimeout(centerPlaybackFeedbackTimer);
+    feedback.textContent = '▶';
+    feedback.classList.remove('is-feedback');
+    feedback.classList.add('is-visible');
   }
 
   function seekTutorialVideo(percent) {
@@ -2093,8 +2158,8 @@
       tutorialPlaybackActive = false;
     }
     const isPlaying = tutorialPlaybackActive;
-    playButton.textContent = isPlaying ? '❚❚' : '▶';
-    playButton.setAttribute('aria-label', isPlaying ? 'Pause video' : 'Play video');
+    updatePlaybackButton(isPlaying);
+    syncCenterPlaybackIndicator(isPlaying);
     updateMuteButton(tutorialMuted);
     updateVolumeSlider(youtubePlayer.getVolume());
     updatePlayerProgress();
@@ -2145,9 +2210,11 @@
     if (seek) seek.value = '0';
     if (time) time.textContent = '0:00 / 0:00';
     if (playButton) {
-      playButton.textContent = '❚❚';
-      playButton.setAttribute('aria-label', 'Pause video');
+      updatePlaybackButton(true);
     }
+    const centerFeedback = document.getElementById('modalCenterPlayFeedback');
+    window.clearTimeout(centerPlaybackFeedbackTimer);
+    if (centerFeedback) centerFeedback.classList.remove('is-visible', 'is-feedback');
     if (muteButton) {
       updateMuteButton(tutorialMuted);
     }
@@ -2218,7 +2285,10 @@
   if (modalVideoStage) {
     modalVideoStage.addEventListener('pointerdown', () => showPlayerControls());
     modalVideoStage.addEventListener('touchstart', () => showPlayerControls(), { passive:true });
-    modalVideoStage.addEventListener('click', () => showPlayerControls());
+    modalVideoStage.addEventListener('click', event => {
+      if (event.target.closest('button')) return;
+      toggleTutorialPlayback();
+    });
   }
   if (modalPlayerControls) {
     modalPlayerControls.addEventListener('pointerdown', () => showPlayerControls());
@@ -2229,6 +2299,7 @@
     pendingYoutubeVideoId = '';
     window.clearInterval(playerProgressTimer);
     window.clearTimeout(playerControlsTimer);
+    window.clearTimeout(centerPlaybackFeedbackTimer);
     if (youtubePlayerReady && youtubePlayer && typeof youtubePlayer.stopVideo === 'function') {
       youtubePlayer.stopVideo();
     }
