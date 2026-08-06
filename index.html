@@ -719,8 +719,8 @@
       .pw-row{flex-direction:column;}
       .about-img-badge{right:0;bottom:-12px;}
       .modal-player-controls{display:grid;grid-template-columns:auto auto auto 1fr;gap:0.45rem;padding:0.55rem 0.6rem;}
-      .modal-player-seek{grid-column:1/-1;grid-row:1;width:100%;}
-      .modal-player-time{display:none;}
+      .modal-player-seek{grid-column:1/4;grid-row:1;width:100%;}
+      .modal-player-time{display:block;grid-column:4;grid-row:1;min-width:72px;font-size:0.66rem;}
       .modal-player-control-btn{min-width:40px;padding:0 0.5rem;font-size:0.75rem;}
       .modal-player-speed{width:100%;min-width:68px;}
     }
@@ -1900,7 +1900,12 @@
   function seekTutorialVideo(percent) {
     if (!youtubePlayerReady || !youtubePlayer) return;
     const duration = Number(youtubePlayer.getDuration()) || 0;
-    if (duration > 0) youtubePlayer.seekTo(duration * Number(percent) / 100, true);
+    if (duration > 0) {
+      const targetTime = duration * Number(percent) / 100;
+      youtubePlayer.seekTo(targetTime, true);
+      const time = document.getElementById('modalPlayerTime');
+      if (time) time.textContent = `${formatPlayerTime(targetTime)} / ${formatPlayerTime(duration)}`;
+    }
   }
 
   function toggleTutorialMute() {
