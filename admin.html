@@ -159,7 +159,10 @@
     .registration-date { margin:0.2rem 0 0; color:var(--muted); font-size:0.72rem; }
     .registration-actions { display:flex; flex:0 0 auto; align-items:center; gap:0.55rem; }
     .status-select { flex:0 0 140px; padding:0.55rem 0.65rem; font-size:0.75rem; }
-    .approve-registration-btn { border:0; border-radius:10px; padding:0.62rem 0.8rem; background:var(--gold); color:var(--ink); font-size:0.75rem; font-weight:700; white-space:nowrap; }
+    .approve-registration-btn,.resend-welcome-btn { border:0; border-radius:10px; padding:0.62rem 0.8rem; font-size:0.75rem; font-weight:700; white-space:nowrap; }
+    .approve-registration-btn { background:var(--gold); color:var(--ink); }
+    .resend-welcome-btn { border:1px solid var(--border); background:#fff; color:var(--ink); }
+    .resend-welcome-btn:hover { border-color:var(--gold-dark); }
     .access-granted { display:inline-flex; align-items:center; min-height:36px; padding:0.48rem 0.7rem; border:1px solid #a7ceb0; border-radius:999px; background:#eef8f0; color:#246536; font-size:0.72rem; font-weight:700; white-space:nowrap; }
     .registration-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0.65rem 1rem; margin:0; }
     .registration-detail { min-width:0; }
@@ -183,7 +186,7 @@
       .registration-head { flex-direction:column; }
       .registration-actions { width:100%; align-items:stretch; flex-direction:column; }
       .status-select { width:100%; flex-basis:auto; }
-      .approve-registration-btn,.access-granted { width:100%; justify-content:center; }
+      .approve-registration-btn,.resend-welcome-btn,.access-granted { width:100%; justify-content:center; }
       .registration-details { grid-template-columns:1fr; }
       .registration-detail.wide { grid-column:auto; }
       .search-input { width:100%; }
@@ -765,6 +768,14 @@
           badge.className = 'access-granted';
           badge.textContent = 'Access granted';
           actions.append(badge);
+          if (registration.email) {
+            const resend = document.createElement('button');
+            resend.type = 'button';
+            resend.className = 'resend-welcome-btn';
+            resend.textContent = 'Resend welcome email';
+            resend.addEventListener('click', () => resendWelcomeEmail(registration));
+            actions.append(resend);
+          }
         } else if (registration.email) {
           const approve = document.createElement('button');
           approve.type = 'button';
@@ -865,6 +876,28 @@
               : 'The welcome email could not be sent.';
           setStatus(registrationStatus, `Access granted and registration marked Enrolled. ${reason}`, alreadyActive ? 'success' : 'error');
         }
+      } catch (error) {
+        setStatus(registrationStatus, error.message, 'error');
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function resendWelcomeEmail(registration) {
+      const email = String(registration.email || '').trim().toLowerCase();
+      const name = registration.participantName || email;
+      if (!window.confirm(`Send the welcome email to ${name} (${email})?`)) return;
+
+      setBusy(true);
+      setStatus(registrationStatus, `Sending welcome email to ${email}...`);
+      try {
+        const data = await adminRequest('admin_registration_welcome_resend', {
+          rowNumber: String(registration.rowNumber)
+        });
+        updateDashboardData(data);
+        updateRegistrationData(data);
+        renderRegistrations();
+        setStatus(registrationStatus, `Welcome email sent from hello@universeofvivek.in to ${email}.`, 'success');
       } catch (error) {
         setStatus(registrationStatus, error.message, 'error');
       } finally {
@@ -1082,7 +1115,12 @@
         registration_list_busy: 'Another registration update is in progress. Please try again in a moment.',
         registration_update_failed: 'The follow-up status could not be saved. Please try again.',
         registration_email_missing: 'This registration does not contain a valid verified email address.',
-        registration_approval_failed: 'Student access could not be granted from this registration. Please try again.'
+        registration_approval_failed: 'Student access could not be granted from this registration. Please try again.',
+        registration_not_enrolled: 'Grant this registration tutorial access before sending a welcome email.',
+        welcome_gmail_authorization_required: 'Gmail permission is not authorized yet. Run authorizeGmail once in the Apps Script editor, approve the permission, and try again.',
+        welcome_sender_unavailable: 'Configure hello@universeofvivek.in as a verified Gmail Send mail as address for the Apps Script owner.',
+        welcome_email_quota_exceeded: 'Google has temporarily reached the email sending limit. Please try again later.',
+        welcome_email_failed: 'Google could not send the welcome email. Please try again.'
       };
       return messages[code] || 'The update could not be completed. Please try again.';
     }

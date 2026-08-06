@@ -10,7 +10,7 @@ const WELCOME_FROM_EMAIL = 'hello@universeofvivek.in';
 const STUDENT_LOGIN_URL = 'https://universeofvivek.in/#videos';
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 18 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 19 });
 }
 
 function doPost(event) {
@@ -335,6 +335,14 @@ function handleAdminAction_(action, parameters, user) {
     return approveRegistration_(user, rowNumber);
   }
 
+  if (action === 'admin_registration_welcome_resend') {
+    const rowNumber = Number(parameters.rowNumber);
+    if (!Number.isInteger(rowNumber) || rowNumber < 2) {
+      return jsonResponse_({ approved: false, code: 'registration_not_found' });
+    }
+    return resendWelcomeEmail_(user, rowNumber);
+  }
+
   if (action === 'admin_student_add' || action === 'admin_student_remove') {
     const studentEmail = normalizeEmail_(parameters.studentEmail);
     if (!isValidEmail_(studentEmail)) {
@@ -561,7 +569,7 @@ function approveRegistration_(user, rowNumber) {
       welcomeEmailSent = true;
     } catch (error) {
       console.error(error && error.stack ? error.stack : error);
-      welcomeEmailCode = String(error && error.message ? error.message : 'welcome_email_failed');
+      welcomeEmailCode = welcomeEmailErrorCode_(error);
     }
   }
 
@@ -570,6 +578,32 @@ function approveRegistration_(user, rowNumber) {
   payload.welcomeEmailSent = welcomeEmailSent;
   payload.welcomeEmailCode = welcomeEmailCode;
   return jsonResponse_(payload);
+}
+
+function resendWelcomeEmail_(user, rowNumber) {
+  try {
+    const registrationSheet = getRegistrationSheet_();
+    if (rowNumber > registrationSheet.getLastRow()) {
+      return jsonResponse_({ approved: false, code: 'registration_not_found' });
+    }
+
+    const registration = getRegistrationAtRow_(registrationSheet, rowNumber);
+    if (!isValidEmail_(registration.email)) {
+      return jsonResponse_({ approved: false, code: 'registration_email_missing' });
+    }
+    if (getApprovedStudents_().indexOf(registration.email) === -1) {
+      return jsonResponse_({ approved: false, code: 'registration_not_enrolled' });
+    }
+
+    sendWelcomeEmail_(registration);
+    const payload = adminDashboardPayload_(user, getTutorials_());
+    payload.registrations = getRegistrations_();
+    payload.welcomeEmailSent = true;
+    return jsonResponse_(payload);
+  } catch (error) {
+    console.error(error && error.stack ? error.stack : error);
+    return jsonResponse_({ approved: false, code: welcomeEmailErrorCode_(error) });
+  }
 }
 
 function getRegistrationAtRow_(sheet, rowNumber) {
@@ -619,6 +653,34 @@ function sendWelcomeEmail_(registration) {
       STUDENT_LOGIN_URL + '\n\nHappy drawing!\nVivek\nGraphite & Charcoal Studio',
     options
   );
+}
+
+function welcomeEmailErrorCode_(error) {
+  const message = String(error && error.message ? error.message : '').toLowerCase();
+  if (message === 'welcome_sender_unavailable') return 'welcome_sender_unavailable';
+  if (message.indexOf('permission') !== -1 ||
+      message.indexOf('authoriz') !== -1 ||
+      message.indexOf('authentication scope') !== -1 ||
+      message.indexOf('access denied') !== -1) {
+    return 'welcome_gmail_authorization_required';
+  }
+  if (message.indexOf('quota') !== -1 ||
+      message.indexOf('service invoked too many times') !== -1 ||
+      message.indexOf('limit exceeded') !== -1) {
+    return 'welcome_email_quota_exceeded';
+  }
+  return 'welcome_email_failed';
+}
+
+// Run this once from the Apps Script editor after adding or changing Gmail scopes.
+function authorizeGmail() {
+  const effectiveEmail = normalizeEmail_(Session.getEffectiveUser().getEmail());
+  const aliases = GmailApp.getAliases().map(normalizeEmail_);
+  return {
+    authorized: true,
+    senderAvailable: effectiveEmail === WELCOME_FROM_EMAIL || aliases.indexOf(WELCOME_FROM_EMAIL) !== -1,
+    effectiveEmail: effectiveEmail
+  };
 }
 
 function escapeHtml_(value) {

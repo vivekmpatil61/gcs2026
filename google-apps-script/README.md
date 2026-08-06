@@ -54,6 +54,8 @@ The `Registrations` tab securely loads Google Form responses for the owner only.
 
 The `Approve student` action adds the registration's verified email to the active student list, marks the response as `Enrolled`, and sends one welcome email with the Student Login link. Welcome messages are sent strictly from `hello@universeofvivek.in`. The account that owns the Apps Script deployment must either be that Google Workspace account or have that address configured and verified under Gmail `Send mail as`. If the sender is unavailable, student access is still granted and the admin page reports that the welcome email was not sent.
 
+After adding the Gmail scope for the first time, select and run `authorizeGmail` once in the Apps Script editor and approve the requested Gmail permission. Enrolled registrations display a `Resend welcome email` button, so a failed or lost welcome message can be retried without revoking student access.
+
 Public registration also uses verified Google identity. The website makes the verified email read-only, and the Apps Script independently validates the Google access token before writing a response to `Form Responses 1`. An exact repeat for the same participant and verified email is blocked for 24 hours, and each verified account is limited to three registrations per hour. This still allows a parent to register siblings without permitting rapid anonymous spam.
 
 ## Student progress
