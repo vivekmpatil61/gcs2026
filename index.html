@@ -510,6 +510,38 @@
     .modal-player iframe {
       width:100%; height:100%; border:none; display:block;
     }
+    .youtube-link-blocker {
+      position:absolute;
+      right:0;
+      bottom:0;
+      width:72px;
+      height:48px;
+      z-index:2;
+      pointer-events:auto;
+    }
+    .modal-fullscreen-btn {
+      position:absolute;
+      top:12px;
+      right:12px;
+      z-index:3;
+      width:40px;
+      height:40px;
+      border:1px solid rgba(255,255,255,0.35);
+      border-radius:7px;
+      background:rgba(0,0,0,0.72);
+      color:#ffffff;
+      font-size:1.25rem;
+      line-height:1;
+      cursor:pointer;
+    }
+    .modal-fullscreen-btn:hover { background:rgba(0,0,0,0.92); }
+    .modal-player:fullscreen,
+    .modal-player:-webkit-full-screen {
+      width:100%;
+      height:100%;
+      max-width:none;
+      aspect-ratio:auto;
+    }
     .modal-footer {
       width:100%; max-width:900px;
       padding:0.8rem 1.5rem;
@@ -943,7 +975,9 @@
     <button class="modal-close" onclick="closePlayer(null)" aria-label="Close video player">✕</button>
   </div>
   <div class="modal-player">
-    <iframe id="modalIframe" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+    <iframe id="modalIframe" src="" allowfullscreen allow="autoplay; encrypted-media; fullscreen"></iframe>
+    <span class="youtube-link-blocker" aria-hidden="true"></span>
+    <button class="modal-fullscreen-btn" id="modalFullscreenBtn" type="button" onclick="togglePlayerFullscreen()" aria-label="Enter fullscreen" title="Fullscreen">⛶</button>
   </div>
   <div class="modal-footer">
     <p class="modal-studio"><span>Graphite & Charcoal Studio</span> · @universeofvivek</p>
@@ -1740,11 +1774,36 @@
     document.getElementById('modalEp').textContent = tutorial.epNum;
     document.getElementById('modalTitle').textContent = tutorial.title;
     document.getElementById('modalIframe').src =
-      `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
+      `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&fs=0&rel=0`;
     document.getElementById('modalOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
     updateProgressDisplay();
   }
+
+  function togglePlayerFullscreen() {
+    const player = document.querySelector('.modal-player');
+    if (!player) return;
+
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      const exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exitFullscreen) exitFullscreen.call(document);
+      return;
+    }
+
+    const requestFullscreen = player.requestFullscreen || player.webkitRequestFullscreen;
+    if (requestFullscreen) requestFullscreen.call(player);
+  }
+
+  function updateFullscreenButton() {
+    const button = document.getElementById('modalFullscreenBtn');
+    if (!button) return;
+    const isFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+    button.setAttribute('aria-label', isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen');
+    button.title = isFullscreen ? 'Exit fullscreen' : 'Fullscreen';
+  }
+
+  document.addEventListener('fullscreenchange', updateFullscreenButton);
+  document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
 
   function closePlayer(e) {
     if (e && e.target !== document.getElementById('modalOverlay')) return;
