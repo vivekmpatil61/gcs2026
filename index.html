@@ -1935,9 +1935,22 @@
 
   function toggleTutorialMute() {
     if (!youtubePlayerReady || !youtubePlayer) return;
-    if (youtubePlayer.isMuted()) youtubePlayer.unMute();
-    else youtubePlayer.mute();
-    updateCustomPlayerState();
+    const button = document.getElementById('modalMuteBtn');
+    const shouldMute = button
+      ? !button.classList.contains('is-muted')
+      : !youtubePlayer.isMuted();
+
+    // Reflect the tap immediately. The YouTube API can report its previous
+    // mute state briefly on mobile while the command is being applied.
+    updateMuteButton(shouldMute);
+    if (shouldMute) youtubePlayer.mute();
+    else youtubePlayer.unMute();
+    window.setTimeout(syncMuteButtonWithPlayer, 350);
+  }
+
+  function syncMuteButtonWithPlayer() {
+    if (!youtubePlayerReady || !youtubePlayer) return;
+    updateMuteButton(youtubePlayer.isMuted());
   }
 
   function toggleTutorialCaptions() {
@@ -2069,7 +2082,10 @@
       playButton.setAttribute('aria-label', 'Pause video');
     }
     if (muteButton) {
-      updateMuteButton(false);
+      const isMuted = youtubePlayerReady && youtubePlayer
+        ? youtubePlayer.isMuted()
+        : false;
+      updateMuteButton(isMuted);
     }
     captionsEnabled = false;
     updateCaptionsButton();
