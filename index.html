@@ -1924,6 +1924,7 @@
       youtubePlayer.loadVideoById(videoId);
       startPlayerProgressTimer();
       window.setTimeout(populatePlaybackRates, 500);
+      window.setTimeout(syncCaptionsWithPlayer, 800);
       return;
     }
 
@@ -1961,12 +1962,17 @@
           startPlayerProgressTimer();
           updateCustomPlayerState();
           window.setTimeout(populatePlaybackRates, 500);
+          window.setTimeout(syncCaptionsWithPlayer, 800);
         },
         onStateChange: event => {
           updateCustomPlayerState();
-          if (event.data === YT.PlayerState.PLAYING) populatePlaybackRates();
+          if (event.data === YT.PlayerState.PLAYING) {
+            populatePlaybackRates();
+            window.setTimeout(syncCaptionsWithPlayer, 250);
+          }
         },
         onPlaybackRateChange: syncPlaybackRateControl,
+        onApiChange: syncCaptionsWithPlayer,
       }
     });
   }
@@ -2101,8 +2107,28 @@
           button.setAttribute('aria-label', 'Subtitles are not available for this video');
           button.setAttribute('aria-pressed', 'false');
         }
+      } else {
+        syncCaptionsWithPlayer();
       }
     }, 600);
+  }
+
+  function syncCaptionsWithPlayer() {
+    if (!youtubePlayerReady || !youtubePlayer
+        || typeof youtubePlayer.getOptions !== 'function'
+        || typeof youtubePlayer.getOption !== 'function') return;
+    try {
+      const options = youtubePlayer.getOptions();
+      if (!Array.isArray(options) || options.indexOf('captions') === -1) return;
+      const track = youtubePlayer.getOption('captions', 'track');
+      captionsEnabled = Boolean(
+        track && typeof track === 'object'
+        && (track.languageCode || track.name || Object.keys(track).length)
+      );
+      updateCaptionsButton();
+    } catch (error) {
+      // The captions module can be briefly unavailable while a video loads.
+    }
   }
 
   function updateCaptionsButton() {
