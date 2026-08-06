@@ -710,6 +710,7 @@
     .form-option { display:flex; align-items:flex-start; gap:0.55rem; font-size:0.78rem; color:#4d4d48; line-height:1.45; cursor:pointer; }
     .form-option input { width:16px; height:16px; margin-top:2px; accent-color:var(--gold-dim); flex:0 0 auto; }
     .consent-options { display:flex; flex-direction:column; gap:0.65rem; }
+    .content-use-agreement { padding:0.85rem; border:1px solid #d8c878; border-radius:8px; background:#fffbea; }
     .registration-verify { grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem; border:1px solid #d7d7cf; border-radius:10px; background:var(--paper); }
     .registration-verify-copy { min-width:0; }
     .registration-verify-title { margin:0 0 0.2rem; color:var(--ink); font-size:0.8rem; font-weight:700; }
@@ -1312,6 +1313,7 @@
           <div class="consent-options">
             <label class="form-option"><input id="consentFees" type="checkbox" required/> I understand that fees, schedule and format will be discussed personally with Vivek after submitting this form.</label>
             <label class="form-option"><input id="consentAccuracy" type="checkbox" required/> I confirm that the details I have provided are accurate.</label>
+            <label class="form-option content-use-agreement"><input id="consentContentUse" type="checkbox" required/> I agree, for myself and the participant, that course access is personal and non-transferable. I will not screen-record, download, copy, reproduce, share, upload, resell or electronically distribute any tutorial or course material, in whole or in part, without prior written permission from Graphite &amp; Charcoal Studio. I understand that unauthorised use may infringe copyright and may result in access being revoked.</label>
           </div>
         </fieldset>
         <button id="registrationSubmit" class="registration-submit" type="submit" disabled>Verify with Google to submit</button>
@@ -1826,7 +1828,9 @@
       subjects: JSON.stringify(subjects),
       requests: document.getElementById('specialRequests').value.trim(),
       consentFees: String(document.getElementById('consentFees').checked),
-      consentAccuracy: String(document.getElementById('consentAccuracy').checked)
+      consentAccuracy: String(document.getElementById('consentAccuracy').checked),
+      consentContentUse: String(document.getElementById('consentContentUse').checked),
+      contentUseAgreementVersion: 'GCS-CONTENT-USE-2026-08-06-v1'
     };
 
     try {

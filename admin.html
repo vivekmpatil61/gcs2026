@@ -785,6 +785,7 @@
         appendRegistrationDetail(details, 'Experience', registration.experience);
         appendRegistrationDetail(details, 'Enjoys drawing', registration.subjects, '', true);
         appendRegistrationDetail(details, 'Questions or requests', registration.requests, '', true);
+        appendRegistrationDetail(details, 'Recorded consent', registration.consent, '', true);
         card.append(head, details);
         registrationList.append(card);
       });

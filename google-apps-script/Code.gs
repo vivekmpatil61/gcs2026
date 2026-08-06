@@ -5,11 +5,12 @@ const DEFAULT_STUDENTS_SHEET = 'Distribution list';
 const DEFAULT_PROGRESS_SHEET = 'Tutorial progress';
 const DEFAULT_REGISTRATIONS_SHEET = 'Form Responses 1';
 const REGISTRATION_STATUSES = ['New', 'Contacted', 'Enrolled', 'Closed'];
+const CONTENT_USE_AGREEMENT_VERSION = 'GCS-CONTENT-USE-2026-08-06-v1';
 const WELCOME_FROM_EMAIL = 'hello@universeofvivek.in';
 const STUDENT_LOGIN_URL = 'https://universeofvivek.in/#videos';
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 16 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 17 });
 }
 
 function doPost(event) {
@@ -182,6 +183,8 @@ function validateRegistration_(parameters) {
   const requests = cleanRegistrationText_(parameters.requests, 1000);
   const consentFees = String(parameters.consentFees || '').toLowerCase() === 'true';
   const consentAccuracy = String(parameters.consentAccuracy || '').toLowerCase() === 'true';
+  const consentContentUse = String(parameters.consentContentUse || '').toLowerCase() === 'true';
+  const contentUseAgreementVersion = cleanRegistrationText_(parameters.contentUseAgreementVersion, 80);
   let subjects = [];
 
   try {
@@ -211,7 +214,8 @@ function validateRegistration_(parameters) {
       !guardianName || phoneDigits.length < 8 || phoneDigits.length > 15 ||
       allowedProgrammes.indexOf(programme) === -1 ||
       allowedExperience.indexOf(experience) === -1 ||
-      !consentFees || !consentAccuracy) {
+      !consentFees || !consentAccuracy || !consentContentUse ||
+      contentUseAgreementVersion !== CONTENT_USE_AGREEMENT_VERSION) {
     return { ok: false, code: 'registration_invalid_fields' };
   }
 
@@ -226,7 +230,7 @@ function validateRegistration_(parameters) {
     experience: experience,
     subjects: subjects,
     requests: requests,
-    consentText: 'Verified Google email; fees and format consent confirmed; details confirmed accurate'
+    consentText: 'Verified Google email; fees and format consent confirmed; details confirmed accurate; content-use agreement accepted (' + CONTENT_USE_AGREEMENT_VERSION + ')'
   };
 }
 
@@ -472,6 +476,7 @@ function getRegistrations_() {
     experience: findHeaderColumn_(headers, ['prior drawing or art experience', 'does the participant have any prior drawing or art experience', 'drawing experience', 'experience']),
     subjects: findHeaderColumn_(headers, ['what would the participant enjoy drawing', 'what subjects would the participant enjoy drawing most', 'drawing interests', 'subjects']),
     requests: findHeaderColumn_(headers, ['questions or special requests for vivek', 'any questions or special requests for vivek', 'questions or special requests', 'special requests']),
+    consent: findHeaderColumn_(headers, ['consent']),
     status: findHeaderColumn_(headers, ['follow up status', 'followup status', 'status'])
   };
 
@@ -490,6 +495,7 @@ function getRegistrations_() {
       experience: String(valueAt_(row, columns.experience) || ''),
       subjects: String(valueAt_(row, columns.subjects) || ''),
       requests: String(valueAt_(row, columns.requests) || ''),
+      consent: String(valueAt_(row, columns.consent) || ''),
       status: String(valueAt_(row, columns.status) || 'New').trim() || 'New'
     };
   }).filter(function(registration) {

@@ -78,8 +78,9 @@ If email delivery fails, student access remains active and the admin dashboard d
 3. Apps Script verifies the token and verified email.
 4. The participant completes the registration form.
 5. Apps Script validates the submitted information.
-6. The response is added to `Form Responses 1`.
-7. The response becomes available in the Registrations tab of the admin dashboard.
+6. The verified registrant's versioned content-use agreement is recorded with the submission.
+7. The response is added to `Form Responses 1`.
+8. The response becomes available in the Registrations tab of the admin dashboard.
 
 Exact repeated registrations are blocked for 24 hours. A verified account is limited to three registrations per hour so a parent can register siblings without allowing rapid anonymous spam.
 
