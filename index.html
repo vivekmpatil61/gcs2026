@@ -574,6 +574,8 @@
       display:inline-flex;
       align-items:center;
       justify-content:center;
+      touch-action:manipulation;
+      -webkit-tap-highlight-color:transparent;
     }
     .modal-player-control-btn:hover { background:rgba(255,255,255,0.2); }
     .modal-sound-icon { width:21px; height:21px; display:block; }
@@ -755,13 +757,13 @@
       .nav-links{display:none;}
       .pw-row{flex-direction:column;}
       .about-img-badge{right:0;bottom:-12px;}
-      .modal-player-controls{display:grid;grid-template-columns:auto auto auto 1fr;gap:0.45rem;padding:0.55rem 0.6rem;}
+      .modal-player-controls{display:grid;grid-template-columns:40px minmax(106px,1fr) 40px 64px;gap:0.45rem;padding:0.55rem 0.6rem;}
       .modal-player-seek{grid-column:1/4;grid-row:1;width:100%;}
       .modal-player-time{display:block;grid-column:4;grid-row:1;min-width:72px;font-size:0.66rem;}
       .modal-player-control-btn{min-width:40px;padding:0 0.5rem;font-size:0.75rem;}
       .modal-volume-control{gap:0.3rem;}
       .modal-volume-slider{width:62px;}
-      .modal-player-speed{width:100%;min-width:68px;}
+      .modal-player-speed{width:64px;min-width:64px;max-width:64px;justify-self:end;padding:0 0.3rem;}
     }
     @media(prefers-reduced-motion:reduce){
       html { scroll-behavior:auto; }
@@ -1415,6 +1417,7 @@
   let pendingYoutubeVideoId = '';
   let playerProgressTimer;
   let playerControlsTimer;
+  let tutorialPlaybackActive = false;
   let captionsEnabled = false;
   let lastAudibleVolume = 100;
   let tutorialMuted = false;
@@ -2078,7 +2081,18 @@
     const muteButton = document.getElementById('modalMuteBtn');
     if (!playButton || !muteButton || !youtubePlayerReady || !youtubePlayer) return;
 
-    const isPlaying = youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING;
+    const playerState = youtubePlayer.getPlayerState();
+    if (playerState === YT.PlayerState.PLAYING) {
+      tutorialPlaybackActive = true;
+    } else if (
+      playerState === YT.PlayerState.PAUSED
+      || playerState === YT.PlayerState.ENDED
+      || playerState === YT.PlayerState.CUED
+      || playerState === YT.PlayerState.UNSTARTED
+    ) {
+      tutorialPlaybackActive = false;
+    }
+    const isPlaying = tutorialPlaybackActive;
     playButton.textContent = isPlaying ? '❚❚' : '▶';
     playButton.setAttribute('aria-label', isPlaying ? 'Pause video' : 'Play video');
     updateMuteButton(tutorialMuted);
@@ -2181,8 +2195,7 @@
     if (!player) return;
     player.classList.remove('is-controls-hidden');
     window.clearTimeout(playerControlsTimer);
-    const isPlaying = youtubePlayerReady && youtubePlayer
-      && youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING;
+    const isPlaying = youtubePlayerReady && youtubePlayer && tutorialPlaybackActive;
     if (autoHide && isPlaying) {
       playerControlsTimer = window.setTimeout(hidePlayerControls, 3000);
     }
@@ -2190,8 +2203,7 @@
 
   function hidePlayerControls() {
     const player = document.querySelector('.modal-player');
-    const isPlaying = youtubePlayerReady && youtubePlayer
-      && youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING;
+    const isPlaying = youtubePlayerReady && youtubePlayer && tutorialPlaybackActive;
     if (!player || !isPlaying) return;
     player.classList.add('is-controls-hidden');
   }
@@ -2203,7 +2215,11 @@
   const modalVideoStage = document.querySelector('.modal-video-stage');
   const modalPlayerControls = document.querySelector('.modal-player-controls');
   if (modalPlayerSurface) modalPlayerSurface.addEventListener('pointermove', () => showPlayerControls());
-  if (modalVideoStage) modalVideoStage.addEventListener('pointerdown', () => showPlayerControls());
+  if (modalVideoStage) {
+    modalVideoStage.addEventListener('pointerdown', () => showPlayerControls());
+    modalVideoStage.addEventListener('touchstart', () => showPlayerControls(), { passive:true });
+    modalVideoStage.addEventListener('click', () => showPlayerControls());
+  }
   if (modalPlayerControls) {
     modalPlayerControls.addEventListener('pointerdown', () => showPlayerControls());
   }
@@ -2221,6 +2237,7 @@
     if (player) player.classList.remove('is-controls-hidden');
     document.body.style.overflow = '';
     currentVideoId = '';
+    tutorialPlaybackActive = false;
     resetCustomPlayerControls();
     updateProgressDisplay();
   }
