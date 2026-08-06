@@ -5,12 +5,12 @@ const DEFAULT_STUDENTS_SHEET = 'Distribution list';
 const DEFAULT_PROGRESS_SHEET = 'Tutorial progress';
 const DEFAULT_REGISTRATIONS_SHEET = 'Form Responses 1';
 const REGISTRATION_STATUSES = ['New', 'Contacted', 'Enrolled', 'Closed'];
-const CONTENT_USE_AGREEMENT_VERSION = 'GCS-CONTENT-USE-2026-08-06-v1';
+const CONTENT_USE_AGREEMENT_VERSION = 'GCS-CONTENT-USE-2026-08-06-v2';
 const WELCOME_FROM_EMAIL = 'hello@universeofvivek.in';
 const STUDENT_LOGIN_URL = 'https://universeofvivek.in/#videos';
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 17 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 18 });
 }
 
 function doPost(event) {
