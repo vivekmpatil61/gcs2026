@@ -29,6 +29,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://www.youtube.com/iframe_api" async></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -508,16 +509,7 @@
       position:relative;
     }
     .modal-player iframe {
-      width:100%; height:100%; border:none; display:block;
-    }
-    .youtube-link-blocker {
-      position:absolute;
-      right:0;
-      bottom:0;
-      width:clamp(160px, 42%, 280px);
-      height:48px;
-      z-index:2;
-      pointer-events:auto;
+      width:100%; height:100%; border:none; display:block; pointer-events:none;
     }
     .modal-fullscreen-btn {
       position:absolute;
@@ -535,6 +527,36 @@
       cursor:pointer;
     }
     .modal-fullscreen-btn:hover { background:rgba(0,0,0,0.92); }
+    .modal-player-controls {
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      z-index:4;
+      min-height:58px;
+      display:flex;
+      align-items:center;
+      gap:0.7rem;
+      padding:0.7rem 0.85rem;
+      background:linear-gradient(to top, rgba(0,0,0,0.98), rgba(0,0,0,0.82));
+    }
+    .modal-player-control-btn {
+      flex:0 0 auto;
+      min-width:42px;
+      height:38px;
+      padding:0 0.65rem;
+      border:1px solid rgba(255,255,255,0.3);
+      border-radius:6px;
+      background:rgba(255,255,255,0.1);
+      color:#ffffff;
+      font:inherit;
+      font-size:0.85rem;
+      font-weight:600;
+      cursor:pointer;
+    }
+    .modal-player-control-btn:hover { background:rgba(255,255,255,0.2); }
+    .modal-player-seek { flex:1 1 auto; min-width:80px; accent-color:var(--gold); cursor:pointer; }
+    .modal-player-time { flex:0 0 auto; min-width:92px; color:#ffffff; font-size:0.72rem; text-align:center; font-variant-numeric:tabular-nums; }
     .modal-player:fullscreen,
     .modal-player:-webkit-full-screen {
       width:100%;
@@ -683,6 +705,9 @@
       .nav-links{display:none;}
       .pw-row{flex-direction:column;}
       .about-img-badge{right:0;bottom:-12px;}
+      .modal-player-controls{gap:0.45rem;padding:0.55rem 0.6rem;}
+      .modal-player-time{display:none;}
+      .modal-player-control-btn{min-width:40px;padding:0 0.5rem;font-size:0.75rem;}
     }
     @media(prefers-reduced-motion:reduce){
       html { scroll-behavior:auto; }
@@ -975,9 +1000,14 @@
     <button class="modal-close" onclick="closePlayer(null)" aria-label="Close video player">✕</button>
   </div>
   <div class="modal-player">
-    <iframe id="modalIframe" src="" allowfullscreen allow="autoplay; encrypted-media; fullscreen"></iframe>
-    <span class="youtube-link-blocker" aria-hidden="true"></span>
+    <div id="modalIframe"></div>
     <button class="modal-fullscreen-btn" id="modalFullscreenBtn" type="button" onclick="togglePlayerFullscreen()" aria-label="Enter fullscreen" title="Fullscreen">⛶</button>
+    <div class="modal-player-controls">
+      <button class="modal-player-control-btn" id="modalPlayBtn" type="button" onclick="toggleTutorialPlayback()" aria-label="Pause video">❚❚</button>
+      <input class="modal-player-seek" id="modalPlayerSeek" type="range" min="0" max="100" step="0.1" value="0" oninput="seekTutorialVideo(this.value)" aria-label="Video progress"/>
+      <span class="modal-player-time" id="modalPlayerTime">0:00 / 0:00</span>
+      <button class="modal-player-control-btn" id="modalMuteBtn" type="button" onclick="toggleTutorialMute()" aria-label="Mute video">Sound</button>
+    </div>
   </div>
   <div class="modal-footer">
     <p class="modal-studio"><span>Graphite & Charcoal Studio</span> · @universeofvivek</p>
@@ -1314,6 +1344,10 @@
   let authorizedTutorials = new Map();
   let completedTutorials = new Set();
   let currentVideoId = '';
+  let youtubePlayer = null;
+  let youtubePlayerReady = false;
+  let pendingYoutubeVideoId = '';
+  let playerProgressTimer;
 
   function signInWithGoogle() {
     if (!googleClient) {
@@ -1771,13 +1805,131 @@
       return;
     }
     currentVideoId = videoId;
+    pendingYoutubeVideoId = videoId;
     document.getElementById('modalEp').textContent = tutorial.epNum;
     document.getElementById('modalTitle').textContent = tutorial.title;
-    document.getElementById('modalIframe').src =
-      `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&fs=0&rel=0`;
     document.getElementById('modalOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
+    resetCustomPlayerControls();
+    loadTutorialVideo(videoId);
     updateProgressDisplay();
+  }
+
+  function loadTutorialVideo(videoId) {
+    if (youtubePlayerReady && youtubePlayer && typeof youtubePlayer.loadVideoById === 'function') {
+      youtubePlayer.loadVideoById(videoId);
+      startPlayerProgressTimer();
+      return;
+    }
+
+    if (!(window.YT && typeof window.YT.Player === 'function')) {
+      window.setTimeout(() => {
+        if (currentVideoId === videoId) loadTutorialVideo(videoId);
+      }, 100);
+      return;
+    }
+
+    if (youtubePlayer) return;
+
+    youtubePlayer = new YT.Player('modalIframe', {
+      host: 'https://www.youtube-nocookie.com',
+      videoId,
+      playerVars: {
+        autoplay: 1,
+        controls: 0,
+        disablekb: 1,
+        fs: 0,
+        playsinline: 1,
+        rel: 0,
+      },
+      events: {
+        onReady: event => {
+          youtubePlayerReady = true;
+          const requestedVideoId = pendingYoutubeVideoId;
+          if (requestedVideoId && requestedVideoId !== videoId) {
+            event.target.loadVideoById(requestedVideoId);
+          } else {
+            event.target.playVideo();
+          }
+          startPlayerProgressTimer();
+          updateCustomPlayerState();
+        },
+        onStateChange: updateCustomPlayerState,
+      }
+    });
+  }
+
+  function toggleTutorialPlayback() {
+    if (!youtubePlayerReady || !youtubePlayer) return;
+    if (youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+      youtubePlayer.pauseVideo();
+    } else {
+      youtubePlayer.playVideo();
+    }
+    updateCustomPlayerState();
+  }
+
+  function seekTutorialVideo(percent) {
+    if (!youtubePlayerReady || !youtubePlayer) return;
+    const duration = Number(youtubePlayer.getDuration()) || 0;
+    if (duration > 0) youtubePlayer.seekTo(duration * Number(percent) / 100, true);
+  }
+
+  function toggleTutorialMute() {
+    if (!youtubePlayerReady || !youtubePlayer) return;
+    if (youtubePlayer.isMuted()) youtubePlayer.unMute();
+    else youtubePlayer.mute();
+    updateCustomPlayerState();
+  }
+
+  function updateCustomPlayerState() {
+    const playButton = document.getElementById('modalPlayBtn');
+    const muteButton = document.getElementById('modalMuteBtn');
+    if (!playButton || !muteButton || !youtubePlayerReady || !youtubePlayer) return;
+
+    const isPlaying = youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING;
+    playButton.textContent = isPlaying ? '❚❚' : '▶';
+    playButton.setAttribute('aria-label', isPlaying ? 'Pause video' : 'Play video');
+    const isMuted = youtubePlayer.isMuted();
+    muteButton.textContent = isMuted ? 'Muted' : 'Sound';
+    muteButton.setAttribute('aria-label', isMuted ? 'Unmute video' : 'Mute video');
+    updatePlayerProgress();
+  }
+
+  function startPlayerProgressTimer() {
+    window.clearInterval(playerProgressTimer);
+    playerProgressTimer = window.setInterval(updatePlayerProgress, 500);
+  }
+
+  function updatePlayerProgress() {
+    if (!youtubePlayerReady || !youtubePlayer) return;
+    const current = Number(youtubePlayer.getCurrentTime()) || 0;
+    const duration = Number(youtubePlayer.getDuration()) || 0;
+    const seek = document.getElementById('modalPlayerSeek');
+    const time = document.getElementById('modalPlayerTime');
+    if (seek && duration > 0 && document.activeElement !== seek) {
+      seek.value = String(current / duration * 100);
+    }
+    if (time) time.textContent = `${formatPlayerTime(current)} / ${formatPlayerTime(duration)}`;
+  }
+
+  function formatPlayerTime(seconds) {
+    const total = Math.max(0, Math.floor(Number(seconds) || 0));
+    const minutes = Math.floor(total / 60);
+    const remainder = String(total % 60).padStart(2, '0');
+    return `${minutes}:${remainder}`;
+  }
+
+  function resetCustomPlayerControls() {
+    const seek = document.getElementById('modalPlayerSeek');
+    const time = document.getElementById('modalPlayerTime');
+    const playButton = document.getElementById('modalPlayBtn');
+    if (seek) seek.value = '0';
+    if (time) time.textContent = '0:00 / 0:00';
+    if (playButton) {
+      playButton.textContent = '❚❚';
+      playButton.setAttribute('aria-label', 'Pause video');
+    }
   }
 
   function togglePlayerFullscreen() {
@@ -1807,10 +1959,15 @@
 
   function closePlayer(e) {
     if (e && e.target !== document.getElementById('modalOverlay')) return;
-    document.getElementById('modalIframe').src = '';
+    pendingYoutubeVideoId = '';
+    window.clearInterval(playerProgressTimer);
+    if (youtubePlayerReady && youtubePlayer && typeof youtubePlayer.stopVideo === 'function') {
+      youtubePlayer.stopVideo();
+    }
     document.getElementById('modalOverlay').classList.remove('open');
     document.body.style.overflow = '';
     currentVideoId = '';
+    resetCustomPlayerControls();
     updateProgressDisplay();
   }
 
