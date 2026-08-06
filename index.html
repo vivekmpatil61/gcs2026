@@ -557,6 +557,19 @@
     .modal-player-control-btn:hover { background:rgba(255,255,255,0.2); }
     .modal-player-seek { flex:1 1 auto; min-width:80px; accent-color:var(--gold); cursor:pointer; }
     .modal-player-time { flex:0 0 auto; min-width:92px; color:#ffffff; font-size:0.72rem; text-align:center; font-variant-numeric:tabular-nums; }
+    .modal-player-speed {
+      flex:0 0 auto;
+      height:38px;
+      padding:0 0.45rem;
+      border:1px solid rgba(255,255,255,0.3);
+      border-radius:6px;
+      background:#202020;
+      color:#ffffff;
+      font:inherit;
+      font-size:0.78rem;
+      font-weight:600;
+      cursor:pointer;
+    }
     .modal-player:fullscreen,
     .modal-player:-webkit-full-screen {
       width:100%;
@@ -705,9 +718,11 @@
       .nav-links{display:none;}
       .pw-row{flex-direction:column;}
       .about-img-badge{right:0;bottom:-12px;}
-      .modal-player-controls{gap:0.45rem;padding:0.55rem 0.6rem;}
+      .modal-player-controls{display:grid;grid-template-columns:auto auto auto 1fr;gap:0.45rem;padding:0.55rem 0.6rem;}
+      .modal-player-seek{grid-column:1/-1;grid-row:1;width:100%;}
       .modal-player-time{display:none;}
       .modal-player-control-btn{min-width:40px;padding:0 0.5rem;font-size:0.75rem;}
+      .modal-player-speed{width:100%;min-width:68px;}
     }
     @media(prefers-reduced-motion:reduce){
       html { scroll-behavior:auto; }
@@ -1006,7 +1021,11 @@
       <button class="modal-player-control-btn" id="modalPlayBtn" type="button" onclick="toggleTutorialPlayback()" aria-label="Pause video">❚❚</button>
       <input class="modal-player-seek" id="modalPlayerSeek" type="range" min="0" max="100" step="0.1" value="0" oninput="seekTutorialVideo(this.value)" aria-label="Video progress"/>
       <span class="modal-player-time" id="modalPlayerTime">0:00 / 0:00</span>
-      <button class="modal-player-control-btn" id="modalMuteBtn" type="button" onclick="toggleTutorialMute()" aria-label="Mute video">Sound</button>
+      <button class="modal-player-control-btn" id="modalMuteBtn" type="button" onclick="toggleTutorialMute()" aria-label="Mute video">Mute</button>
+      <button class="modal-player-control-btn" id="modalCaptionsBtn" type="button" onclick="toggleTutorialCaptions()" aria-label="Turn subtitles on" aria-pressed="false">CC Off</button>
+      <select class="modal-player-speed" id="modalPlayerSpeed" onchange="setTutorialPlaybackRate(this.value)" aria-label="Playback speed">
+        <option value="1">1×</option>
+      </select>
     </div>
   </div>
   <div class="modal-footer">
@@ -1348,6 +1367,7 @@
   let youtubePlayerReady = false;
   let pendingYoutubeVideoId = '';
   let playerProgressTimer;
+  let captionsEnabled = false;
 
   function signInWithGoogle() {
     if (!googleClient) {
@@ -1817,8 +1837,11 @@
 
   function loadTutorialVideo(videoId) {
     if (youtubePlayerReady && youtubePlayer && typeof youtubePlayer.loadVideoById === 'function') {
+      captionsEnabled = false;
+      if (typeof youtubePlayer.unloadModule === 'function') youtubePlayer.unloadModule('captions');
       youtubePlayer.loadVideoById(videoId);
       startPlayerProgressTimer();
+      window.setTimeout(populatePlaybackRates, 500);
       return;
     }
 
@@ -1853,8 +1876,13 @@
           }
           startPlayerProgressTimer();
           updateCustomPlayerState();
+          window.setTimeout(populatePlaybackRates, 500);
         },
-        onStateChange: updateCustomPlayerState,
+        onStateChange: event => {
+          updateCustomPlayerState();
+          if (event.data === YT.PlayerState.PLAYING) populatePlaybackRates();
+        },
+        onPlaybackRateChange: syncPlaybackRateControl,
       }
     });
   }
@@ -1882,6 +1910,70 @@
     updateCustomPlayerState();
   }
 
+  function toggleTutorialCaptions() {
+    if (!youtubePlayerReady || !youtubePlayer) return;
+    if (captionsEnabled) {
+      if (typeof youtubePlayer.unloadModule === 'function') youtubePlayer.unloadModule('captions');
+      captionsEnabled = false;
+      updateCaptionsButton();
+      return;
+    }
+
+    if (typeof youtubePlayer.loadModule !== 'function') return;
+    youtubePlayer.loadModule('captions');
+    captionsEnabled = true;
+    updateCaptionsButton();
+    window.setTimeout(() => {
+      const options = typeof youtubePlayer.getOptions === 'function' ? youtubePlayer.getOptions() : [];
+      if (!Array.isArray(options) || options.indexOf('captions') === -1) {
+        captionsEnabled = false;
+        const button = document.getElementById('modalCaptionsBtn');
+        if (button) {
+          button.textContent = 'No CC';
+          button.setAttribute('aria-label', 'Subtitles are not available for this video');
+          button.setAttribute('aria-pressed', 'false');
+        }
+      }
+    }, 600);
+  }
+
+  function updateCaptionsButton() {
+    const button = document.getElementById('modalCaptionsBtn');
+    if (!button) return;
+    button.textContent = captionsEnabled ? 'CC On' : 'CC Off';
+    button.setAttribute('aria-label', captionsEnabled ? 'Turn subtitles off' : 'Turn subtitles on');
+    button.setAttribute('aria-pressed', captionsEnabled ? 'true' : 'false');
+  }
+
+  function populatePlaybackRates() {
+    if (!youtubePlayerReady || !youtubePlayer) return;
+    const select = document.getElementById('modalPlayerSpeed');
+    if (!select || typeof youtubePlayer.getAvailablePlaybackRates !== 'function') return;
+    const rates = youtubePlayer.getAvailablePlaybackRates();
+    if (!Array.isArray(rates) || !rates.length) return;
+
+    const currentRate = Number(youtubePlayer.getPlaybackRate()) || 1;
+    select.replaceChildren();
+    rates.forEach(rate => {
+      const option = document.createElement('option');
+      option.value = String(rate);
+      option.textContent = `${rate}×`;
+      select.appendChild(option);
+    });
+    select.value = String(currentRate);
+  }
+
+  function setTutorialPlaybackRate(rate) {
+    if (!youtubePlayerReady || !youtubePlayer || typeof youtubePlayer.setPlaybackRate !== 'function') return;
+    youtubePlayer.setPlaybackRate(Number(rate));
+  }
+
+  function syncPlaybackRateControl() {
+    if (!youtubePlayerReady || !youtubePlayer) return;
+    const select = document.getElementById('modalPlayerSpeed');
+    if (select) select.value = String(youtubePlayer.getPlaybackRate() || 1);
+  }
+
   function updateCustomPlayerState() {
     const playButton = document.getElementById('modalPlayBtn');
     const muteButton = document.getElementById('modalMuteBtn');
@@ -1891,7 +1983,7 @@
     playButton.textContent = isPlaying ? '❚❚' : '▶';
     playButton.setAttribute('aria-label', isPlaying ? 'Pause video' : 'Play video');
     const isMuted = youtubePlayer.isMuted();
-    muteButton.textContent = isMuted ? 'Muted' : 'Sound';
+    muteButton.textContent = isMuted ? 'Unmute' : 'Mute';
     muteButton.setAttribute('aria-label', isMuted ? 'Unmute video' : 'Mute video');
     updatePlayerProgress();
   }
@@ -1907,7 +1999,7 @@
     const duration = Number(youtubePlayer.getDuration()) || 0;
     const seek = document.getElementById('modalPlayerSeek');
     const time = document.getElementById('modalPlayerTime');
-    if (seek && duration > 0 && document.activeElement !== seek) {
+    if (seek && duration > 0) {
       seek.value = String(current / duration * 100);
     }
     if (time) time.textContent = `${formatPlayerTime(current)} / ${formatPlayerTime(duration)}`;
@@ -1924,11 +2016,26 @@
     const seek = document.getElementById('modalPlayerSeek');
     const time = document.getElementById('modalPlayerTime');
     const playButton = document.getElementById('modalPlayBtn');
+    const muteButton = document.getElementById('modalMuteBtn');
+    const speed = document.getElementById('modalPlayerSpeed');
     if (seek) seek.value = '0';
     if (time) time.textContent = '0:00 / 0:00';
     if (playButton) {
       playButton.textContent = '❚❚';
       playButton.setAttribute('aria-label', 'Pause video');
+    }
+    if (muteButton) {
+      muteButton.textContent = 'Mute';
+      muteButton.setAttribute('aria-label', 'Mute video');
+    }
+    captionsEnabled = false;
+    updateCaptionsButton();
+    if (speed) {
+      speed.replaceChildren();
+      const normal = document.createElement('option');
+      normal.value = '1';
+      normal.textContent = '1×';
+      speed.appendChild(normal);
     }
   }
 
