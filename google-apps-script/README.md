@@ -48,6 +48,8 @@ The website includes an unlinked `admin.html` page. The owner signs in with Goog
 
 The admin can also move tutorials up or down, refresh a YouTube title, and delete a tutorial. Episode numbers are recalculated after every change.
 
+Each tutorial belongs to `Core Studio Library`, `Young Artists Foundations`, or both. The tools introduction, grid method and Pikachu grid tutorial are shared between both libraries. Shared tutorials keep one video ID and one progress record, while their displayed episode number follows their position inside the selected library.
+
 The same admin page lists approved student emails. Adding or revoking an email updates the existing `Distribution list` Sheet immediately, so the owner no longer needs to edit the Sheet manually.
 
 The `Registrations` tab securely loads Google Form responses for the owner only. It supports search, status filtering, pagination and the follow-up states `New`, `Contacted`, `Enrolled` and `Closed`.

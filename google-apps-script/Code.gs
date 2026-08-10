@@ -8,9 +8,12 @@ const REGISTRATION_STATUSES = ['New', 'Contacted', 'Enrolled', 'Closed'];
 const CONTENT_USE_AGREEMENT_VERSION = 'GCS-CONTENT-USE-2026-08-06-v2';
 const WELCOME_FROM_EMAIL = 'hello@universeofvivek.in';
 const STUDENT_LOGIN_URL = 'https://universeofvivek.in/#videos';
+const TUTORIAL_LIBRARY_CORE = 'core-studio';
+const TUTORIAL_LIBRARY_YOUNG = 'young-artists';
+const SHARED_FOUNDATION_VIDEO_IDS = ['naUyVYZzo2Y', 'snltJhqqrb0', 'oxrkTgeYBkU'];
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 19 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 20 });
 }
 
 function doPost(event) {
@@ -354,12 +357,27 @@ function handleAdminAction_(action, parameters, user) {
   if (action === 'admin_add') {
     const videoId = normalizeYouTubeId_(parameters.videoId);
     if (!videoId) return jsonResponse_({ approved: false, code: 'invalid_video_id' });
+    const libraries = tutorialLibrariesFromAdminValue_(parameters.library);
+    if (!libraries) return jsonResponse_({ approved: false, code: 'invalid_tutorial_library' });
 
     return mutateTutorials_(user, function(tutorials) {
       if (tutorials.some(function(tutorial) { return tutorial.id === videoId; })) {
         throw new Error('duplicate_video');
       }
-      tutorials.push({ id: videoId, title: fetchYouTubeTitle_(videoId) });
+      tutorials.push({ id: videoId, title: fetchYouTubeTitle_(videoId), libraries: libraries });
+      return tutorials;
+    });
+  }
+
+  if (action === 'admin_library') {
+    const videoId = normalizeYouTubeId_(parameters.videoId);
+    const libraries = tutorialLibrariesFromAdminValue_(parameters.library);
+    if (!videoId) return jsonResponse_({ approved: false, code: 'invalid_video_id' });
+    if (!libraries) return jsonResponse_({ approved: false, code: 'invalid_tutorial_library' });
+    return mutateTutorials_(user, function(tutorials) {
+      const tutorial = tutorials.find(function(item) { return item.id === videoId; });
+      if (!tutorial) throw new Error('video_not_found');
+      tutorial.libraries = libraries;
       return tutorials;
     });
   }
@@ -898,9 +916,34 @@ function renumberTutorials_(tutorials) {
     return {
       id: String(tutorial.id || ''),
       number: 'Episode ' + String(index + 1).padStart(2, '0'),
-      title: String(tutorial.title || '')
+      title: String(tutorial.title || ''),
+      libraries: normalizeTutorialLibraries_(tutorial)
     };
   });
+}
+
+function tutorialLibrariesFromAdminValue_(value) {
+  const selected = String(value || '').trim();
+  if (selected === TUTORIAL_LIBRARY_CORE) return [TUTORIAL_LIBRARY_CORE];
+  if (selected === TUTORIAL_LIBRARY_YOUNG) return [TUTORIAL_LIBRARY_YOUNG];
+  if (selected === 'both') return [TUTORIAL_LIBRARY_YOUNG, TUTORIAL_LIBRARY_CORE];
+  return null;
+}
+
+function normalizeTutorialLibraries_(tutorial) {
+  const rawLibraries = Array.isArray(tutorial.libraries)
+    ? tutorial.libraries
+    : tutorial.library ? [tutorial.library] : [];
+  const libraries = rawLibraries.map(function(value) {
+    return String(value || '').trim();
+  }).filter(function(value, index, list) {
+    return (value === TUTORIAL_LIBRARY_CORE || value === TUTORIAL_LIBRARY_YOUNG) &&
+      list.indexOf(value) === index;
+  });
+  if (libraries.length) return libraries;
+  return SHARED_FOUNDATION_VIDEO_IDS.indexOf(String(tutorial.id || '')) !== -1
+    ? [TUTORIAL_LIBRARY_YOUNG, TUTORIAL_LIBRARY_CORE]
+    : [TUTORIAL_LIBRARY_CORE];
 }
 
 function getTutorials_() {
@@ -918,7 +961,8 @@ function getTutorials_() {
     return {
       id: String(tutorial.id || ''),
       number: String(tutorial.number || ''),
-      title: String(tutorial.title || '')
+      title: String(tutorial.title || ''),
+      libraries: normalizeTutorialLibraries_(tutorial)
     };
   }).filter(function(tutorial) {
     return tutorial.id && tutorial.number && tutorial.title;

@@ -431,6 +431,11 @@
     .vid-user-chip img { width:24px; height:24px; border-radius:50%; }
     .vid-user-chip span { font-size:0.78rem; color:var(--muted); }
     .vid-signout-btn { font-size:0.75rem; color:var(--muted); background:none; border:none; cursor:pointer; text-decoration:underline; }
+    .library-chooser { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; max-width:1100px; margin:1.5rem 0; }
+    .library-choice { min-height:112px; padding:1.25rem; border:1px solid var(--border); border-radius:var(--r); background:#ffffff; color:var(--ink); font-family:'Playfair Display',serif; font-size:clamp(1.2rem,2.5vw,1.7rem); cursor:pointer; transition:border-color 0.2s,box-shadow 0.2s,transform 0.2s; }
+    .library-choice:hover { border-color:var(--gold-dim); box-shadow:0 8px 24px rgba(0,0,0,0.08); transform:translateY(-2px); }
+    .library-choice.active { border-color:var(--gold-dim); background:rgba(244,201,72,0.12); box-shadow:inset 0 0 0 1px var(--gold-dim); }
+    .library-content[hidden] { display:none; }
     .course-progress { max-width:1100px; margin:1.4rem 0 0.5rem; padding:1rem 1.2rem; background:#ffffff; border:1px solid var(--border); border-radius:var(--r); }
     .course-progress-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:0.65rem; }
     .course-progress-title { color:var(--ink); font-size:0.82rem; font-weight:700; }
@@ -478,6 +483,10 @@
     .ep-complete-btn { margin-top:0.65rem; padding:0.4rem 0.7rem; border:1px solid #d7d7cf; border-radius:6px; background:var(--paper); color:var(--muted); font:inherit; font-size:0.72rem; font-weight:600; cursor:pointer; }
     .ep-complete-btn:hover { border-color:var(--gold-dim); color:var(--ink); }
     .ep-complete-btn.completed { background:rgba(244,201,72,0.2); border-color:var(--gold-dim); color:#5f4d0a; }
+    @media (max-width:650px) {
+      .library-chooser { grid-template-columns:1fr; }
+      .library-choice { min-height:84px; }
+    }
 
     /* ── MODAL PLAYER ──────────────────────────────────── */
     .modal-overlay {
@@ -1055,17 +1064,23 @@
       </div>
       <button class="vid-signout-btn" onclick="signOut()">Sign out</button>
     </div>
-    <div class="course-progress" aria-live="polite">
-      <div class="course-progress-head">
-        <p class="course-progress-title">Your course progress</p>
-        <p class="course-progress-count" id="courseProgressCount">0 of 0 complete</p>
-      </div>
-      <div class="course-progress-track" role="progressbar" id="courseProgressTrack" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-        <div class="course-progress-fill" id="courseProgressFill"></div>
-      </div>
-      <p class="course-progress-status" id="courseProgressStatus"></p>
+    <div class="library-chooser" id="libraryChooser" role="group" aria-label="Tutorial libraries">
+      <button class="library-choice" type="button" data-library="young-artists" onclick="selectTutorialLibrary('young-artists')">Young Artists Foundations</button>
+      <button class="library-choice" type="button" data-library="core-studio" onclick="selectTutorialLibrary('core-studio')">Core Studio Library</button>
     </div>
-    <div class="ep-grid" id="episodeGrid"></div>
+    <div class="library-content" id="libraryContent" hidden>
+      <div class="course-progress" aria-live="polite">
+        <div class="course-progress-head">
+          <p class="course-progress-title">Your course progress</p>
+          <p class="course-progress-count" id="courseProgressCount">0 of 0 complete</p>
+        </div>
+        <div class="course-progress-track" role="progressbar" id="courseProgressTrack" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="course-progress-fill" id="courseProgressFill"></div>
+        </div>
+        <p class="course-progress-status" id="courseProgressStatus"></p>
+      </div>
+      <div class="ep-grid" id="episodeGrid"></div>
+    </div>
   </div>
 </section>
 
@@ -1435,6 +1450,9 @@
   let activeAccessToken = '';
   let accessExpiryTimer;
   let authorizedTutorials = new Map();
+  let allTutorials = [];
+  let activeLibrary = '';
+  let activeLibraryVideoIds = new Set();
   let completedTutorials = new Set();
   let currentVideoId = '';
   let youtubePlayer = null;
@@ -1525,9 +1543,14 @@
     window.clearTimeout(accessExpiryTimer);
     activeAccessToken = '';
     authorizedTutorials.clear();
+    allTutorials = [];
+    activeLibrary = '';
+    activeLibraryVideoIds.clear();
     completedTutorials.clear();
     currentVideoId = '';
     document.getElementById('episodeGrid').replaceChildren();
+    document.getElementById('libraryContent').hidden = true;
+    document.querySelectorAll('.library-choice').forEach(button => button.classList.remove('active'));
     updateProgressDisplay();
     setProgressStatus('');
     closePlayer(null);
@@ -1543,12 +1566,48 @@
     const grid = document.getElementById('episodeGrid');
     grid.replaceChildren();
     authorizedTutorials = new Map();
+    allTutorials = [];
+    activeLibrary = '';
+    activeLibraryVideoIds = new Set();
+    document.getElementById('libraryContent').hidden = true;
+    document.querySelectorAll('.library-choice').forEach(button => button.classList.remove('active'));
 
     tutorials.forEach(tutorial => {
       const videoId = String(tutorial.id || '');
-      const epNum = String(tutorial.number || '');
       const title = String(tutorial.title || '');
-      if (!/^[A-Za-z0-9_-]{11}$/.test(videoId) || !epNum || !title) return;
+      const libraries = Array.isArray(tutorial.libraries)
+        ? tutorial.libraries.filter(value => value === 'young-artists' || value === 'core-studio')
+        : ['core-studio'];
+      if (!/^[A-Za-z0-9_-]{11}$/.test(videoId) || !title || !libraries.length) return;
+
+      const normalized = { id: videoId, title, libraries };
+      allTutorials.push(normalized);
+      authorizedTutorials.set(videoId, { epNum: String(tutorial.number || ''), title });
+    });
+    updateProgressDisplay();
+  }
+
+  function selectTutorialLibrary(library) {
+    if (library !== 'young-artists' && library !== 'core-studio') return;
+    activeLibrary = library;
+    document.querySelectorAll('.library-choice').forEach(button => {
+      const active = button.dataset.library === library;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+    document.getElementById('libraryContent').hidden = false;
+    renderTutorialLibrary(allTutorials.filter(tutorial => tutorial.libraries.includes(library)));
+  }
+
+  function renderTutorialLibrary(tutorials) {
+    const grid = document.getElementById('episodeGrid');
+    grid.replaceChildren();
+    activeLibraryVideoIds = new Set(tutorials.map(tutorial => tutorial.id));
+
+    tutorials.forEach((tutorial, index) => {
+      const videoId = tutorial.id;
+      const epNum = `Episode ${String(index + 1).padStart(2, '0')}`;
+      const title = tutorial.title;
 
       authorizedTutorials.set(videoId, { epNum, title });
 
@@ -1650,8 +1709,8 @@
   }
 
   function updateProgressDisplay() {
-    const total = authorizedTutorials.size;
-    const completed = Array.from(completedTutorials).filter(videoId => authorizedTutorials.has(videoId)).length;
+    const total = activeLibraryVideoIds.size;
+    const completed = Array.from(completedTutorials).filter(videoId => activeLibraryVideoIds.has(videoId)).length;
     const percent = total ? Math.round((completed / total) * 100) : 0;
     document.getElementById('courseProgressCount').textContent = `${completed} of ${total} complete`;
     document.getElementById('courseProgressFill').style.width = `${percent}%`;
