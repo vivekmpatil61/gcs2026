@@ -91,10 +91,12 @@
     .tab-count { display:inline-block; min-width:1.5rem; margin-left:0.35rem; padding:0.08rem 0.35rem; border-radius:999px; background:rgba(244,201,72,0.22); color:inherit; font-size:0.68rem; }
     .tab-panel { display:none; margin-top:1rem; }
     .tab-panel.active { display:block; }
-    .add-form { display:flex; gap:0.7rem; margin:1.5rem 0 0.6rem; }
+    .add-form { display:grid; grid-template-columns:minmax(0,1fr) 220px auto; align-items:end; gap:0.7rem; margin:1.5rem 0 0.6rem; }
+    .add-field { min-width:0; display:flex; flex-direction:column; gap:0.4rem; }
+    .add-field-label { color:var(--muted); font-size:0.66rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; }
     .add-form input { width:100%; min-width:0; }
     .add-form input,.tutorial-library-select { border:1px solid var(--border); border-radius:10px; padding:0.85rem 1rem; background:#fff; color:var(--ink); }
-    .add-form .tutorial-library-select { flex:0 0 190px; }
+    .add-form .tutorial-library-select { width:100%; }
     .add-form input:focus,.tutorial-library-select:focus { outline:3px solid rgba(244,201,72,0.35); border-color:var(--gold-dark); }
     .help { margin:0; color:var(--muted); font-size:0.78rem; }
     .library-head { display:flex; align-items:end; justify-content:space-between; gap:1rem; margin:2.4rem 0 1rem; }
@@ -177,8 +179,7 @@
       main { width:min(100% - 1rem,960px); margin:1rem auto 3rem; }
       .panel { padding:1.2rem; }
       .dashboard-head,.library-head { align-items:flex-start; flex-direction:column; }
-      .add-form { flex-direction:column; }
-      .add-form .tutorial-library-select { width:100%; flex-basis:auto; }
+      .add-form { grid-template-columns:1fr; }
       .tutorial { grid-template-columns:100px minmax(0,1fr); align-items:start; }
       .tutorial img { width:100px; }
       .actions { grid-column:1 / -1; grid-template-columns:repeat(4,1fr); }
@@ -256,12 +257,18 @@
           </div>
           <p class="intro">Paste a YouTube video ID or full YouTube link. The title is fetched automatically and the tutorial is added as the next episode.</p>
           <form class="add-form" id="addForm">
-            <input id="videoId" name="videoId" type="text" placeholder="Example: dQw4w9WgXcQ" autocomplete="off" required/>
-            <select class="tutorial-library-select" id="tutorialLibrary" aria-label="Tutorial library">
-              <option value="core-studio">Core Studio Library</option>
-              <option value="young-artists">Young Artists Foundations</option>
-              <option value="both">Both libraries</option>
-            </select>
+            <label class="add-field">
+              <span class="add-field-label">YouTube video</span>
+              <input id="videoId" name="videoId" type="text" placeholder="Video ID or full YouTube link" autocomplete="off" required/>
+            </label>
+            <label class="add-field">
+              <span class="add-field-label">Publish in</span>
+              <select class="tutorial-library-select" id="tutorialLibrary">
+                <option value="core-studio">Core Studio Library</option>
+                <option value="young-artists">Young Artists Foundations</option>
+                <option value="both">Both libraries</option>
+              </select>
+            </label>
             <button class="primary-btn" type="submit">Add tutorial</button>
           </form>
           <p class="help">You can reorder, refresh the YouTube title, or remove a tutorial below.</p>

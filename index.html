@@ -431,10 +431,15 @@
     .vid-user-chip img { width:24px; height:24px; border-radius:50%; }
     .vid-user-chip span { font-size:0.78rem; color:var(--muted); }
     .vid-signout-btn { font-size:0.75rem; color:var(--muted); background:none; border:none; cursor:pointer; text-decoration:underline; }
-    .library-chooser { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; max-width:1100px; margin:1.5rem 0; }
-    .library-choice { min-height:112px; padding:1.25rem; border:1px solid var(--border); border-radius:var(--r); background:#ffffff; color:var(--ink); font-family:'Playfair Display',serif; font-size:clamp(1.2rem,2.5vw,1.7rem); cursor:pointer; transition:border-color 0.2s,box-shadow 0.2s,transform 0.2s; }
-    .library-choice:hover { border-color:var(--gold-dim); box-shadow:0 8px 24px rgba(0,0,0,0.08); transform:translateY(-2px); }
-    .library-choice.active { border-color:var(--gold-dim); background:rgba(244,201,72,0.12); box-shadow:inset 0 0 0 1px var(--gold-dim); }
+    .library-chooser { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.2rem; max-width:1100px; margin:1.7rem 0 2rem; }
+    .library-choice { position:relative; min-height:150px; overflow:hidden; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:end; gap:1rem; padding:1.5rem; border:1px solid rgba(244,201,72,0.3); border-radius:16px; background:var(--ink); color:#ffffff; text-align:left; cursor:pointer; box-shadow:0 12px 30px rgba(17,17,15,0.12); transition:border-color 0.2s,box-shadow 0.2s,transform 0.2s,background 0.2s; }
+    .library-choice::before { content:''; position:absolute; inset:0 auto auto 0; width:100%; height:3px; background:var(--gold); }
+    .library-choice-index { align-self:start; color:var(--gold); font-size:0.68rem; font-weight:700; letter-spacing:0.16em; }
+    .library-choice-title { font-family:'Playfair Display',serif; font-size:clamp(1.35rem,2.5vw,1.8rem); line-height:1.15; }
+    .library-choice-arrow { width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center; border:1px solid rgba(244,201,72,0.5); border-radius:50%; color:var(--gold); font-size:1rem; transition:background 0.2s,color 0.2s,transform 0.2s; }
+    .library-choice:hover { border-color:var(--gold); box-shadow:0 16px 36px rgba(17,17,15,0.2); transform:translateY(-3px); }
+    .library-choice:hover .library-choice-arrow { background:var(--gold); color:var(--ink); transform:translateX(2px); }
+    .library-choice.active { border-color:var(--gold); background:#20201d; box-shadow:inset 0 0 0 1px rgba(244,201,72,0.35),0 16px 36px rgba(17,17,15,0.2); }
     .library-content[hidden] { display:none; }
     .course-progress { max-width:1100px; margin:1.4rem 0 0.5rem; padding:1rem 1.2rem; background:#ffffff; border:1px solid var(--border); border-radius:var(--r); }
     .course-progress-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:0.65rem; }
@@ -485,7 +490,7 @@
     .ep-complete-btn.completed { background:rgba(244,201,72,0.2); border-color:var(--gold-dim); color:#5f4d0a; }
     @media (max-width:650px) {
       .library-chooser { grid-template-columns:1fr; }
-      .library-choice { min-height:84px; }
+      .library-choice { min-height:104px; padding:1.2rem; }
     }
 
     /* ── MODAL PLAYER ──────────────────────────────────── */
@@ -1065,8 +1070,16 @@
       <button class="vid-signout-btn" onclick="signOut()">Sign out</button>
     </div>
     <div class="library-chooser" id="libraryChooser" role="group" aria-label="Tutorial libraries">
-      <button class="library-choice" type="button" data-library="young-artists" onclick="selectTutorialLibrary('young-artists')">Young Artists Foundations</button>
-      <button class="library-choice" type="button" data-library="core-studio" onclick="selectTutorialLibrary('core-studio')">Core Studio Library</button>
+      <button class="library-choice" type="button" data-library="young-artists" onclick="selectTutorialLibrary('young-artists')" aria-label="Young Artists Foundations">
+        <span class="library-choice-index">01</span>
+        <span class="library-choice-title">Young Artists Foundations</span>
+        <span class="library-choice-arrow" aria-hidden="true">→</span>
+      </button>
+      <button class="library-choice" type="button" data-library="core-studio" onclick="selectTutorialLibrary('core-studio')" aria-label="Core Studio Library">
+        <span class="library-choice-index">02</span>
+        <span class="library-choice-title">Core Studio Library</span>
+        <span class="library-choice-arrow" aria-hidden="true">→</span>
+      </button>
     </div>
     <div class="library-content" id="libraryContent" hidden>
       <div class="course-progress" aria-live="polite">
