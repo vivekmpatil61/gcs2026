@@ -10,10 +10,10 @@ const WELCOME_FROM_EMAIL = 'hello@universeofvivek.in';
 const STUDENT_LOGIN_URL = 'https://universeofvivek.in/#videos';
 const TUTORIAL_LIBRARY_CORE = 'core-studio';
 const TUTORIAL_LIBRARY_YOUNG = 'young-artists';
-const SHARED_FOUNDATION_VIDEO_IDS = ['naUyVYZzo2Y', 'snltJhqqrb0', 'oxrkTgeYBkU'];
+const SHARED_FOUNDATION_VIDEO_IDS = ['naUyVYZzo2Y', 'rGCoXfIMats', 'snltJhqqrb0', 'oxrkTgeYBkU'];
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 20 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 21 });
 }
 
 function doPost(event) {
