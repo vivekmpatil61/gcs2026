@@ -431,6 +431,14 @@
     .vid-user-chip img { width:24px; height:24px; border-radius:50%; }
     .vid-user-chip span { font-size:0.78rem; color:var(--muted); }
     .vid-signout-btn { font-size:0.75rem; color:var(--muted); background:none; border:none; cursor:pointer; text-decoration:underline; }
+    .materials-resource { max-width:1100px; margin:1.25rem 0 0; padding:1rem 1.1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; background:#fffaf0; border:1px solid rgba(139,116,22,0.28); border-radius:var(--r); }
+    .materials-resource-copy { display:flex; align-items:center; gap:0.85rem; }
+    .materials-resource-icon { width:40px; height:40px; flex:0 0 40px; display:flex; align-items:center; justify-content:center; color:var(--gold-dim); background:rgba(244,201,72,0.2); border-radius:10px; }
+    .materials-resource-icon svg { width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .materials-resource-title { color:var(--ink); font-size:0.88rem; font-weight:700; margin-bottom:0.2rem; }
+    .materials-resource-desc { color:var(--muted); font-size:0.76rem; line-height:1.45; }
+    .materials-resource-link { flex-shrink:0; padding:0.62rem 0.9rem; color:var(--ink); background:var(--gold); border-radius:7px; font-size:0.76rem; font-weight:700; text-decoration:none; transition:background 0.2s, transform 0.2s; }
+    .materials-resource-link:hover { background:#e7ba32; transform:translateY(-1px); }
     .library-chooser { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.2rem; max-width:1100px; margin:1.7rem 0 2rem; }
     .library-choice { position:relative; min-height:150px; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:1.5rem 4.75rem; border:1px solid rgba(244,201,72,0.3); border-radius:16px; background:var(--ink); color:#ffffff; text-align:center; cursor:pointer; box-shadow:0 12px 30px rgba(17,17,15,0.12); transition:border-color 0.2s,box-shadow 0.2s,transform 0.2s,background 0.2s; }
     .library-choice::before { content:''; position:absolute; inset:0 auto auto 0; width:100%; height:3px; background:var(--gold); }
@@ -494,6 +502,8 @@
       .library-choice { min-height:104px; padding:1.2rem 4rem; }
       .library-choice-index { top:1rem; left:1.2rem; }
       .library-choice-arrow { right:1.2rem; }
+      .materials-resource { align-items:stretch; flex-direction:column; }
+      .materials-resource-link { text-align:center; }
     }
 
     /* ── MODAL PLAYER ──────────────────────────────────── */
@@ -688,6 +698,8 @@
     .faq-item summary::after { content:'+'; position:absolute; top:50%; right:1.2rem; transform:translateY(-50%); color:var(--gold-dim); font-size:1.4rem; font-weight:400; }
     .faq-item[open] summary::after { content:'-'; }
     .faq-item p { padding:0 1.2rem 1.2rem; color:var(--muted); font-size:0.84rem; line-height:1.7; }
+    .faq-materials-link { display:inline-block; margin-top:0.65rem; color:var(--gold-dim); font-weight:700; text-decoration:none; }
+    .faq-materials-link:hover { text-decoration:underline; }
 
     /* ── CONTACT ───────────────────────────────────────── */
     #contact { background:var(--paper); padding:90px 5vw; }
@@ -1072,6 +1084,18 @@
       </div>
       <button class="vid-signout-btn" onclick="signOut()">Sign out</button>
     </div>
+    <div class="materials-resource">
+      <div class="materials-resource-copy">
+        <span class="materials-resource-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v5h5M9 12h6M9 16h6"/></svg>
+        </span>
+        <div>
+          <p class="materials-resource-title">Drawing Materials Guide</p>
+          <p class="materials-resource-desc">Keep the recommended pencils, paper, erasers and blending tools ready before you begin.</p>
+        </div>
+      </div>
+      <a class="materials-resource-link" href="https://docs.google.com/document/d/1xvKbKF3e7_p03yPmSZZ21ymrUfmQ4Qu_CKJvb3kqhAs/edit?tab=t.0" target="_blank" rel="noopener noreferrer">View materials list ↗</a>
+    </div>
     <div class="library-chooser" id="libraryChooser" role="group" aria-label="Tutorial libraries">
       <button class="library-choice" type="button" data-library="young-artists" onclick="selectTutorialLibrary('young-artists')" aria-label="Young Artists Foundations">
         <span class="library-choice-index">01</span>
@@ -1225,7 +1249,7 @@
     </details>
     <details class="faq-item">
       <summary>What drawing materials are needed?</summary>
-      <p>Vivek explains drawing materials in detail in the first tutorial. To begin, a set of graphite pencils from HB to 10B, good drawing paper, a charcoal pencil, a kneadable eraser and blending tools are enough for realistic drawing.</p>
+      <p>Vivek explains drawing materials in detail in the first tutorial. To begin, a set of graphite pencils from HB to 10B, good drawing paper, a charcoal pencil, a kneadable eraser and blending tools are enough for realistic drawing.<br/><a class="faq-materials-link" href="https://docs.google.com/document/d/1xvKbKF3e7_p03yPmSZZ21ymrUfmQ4Qu_CKJvb3kqhAs/edit?tab=t.0" target="_blank" rel="noopener noreferrer">View the complete materials list ↗</a></p>
     </details>
     <details class="faq-item">
       <summary>How much do the programmes cost?</summary>
