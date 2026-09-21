@@ -6,13 +6,25 @@ This repository contains the public studio website, the private owner dashboard,
 
 ### Website
 
-`index.html` contains the public website. It uses:
+`index.html` contains the public website markup. Its implementation is split into:
 
-- HTML for the page content and registration form
-- CSS for the visual design and responsive layouts
-- JavaScript for Google Sign-In, registration, tutorial access, video playback and progress controls
+- `gcs-website/assets/site.css` for the core visual design and responsive layouts
+- `gcs-website/assets/site-gallery.js` for the hero and portfolio interactions
+- `gcs-website/assets/site-access.js` for Google Sign-In, registration and tutorial access
+- `gcs-website/assets/site-player.js` for navigation, video playback and progress controls
+- `gcs-website/assets/site-enhancements.css` and `site-enhancements.js` for progressive visual and accessibility enhancements
+
+`admin.html` follows the same pattern, with its styles and behaviour in `admin.css` and `admin.js`.
 
 The website is hosted as a static site on GitHub Pages. It does not store passwords or make access decisions by itself.
+
+## Local verification
+
+The repository includes dependency-free checks for JavaScript syntax, duplicate HTML IDs, broken section links, missing local assets and unsafe new-tab links. Run them before publishing:
+
+```sh
+npm test
+```
 
 ### Admin dashboard
 

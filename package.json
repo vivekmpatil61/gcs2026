@@ -1,0 +1,7 @@
+{
+  "name": "graphite-charcoal-studio",
+  "private": true,
+  "scripts": {
+    "test": "node --check gcs-website/assets/site-gallery.js && node --check gcs-website/assets/site-access.js && node --check gcs-website/assets/site-player.js && node --check gcs-website/assets/site-enhancements.js && node --check gcs-website/assets/admin.js && node scripts/verify-site.mjs"
+  }
+}
