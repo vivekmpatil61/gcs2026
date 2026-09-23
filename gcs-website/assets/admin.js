@@ -907,7 +907,7 @@
         label.textContent = labelText;
         const input = document.createElement(type === 'select' ? 'select' : 'input');
         if (type !== 'select') input.type = type;
-        if (type === 'select') [['private','Members only — no public card'],['free','Free full lesson'],['teaser','Locked teaser']].forEach(([value,text]) => {
+        if (type === 'select') [['private','Members only (no public card)'],['free','Free full lesson'],['teaser','Locked teaser']].forEach(([value,text]) => {
           const option = document.createElement('option'); option.value = value; option.textContent = text; input.append(option);
         });
         input.value = value;
