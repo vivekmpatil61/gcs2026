@@ -119,7 +119,7 @@ The full tutorial catalogue is returned only after successful server-side approv
 
 Deploy the updated `google-apps-script/Code.gs` to the existing web-app deployment **before publishing these website assets**. It includes the preview API and adult/minor guardian validation. Do not replace the live catalogue property with the outdated local private catalogue. Existing catalogue entries acquire preview defaults without discarding their data. Localhost uses `gcs-website/assets/preview-demo.json`, containing only the approved public selection, for independent UI review; admin continues to use the live service, so admin changes are real and will not change the local demo file. Production fails with a retry message if previews cannot load rather than displaying stale permissions.
 
-Admin includes library filters with per-library episode numbers, preview controls, a full refresh with timestamp, and sign-in recovery for expired sessions. Curriculum availability labels are editorial and should be reviewed as new lessons are published.
+Admin includes library filters with per-library episode numbers, preview controls, a full refresh with timestamp, and sign-in recovery for expired sessions. The public curriculum presents 30 topics across five groups without availability labels; it describes the learning scope rather than claiming a current video count.
 
 ## Progress flow
 
