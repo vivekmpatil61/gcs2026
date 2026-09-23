@@ -445,13 +445,13 @@
     const details = {
       participantName: participantName,
       age: document.getElementById('participantAge').value,
-      guardianName: document.getElementById('guardianName').value.trim(),
+      guardianName: Number(document.getElementById('participantAge').value) < 18 ? document.getElementById('guardianName').value.trim() : '',
       whatsapp: document.getElementById('whatsappNumber').value.trim(),
       location: document.getElementById('location').value.trim(),
       programme: preferredFormat.value,
       experience: document.getElementById('experience').value,
       subjects: JSON.stringify(subjects),
-      requests: document.getElementById('specialRequests').value.trim(),
+      requests: [document.getElementById('experience').selectedOptions[0]?.dataset.returning === 'true' ? 'Returning to drawing after a break.' : '', document.getElementById('specialRequests').value.trim()].filter(Boolean).join('\n'),
       consentFees: String(document.getElementById('consentFees').checked),
       consentAccuracy: String(document.getElementById('consentAccuracy').checked),
       consentContentUse: String(document.getElementById('consentContentUse').checked),
@@ -560,13 +560,18 @@
   loadPublicPreviews();
 
   function syncGuardianField() {
-    const age = Number(document.getElementById('participantAge').value);
-    const required = !age || age < 18;
+    const ageValue = document.getElementById('participantAge').value;
+    const required = ageValue !== '' && Number(ageValue) < 18;
+    const forChild = document.getElementById('learnerType').value === 'child';
+    document.getElementById('guardianField').hidden = !required && !(forChild && ageValue === '');
     document.getElementById('guardianName').required = required;
+    document.getElementById('guardianName').disabled = ageValue !== '' && !required;
     document.getElementById('guardianRequired').hidden = !required;
-    document.getElementById('guardianHint').textContent = required
-      ? 'Required for participants under 18.' : 'Optional for adult participants.';
+    document.getElementById('guardianHint').textContent = 'Required for participants under 18.';
+    document.querySelector('label[for="participantName"]').innerHTML = (forChild ? 'Learner’s full name' : 'Your full name') + ' <span class="required-mark">*</span>';
+    document.querySelector('label[for="participantAge"]').innerHTML = (forChild ? 'Learner’s age' : 'Your age') + ' <span class="required-mark">*</span>';
   }
   document.getElementById('participantAge').addEventListener('input', syncGuardianField);
+  document.getElementById('learnerType').addEventListener('change', syncGuardianField);
   registrationForm.addEventListener('reset', () => setTimeout(syncGuardianField, 0));
   syncGuardianField();

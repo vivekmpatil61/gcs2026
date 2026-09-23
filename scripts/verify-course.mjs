@@ -69,3 +69,20 @@ assert.equal(admin.request.payload.visibility,'free');
 assert.equal(admin.request.payload.title,'New public title');
 assert.equal(admin.request.payload.order,'4');
 console.log('✓ Admin library numbering, filters and preview editor save payload verified without live writes');
+
+// Age remains authoritative even when a teen chooses “Myself” or a parent enrols an adult.
+const registrationSource = readFileSync('gcs-website/assets/site-access.js', 'utf8');
+const guardianFunction = registrationSource.slice(registrationSource.indexOf('  function syncGuardianField() {'), registrationSource.indexOf("  document.getElementById('participantAge').addEventListener"));
+const registrationNodes = Object.fromEntries(['participantAge','learnerType','guardianField','guardianName','guardianRequired','guardianHint'].map(id => [id, {}]));
+const registrationLabels = {};
+const registrationContext = vm.createContext({document:{getElementById:id=>registrationNodes[id],querySelector:selector=>registrationLabels[selector] ||= {}}});
+vm.runInContext(guardianFunction, registrationContext);
+for (const [age, type, visible, required] of [['','self',false,false],['','child',true,false],['17','self',true,true],['17','child',true,true],['18','self',false,false],['24','child',false,false],['','self',false,false]]) {
+  registrationNodes.participantAge.value = age;
+  registrationNodes.learnerType.value = type;
+  registrationContext.syncGuardianField();
+  assert.equal(registrationNodes.guardianField.hidden, !visible);
+  assert.equal(registrationNodes.guardianName.required, required);
+}
+assert.equal(ctx.validateRegistration_({...form,experience:'Some hobby experience',requests:'Returning to drawing after a break.'}).ok,true);
+console.log('✓ Adult, teen, parent and reset guardian-field states verified');
