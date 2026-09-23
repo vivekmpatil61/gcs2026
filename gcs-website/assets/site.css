@@ -768,3 +768,26 @@ nav a { white-space:nowrap; }
 .learner-grid p { font-size:0.9rem; color:var(--muted); line-height:1.75; }
 #guardianField[hidden] { display:none; }
 @media(max-width:700px) { .learner-grid { grid-template-columns:1fr; gap:1.25rem; } }
+
+/* Artwork and parent feedback share one compact studio section. */
+#results { padding:65px 5vw; }
+#results .results-intro { max-width:620px; margin-bottom:2rem; }
+.results-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:2.5rem; max-width:1100px; align-items:start; }
+.results-subheading { font-size:0.7rem; font-weight:600; letter-spacing:0.13em; text-transform:uppercase; color:var(--gold); margin:0 0 1rem; }
+#results .student-work-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:0.75rem; margin:0; }
+#results .student-work { border-radius:6px; border:1px solid rgba(244,201,72,0.18); aspect-ratio:3/4; }
+#results .student-work img { object-fit:contain; }
+#results .student-work figcaption { padding:1.8rem 0.6rem 0.6rem; font-size:0.64rem; flex-wrap:wrap; gap:0.15rem 0.4rem; }
+#results .student-work-age { font-size:0.6rem; }
+#results .testimonial-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.1rem; }
+#results .testimonial-card { padding:0 0 1rem; border:0; border-top:1px solid rgba(244,201,72,0.25); border-radius:0; background:transparent; }
+#results .testimonial-card blockquote { font-size:0.86rem; line-height:1.75; margin:1rem 0 0.75rem; }
+#results .testimonial-card cite { font-size:0.62rem; letter-spacing:0.06em; }
+@media(max-width:900px) {
+  .results-layout { grid-template-columns:1fr; gap:2rem; max-width:680px; }
+}
+@media(max-width:550px) {
+  #results .student-work-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #results .testimonial-grid { grid-template-columns:1fr; gap:0.75rem; }
+  #results .testimonial-card { padding-bottom:0.25rem; }
+}
