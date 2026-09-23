@@ -186,3 +186,10 @@
       .admin-tab { padding:0.7rem 0.25rem; font-size:0.78rem; }
       .tab-count { display:block; width:fit-content; margin:0.2rem auto 0; }
     }
+
+.preview-editor { margin-top:1rem; padding:0.8rem; border:1px solid var(--border); border-radius:8px; }
+.preview-editor summary { cursor:pointer; font-weight:600; }
+.preview-editor label { display:block; margin-top:0.8rem; font-size:0.8rem; }
+.preview-editor input, .preview-editor select { display:block; width:100%; margin-top:0.35rem; padding:0.55rem; box-sizing:border-box; }
+.preview-editor p { font-size:0.8rem; line-height:1.6; margin:0.8rem 0; }
+.preview-editor button, #libraryFilter { padding:0.6rem; border-radius:6px; }

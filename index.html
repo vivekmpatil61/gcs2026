@@ -30,7 +30,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://www.youtube.com/iframe_api" async></script>
-  <script src="/gcs-website/assets/site-enhancements.js" defer></script>
+  <script src="/gcs-website/assets/site-enhancements.js?v=20260923" defer></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -124,8 +124,8 @@
     ]
   }
   </script>
-  <link rel="stylesheet" href="/gcs-website/assets/site.css"/>
-  <link rel="stylesheet" href="/gcs-website/assets/site-enhancements.css"/>
+  <link rel="stylesheet" href="/gcs-website/assets/site.css?v=20260923"/>
+  <link rel="stylesheet" href="/gcs-website/assets/site-enhancements.css?v=20260923"/>
 </head>
 <body>
 
@@ -134,14 +134,16 @@
 <!-- NAV -->
 <nav aria-label="Primary navigation">
   <a class="nav-logo" href="#top"><span class="nav-logo-full">Graphite &amp; Charcoal Studio</span><span class="nav-logo-short">G&amp;C Studio</span></a>
-  <ul class="nav-links">
+  <button class="nav-menu-toggle" type="button" aria-expanded="false" aria-controls="navLinks">Menu</button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#videos">Free lessons</a></li>
     <li><a href="#curriculum">Curriculum</a></li>
     <li><a href="#results">Results</a></li>
     <li><a href="#programmes">Programmes</a></li>
     <li><a href="#about">About</a></li>
   </ul>
   <div style="display:flex;align-items:center;gap:0.6rem;">
-    <a class="nav-student-btn" href="#videos" onclick="document.getElementById('videos').scrollIntoView({behavior:'smooth'});return false;">Student Login</a>
+    <a class="nav-student-btn" href="#pwGate">Student Login</a>
     <a class="nav-cta" href="#registration">Enrol Now</a>
   </div>
 </nav>
@@ -156,7 +158,7 @@
     <p class="hero-sub">New guided drawing tutorials every week for kids and adults. Learn realistic portraits, shading and charcoal at your own pace.</p>
     <div class="hero-btns">
       <a href="#registration" class="btn btn-gold">Enrol Now</a>
-      <a href="#gallery" class="btn btn-ghost">See the Work</a>
+      <a href="#videos" class="btn btn-ghost">Watch free lessons</a>
     </div>
     <div class="slide-dots" id="dots">
       <button type="button" class="dot active" onclick="goSlide(0)" aria-label="Show artwork 1"></button>
@@ -225,69 +227,92 @@
 <section id="curriculum">
   <p class="lbl">What you will learn</p>
   <h2>Real art. Real skills.</h2>
-  <p>No shortcuts. No copying. Every topic is taught to build genuine understanding - so you can draw anything, not just follow steps.</p>
+  <p>Start with the lessons available today, then explore the wider learning path. Planned topics are not yet part of the video library; partially available topics will grow over time.</p>
+  <h3 class="curriculum-group">Foundations</h3>
   <div class="cur-grid">
     <div class="cur-card">
-      <h3 class="cur-title">Tools & Materials</h3>
+      <h4 class="cur-title">Tools & Materials</h4>
+      <p class="curriculum-status">Available now</p>
       <p class="cur-desc">Pencil grades, paper types, erasers, blending stumps, charcoal - what to use, when to use it and why it matters.</p>
     </div>
     <div class="cur-card">
-      <h3 class="cur-title">Pencil Grip & Line Control</h3>
+      <h4 class="cur-title">Pencil Grip & Line Control</h4>
+      <p class="curriculum-status">Available now</p>
       <p class="cur-desc">Finger grip vs shoulder grip, confident long strokes, consistent pressure, warm-up exercises to build muscle memory.</p>
     </div>
     <div class="cur-card">
-      <h3 class="cur-title">Understanding Light & Shadow</h3>
+      <h4 class="cur-title">Understanding Light & Shadow</h4>
+      <p class="curriculum-status">Available now</p>
       <p class="cur-desc">Core shadow, cast shadow, reflected light, highlight - the five elements that make any object look three-dimensional.</p>
     </div>
     <div class="cur-card">
-      <h3 class="cur-title">Shading & Blending</h3>
+      <h4 class="cur-title">Shading & Blending</h4>
+      <p class="curriculum-status">Available now</p>
       <p class="cur-desc">Value scales, gradients, hatching, cross-hatching, blending stump vs brush - building smooth tonal ranges without harsh lines.</p>
     </div>
+  </div>
+  <h3 class="curriculum-group">Drawing skills</h3>
+  <div class="cur-grid">
     <div class="cur-card">
-      <h3 class="cur-title">Freehand Sketching</h3>
+      <h4 class="cur-title">Freehand Sketching</h4>
+      <p class="curriculum-status">Available now</p>
       <p class="cur-desc">Observational drawing, envelope method, negative space, drawing what you see not what your brain thinks it sees.</p>
     </div>
     <div class="cur-card">
-      <h3 class="cur-title">Grid Method</h3>
+      <h4 class="cur-title">Grid Method</h4>
+      <p class="curriculum-status">Available now</p>
       <p class="cur-desc">The centuries-old technique used by Renaissance masters. Accurate proportions, section by section - with and without the Android app.</p>
     </div>
     <div class="cur-card">
-      <h3 class="cur-title">Loomis Method</h3>
+      <h4 class="cur-title">Loomis Method</h4>
+      <p class="curriculum-status">Planned topic</p>
       <p class="cur-desc">Constructing the human head from any angle using the Loomis sphere and brow plane - the foundation of all portrait drawing.</p>
     </div>
     <div class="cur-card">
-      <h3 class="cur-title">Facial Features</h3>
-      <p class="cur-desc">Realistic eye, nose, lips and ear - each studied individually with correct proportions, soft edges and full value range.</p>
-    </div>
-    <div class="cur-card">
-      <h3 class="cur-title">Portrait Drawing</h3>
-      <p class="cur-desc">Full face portraits from reference - hair texture, skin tone, dramatic lighting, chiaroscuro and hyper-realistic detail.</p>
-    </div>
-    <div class="cur-card">
-      <h3 class="cur-title">Charcoal Techniques</h3>
+      <h4 class="cur-title">Charcoal Techniques</h4>
+      <p class="curriculum-status">Available now</p>
       <p class="cur-desc">Working with charcoal pencils and sticks, kneadable eraser highlights, pulling out light, animal portraits and textured surfaces.</p>
     </div>
     <div class="cur-card">
-      <h3 class="cur-title">Hard & Soft Edges</h3>
+      <h4 class="cur-title">Hard & Soft Edges</h4>
+      <p class="curriculum-status">Planned topic</p>
       <p class="cur-desc">When to sharpen an edge and when to let it melt away - the single skill that separates a flat drawing from a realistic one.</p>
     </div>
     <div class="cur-card">
-      <h3 class="cur-title">Texture Drawing</h3>
+      <h4 class="cur-title">Texture Drawing</h4>
+      <p class="curriculum-status">Available now</p>
       <p class="cur-desc">Fur, fabric, wood grain, rough stone, smooth skin - how to render any surface convincingly using pencil and charcoal.</p>
     </div>
     <div class="cur-card">
-      <h3 class="cur-title">Animal Portraits</h3>
-      <p class="cur-desc">Eyes, fur direction, muscle form and expression - drawing animals with the same realism and depth as human portraits.</p>
-    </div>
-    <div class="cur-card">
-      <h3 class="cur-title">Anime & Cartoon Characters</h3>
-      <p class="cur-desc">Stylised proportions, expressive eyes, clean outlines and the art of simplifying real anatomy into compelling character design.</p>
-    </div>
-    <div class="cur-card">
-      <h3 class="cur-title">Perspective Drawing</h3>
+      <h4 class="cur-title">Perspective Drawing</h4>
+      <p class="curriculum-status">Planned topic</p>
       <p class="cur-desc">One-point and two-point perspective, horizon lines, vanishing points - how to draw rooms, buildings and objects that feel real in space.</p>
     </div>
   </div>
+  <h3 class="curriculum-group">Subjects</h3>
+  <div class="cur-grid">
+    <div class="cur-card">
+      <h4 class="cur-title">Facial Features</h4>
+      <p class="curriculum-status">Partly available · more to come</p>
+      <p class="cur-desc">Realistic eye, nose, lips and ear - each studied individually with correct proportions, soft edges and full value range.</p>
+    </div>
+    <div class="cur-card">
+      <h4 class="cur-title">Portrait Drawing</h4>
+      <p class="curriculum-status">Partly available · more to come</p>
+      <p class="cur-desc">Full face portraits from reference - hair texture, skin tone, dramatic lighting, chiaroscuro and hyper-realistic detail.</p>
+    </div>
+    <div class="cur-card">
+      <h4 class="cur-title">Animal Portraits</h4>
+      <p class="curriculum-status">Planned topic</p>
+      <p class="cur-desc">Eyes, fur direction, muscle form and expression - drawing animals with the same realism and depth as human portraits.</p>
+    </div>
+    <div class="cur-card">
+      <h4 class="cur-title">Anime & Cartoon Characters</h4>
+      <p class="curriculum-status">Available now</p>
+      <p class="cur-desc">Stylised proportions, expressive eyes, clean outlines and the art of simplifying real anatomy into compelling character design.</p>
+    </div>
+  </div>
+
 </section>
 
 <!-- PROGRAMMES -->
@@ -380,11 +405,24 @@
 <!-- VIDEO LIBRARY -->
 <section id="videos">
   <p class="lbl">Video Library</p>
-  <h2>Your weekly tutorials.</h2>
-  <p>Exclusive to enrolled students. Sign in with the Google account you registered with.</p>
+  <h2>Get a feel for learning with me.</h2>
+  <p>Watch free lessons from Core Studio and explore my step-by-step teaching style. Enrol when you’re ready for the full video library.</p>
+  <div id="publicPreview" class="public-preview">
+    <div class="ep-grid" id="publicPreviewGrid" aria-label="Free lessons and a preview of the course"></div>
+    <p id="previewStatus" role="status">Loading free lessons…</p>
+    <button id="previewRetry" type="button" hidden>Try again</button>
+    <p class="preview-note">No sign-in needed for the free lessons. Already enrolled? Sign in below.</p>
+  </div>
+  <dialog id="enrolDialog" class="enrol-dialog" aria-labelledby="enrolDialogTitle" aria-describedby="enrolDialogDescription">
+    <form method="dialog"><button class="enrol-dialog-close" aria-label="Close enrolment prompt">✕</button></form>
+    <p class="lbl">Keep learning</p>
+    <h3 id="enrolDialogTitle">Your next lesson is waiting.</h3>
+    <p id="enrolDialogDescription">Enrol in the course to unlock this lesson and get lifetime access to the full video library. Learn at your own pace, with guidance every step of the way.</p>
+    <a href="#registration" class="btn btn-gold" onclick="document.getElementById('enrolDialog').close(); chooseProgramme('access');">Enrol for full library access</a>
+  </dialog>
   <div class="pw-gate" id="pwGate">
     <h3>Student Access</h3>
-    <p class="pw-desc">Sign in with your Google account to access your tutorials. Only registered students can view the library.</p>
+    <p class="pw-desc">Sign in with your Google account to access your tutorials. Enrolled students can view the full library.</p>
     <button class="google-btn" onclick="signInWithGoogle()">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -456,6 +494,8 @@
     <button class="modal-close" onclick="closePlayer(null)" aria-label="Close video player">✕</button>
   </div>
   <div class="modal-player">
+    <p id="playerStatus" class="player-status" role="status"></p>
+    <button id="playerRetry" class="modal-next-btn" type="button" hidden onclick="retryTutorialVideo()">Try loading again</button>
     <div class="modal-video-stage">
       <div id="modalIframe"></div>
       <div class="modal-center-play-feedback" id="modalCenterPlayFeedback" aria-hidden="true">▶</div>
@@ -640,8 +680,9 @@
           <input id="participantAge" type="number" min="3" max="100" inputmode="numeric" required/>
         </div>
         <div class="form-field">
-          <label for="guardianName">Parent or guardian's name <span class="required-mark">*</span></label>
-          <input id="guardianName" type="text" autocomplete="name" placeholder="Enter N/A for an adult participant" required/>
+          <label for="guardianName">Parent or guardian's name <span id="guardianRequired" class="required-mark">*</span></label>
+          <input id="guardianName" type="text" autocomplete="name" aria-describedby="guardianHint" required/>
+          <small id="guardianHint">Required only for participants under 18.</small>
         </div>
         <div class="form-field">
           <label for="whatsappNumber">WhatsApp number <span class="required-mark">*</span></label>
@@ -745,8 +786,8 @@
   </ul>
 </footer>
 
-<script src="/gcs-website/assets/site-gallery.js"></script>
-<script src="/gcs-website/assets/site-access.js"></script>
-<script src="/gcs-website/assets/site-player.js"></script>
+<script src="/gcs-website/assets/site-gallery.js?v=20260923"></script>
+<script src="/gcs-website/assets/site-access.js?v=20260923"></script>
+<script src="/gcs-website/assets/site-player.js?v=20260923"></script>
 </body>
 </html>

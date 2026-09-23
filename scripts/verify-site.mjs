@@ -13,7 +13,7 @@ for (const file of htmlFiles) {
   const anchors = [...html.matchAll(/href="#([^"]+)"/g)].map(match => match[1]);
   const missingAnchors = [...new Set(anchors.filter(id => !idSet.has(id)))];
   const localAssets = [...html.matchAll(/(?:src|href)="(\/gcs-website\/assets\/[^"]+)"/g)]
-    .map(match => match[1]);
+    .map(match => match[1].split('?')[0]);
   const missingAssets = [...new Set(localAssets.filter(asset => !existsSync(path.join('.', asset))))];
   const unsafeBlankLinks = [...html.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)]
     .map(match => match[0])

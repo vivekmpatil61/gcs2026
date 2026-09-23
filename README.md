@@ -115,7 +115,11 @@ Repeated approval does not create duplicate access or send a duplicate welcome e
 4. Active students receive the current tutorial catalogue and saved progress.
 5. Other accounts are denied access.
 
-The tutorial catalogue is returned only after successful server-side approval. It is not stored directly in the public website HTML.
+The full tutorial catalogue is returned only after successful server-side approval. The anonymous `public_previews` action returns only configured free lessons and locked teaser metadata. The initial selection is Core Studio episodes 1, 5, 15 and 18, plus a locked grid-method teaser. In admin, expand **Website preview** on a tutorial to change visibility, display title, topic and order. Selecting a new teaser replaces the previous teaser. Deleting a tutorial removes its public card. Existing open pages keep their current preview until reloaded; unlisted YouTube links are not DRM.
+
+Deploy the updated `google-apps-script/Code.gs` to the existing web-app deployment **before publishing these website assets**. It includes the preview API and adult/minor guardian validation. Do not replace the live catalogue property with the outdated local private catalogue. Existing catalogue entries acquire preview defaults without discarding their data. Localhost uses `gcs-website/assets/preview-demo.json`, containing only the approved public selection, for independent UI review; admin continues to use the live service, so admin changes are real and will not change the local demo file. Production fails with a retry message if previews cannot load rather than displaying stale permissions.
+
+Admin includes library filters with per-library episode numbers, preview controls, a full refresh with timestamp, and sign-in recovery for expired sessions. Curriculum availability labels are editorial and should be reviewed as new lessons are published.
 
 ## Progress flow
 

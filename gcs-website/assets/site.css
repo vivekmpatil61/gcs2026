@@ -701,3 +701,48 @@
       html { scroll-behavior:auto; }
       *,*::before,*::after { animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
     }
+
+/* Public lesson previews */
+.public-preview { margin-bottom:2.5rem; }
+.public-preview .ep-grid { grid-template-columns:repeat(5,minmax(0,1fr)); max-width:1400px; }
+@media (max-width:1199px) {
+  .public-preview .ep-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media (max-width:850px) {
+  .public-preview .ep-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:550px) {
+  .public-preview .ep-grid { grid-template-columns:minmax(0,1fr); }
+}
+.preview-card { display:flex; flex-direction:column; justify-content:flex-start; align-items:stretch; width:100%; min-width:0; padding:0; text-align:left; font:inherit; }
+.preview-card .ep-thumb { flex:none; }
+.preview-card .ep-thumb, .preview-card .ep-body, .preview-card .ep-num,
+.preview-card .ep-title, .preview-card .ep-dur { display:block; }
+.preview-card:focus-visible { outline:3px solid var(--gold-dim); outline-offset:5px; }
+.preview-note { margin-top:1.2rem; color:var(--muted); font-size:0.88rem; line-height:1.7; }
+.enrol-dialog { margin:auto; width:min(520px, calc(100% - 2rem)); max-height:90dvh; overflow:auto; padding:2.5rem; border:0; border-radius:var(--r); background:var(--paper); color:var(--ink); }
+.enrol-dialog::backdrop { background:rgba(0,0,0,0.75); }
+.enrol-dialog h3 { font-family:'Playfair Display',serif; font-size:1.8rem; margin-bottom:1rem; }
+.enrol-dialog > p:not(.lbl) { color:var(--muted); line-height:1.8; margin-bottom:1.5rem; }
+.enrol-dialog-close { float:right; border:0; background:transparent; color:var(--ink); font-size:1.3rem; cursor:pointer; padding:0.25rem; }
+.modal-complete-btn[hidden] { display:none; }
+
+/* Navigation and learning path */
+.nav-menu-toggle { display:none; }
+nav a { white-space:nowrap; }
+#pwGate, #registration { scroll-margin-top:90px; }
+.curriculum-group { font-family:'Playfair Display',serif; font-size:1.5rem; margin:2rem 0 1rem; }
+.curriculum-status { font-size:0.7rem; color:var(--gold-dim); margin:0.5rem 0; font-weight:600; }
+.player-status { color:white; text-align:center; padding:0.5rem 1rem; }
+#playerRetry[hidden] { display:none; }
+@media(max-width:1100px) {
+  .nav-logo-full { display:none; }
+  .nav-logo-short { display:inline; }
+  .nav-menu-toggle { display:block; border:1px solid #777; border-radius:6px; padding:0.45rem 0.6rem; background:transparent; color:white; cursor:pointer; margin-left:auto; }
+  .nav-links { display:none; position:absolute; top:100%; left:0; right:0; background:var(--ink); padding:1.2rem 5vw; border-top:1px solid #444; }
+  .nav-links.menu-open { display:flex; flex-direction:column; gap:1.2rem; }
+}
+@media(max-width:380px) {
+  .nav-logo { font-size:0.85rem; }
+  .nav-student-btn,.nav-cta,.nav-menu-toggle { padding:0.4rem; font-size:0.65rem; }
+}

@@ -2,6 +2,13 @@
   const GOOGLE_CLIENT_ID = '120662687568-hbekineb2q7eah307s6ug5nlf65neija.apps.googleusercontent.com';
   const SCRIPT_URL       = 'https://script.google.com/macros/s/AKfycbyKiL-qYGP5t-Fg7-IdtNUHsWGtrFJTHHQeDwIocM7iKf3WTDr0ztkrpwpT3Fk9o3andQ/exec';
 
+  const PUBLIC_TUTORIALS = new Map();
+  let publicPlayback = false;
+
+  function showEnrolPrompt() {
+    document.getElementById('enrolDialog').showModal();
+  }
+
   let googleClient;
   let activeAccessToken = '';
   let accessExpiryTimer;
@@ -23,6 +30,7 @@
   let tutorialMuted = false;
 
   function signInWithGoogle() {
+    if (!window.google?.accounts?.oauth2) { showErr("Google sign-in is still loading. Please try again."); return; }
     if (!googleClient) {
       googleClient = google.accounts.oauth2.initTokenClient({
         client_id: GOOGLE_CLIENT_ID,
@@ -69,6 +77,7 @@
           showErr('Your secure session expired. Please sign in again.');
         }, Math.max(60, Number(data.expiresIn) || 3000) * 1000);
 
+        document.getElementById('publicPreview').hidden = true;
         document.getElementById('pwGate').style.display = 'none';
         document.getElementById('vidLib').classList.add('open');
         document.getElementById('videos').scrollIntoView({ behavior: 'smooth' });
@@ -111,6 +120,7 @@
     setProgressStatus('');
     closePlayer(null);
     document.getElementById('vidLib').classList.remove('open');
+    document.getElementById('publicPreview').hidden = false;
     document.getElementById('pwGate').style.display = 'block';
     document.getElementById('pwWelcome').style.display = 'none';
     document.getElementById('pwErr').style.display = 'none';
@@ -261,7 +271,7 @@
   }
 
   function toggleCurrentTutorialProgress() {
-    if (currentVideoId) toggleTutorialProgress(currentVideoId);
+    if (currentVideoId && !publicPlayback) toggleTutorialProgress(currentVideoId);
   }
 
   function updateProgressDisplay() {
@@ -283,6 +293,7 @@
     });
 
     const modalButton = document.getElementById('modalCompleteBtn');
+    modalButton.hidden = publicPlayback;
     const modalCompleted = currentVideoId && completedTutorials.has(currentVideoId);
     modalButton.classList.toggle('completed', Boolean(modalCompleted));
     modalButton.textContent = modalCompleted ? 'Completed - undo' : 'Mark as complete';
@@ -503,3 +514,59 @@
     document.getElementById('participantName').focus();
   });
 
+
+  async function loadPublicPreviews() {
+    const status = document.getElementById('previewStatus');
+    const retry = document.getElementById('previewRetry');
+    const grid = document.getElementById('publicPreviewGrid');
+    status.textContent = 'Loading free lessons…';
+    retry.hidden = true;
+    grid.replaceChildren();
+    PUBLIC_TUTORIALS.clear();
+    try {
+      const local = ['localhost', '127.0.0.1'].includes(location.hostname);
+      const response = await fetch(local ? '/gcs-website/assets/preview-demo.json' : SCRIPT_URL,
+        local ? { cache: 'no-store' } : { method: 'POST',
+          body: new URLSearchParams({ action: 'public_previews' }), signal: AbortSignal.timeout(15000) });
+      if (!response.ok) throw new Error('Preview service unavailable');
+      const data = await response.json();
+      if (!Array.isArray(data.previews)) throw new Error('Preview service unavailable');
+      data.previews.forEach(preview => {
+        const free = preview.visibility === 'free';
+        if (!['free', 'teaser'].includes(preview.visibility) || !preview.title ||
+            !/^https:\/\/img\.youtube\.com\/vi\/[A-Za-z0-9_-]{11}\/mqdefault\.jpg$/.test(preview.thumbnail) ||
+            (free && !/^[A-Za-z0-9_-]{11}$/.test(preview.id))) return;
+        if (free) PUBLIC_TUTORIALS.set(preview.id, { title: preview.title, epNum: `${preview.label} · Free lesson` });
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'ep-card preview-card';
+        card.setAttribute('aria-label', `${free ? 'Watch free lesson' : 'Members only'}: ${preview.title}`);
+        card.innerHTML = `<span class="ep-thumb"><img class="ep-thumb-img" alt="" loading="lazy" decoding="async"><span class="ep-thumb-overlay"><span class="ep-play-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${free ? 'M8 5v14l11-7z' : 'M7 10V7a5 5 0 0 1 10 0v3h1a2 2 0 0 1 2 2v8H4v-8a2 2 0 0 1 2-2zm2 0h6V7a3 3 0 0 0-6 0z'}"/></svg></span></span><span class="ep-badge"></span></span><span class="ep-body"><span class="ep-num"></span><span class="ep-title"></span><span class="ep-dur"></span></span>`;
+        card.querySelector('img').src = preview.thumbnail;
+        card.querySelector('.ep-badge').textContent = free ? 'Free lesson' : 'Members only';
+        card.querySelector('.ep-num').textContent = preview.label;
+        card.querySelector('.ep-title').textContent = preview.title;
+        card.querySelector('.ep-dur').textContent = free ? 'Watch the full lesson, no sign-in needed.' : 'Enrol to unlock this lesson and the full library.';
+        card.addEventListener('click', () => free ? openPlayer(preview.id) : showEnrolPrompt());
+        grid.append(card);
+      });
+      status.textContent = grid.children.length ? '' : 'New previews are being prepared. Please check back soon.';
+    } catch (error) {
+      status.textContent = 'Free lessons could not be loaded. Please try again.';
+      retry.hidden = false;
+    }
+  }
+  document.getElementById('previewRetry').addEventListener('click', loadPublicPreviews);
+  loadPublicPreviews();
+
+  function syncGuardianField() {
+    const age = Number(document.getElementById('participantAge').value);
+    const required = !age || age < 18;
+    document.getElementById('guardianName').required = required;
+    document.getElementById('guardianRequired').hidden = !required;
+    document.getElementById('guardianHint').textContent = required
+      ? 'Required for participants under 18.' : 'Optional for adult participants.';
+  }
+  document.getElementById('participantAge').addEventListener('input', syncGuardianField);
+  registrationForm.addEventListener('reset', () => setTimeout(syncGuardianField, 0));
+  syncGuardianField();

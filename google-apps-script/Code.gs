@@ -12,14 +12,17 @@ const TUTORIAL_LIBRARY_CORE = 'core-studio';
 const TUTORIAL_LIBRARY_YOUNG = 'young-artists';
 const SHARED_FOUNDATION_VIDEO_IDS = ['naUyVYZzo2Y', 'rGCoXfIMats', 'snltJhqqrb0', 'oxrkTgeYBkU'];
 
+const DEFAULT_PUBLIC_PREVIEWS = {"naUyVYZzo2Y": {"visibility": "free", "label": "Materials", "title": "Drawing tools for beginners", "order": 1}, "4p0U-0fJeZY": {"visibility": "free", "label": "Shading", "title": "11 shading mistakes every beginner makes", "order": 2}, "NUo1ZeED4QA": {"visibility": "free", "label": "Freehand drawing", "title": "See shapes. Draw freehand.", "order": 3}, "5ya3IiRJrk4": {"visibility": "free", "label": "Realistic drawing", "title": "How to draw a realistic eye", "order": 4}, "snltJhqqrb0": {"visibility": "teaser", "label": "Inside the course", "title": "Grid method for beginners", "order": 5}};
+
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 21 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 22 });
 }
 
 function doPost(event) {
   try {
     const accessToken = String((event && event.parameter && event.parameter.accessToken) || '').trim();
     const action = String((event && event.parameter && event.parameter.action) || 'student_library').trim();
+    if (action === 'public_previews') return jsonResponse_({ previews: publicPreviews_() });
     if (!accessToken) {
       return jsonResponse_({ approved: false, code: 'missing_token' });
     }
@@ -214,7 +217,7 @@ function validateRegistration_(parameters) {
   const phoneDigits = whatsapp.replace(/\D/g, '');
 
   if (participantName.length < 2 || !Number.isInteger(age) || age < 3 || age > 100 ||
-      !guardianName || phoneDigits.length < 8 || phoneDigits.length > 15 ||
+      (age < 18 && !guardianName) || phoneDigits.length < 8 || phoneDigits.length > 15 ||
       allowedProgrammes.indexOf(programme) === -1 ||
       allowedExperience.indexOf(experience) === -1 ||
       !consentFees || !consentAccuracy || !consentContentUse ||
@@ -309,7 +312,49 @@ function getCompletedVideoIds_(email) {
   });
 }
 
+function normalizePreview_(tutorial) {
+  const value = tutorial.preview || DEFAULT_PUBLIC_PREVIEWS[tutorial.id] || {};
+  return {
+    visibility: ['free', 'teaser'].indexOf(value.visibility) !== -1 ? value.visibility : 'private',
+    title: String(value.title || tutorial.title || '').slice(0, 160),
+    label: String(value.label || 'Drawing lesson').slice(0, 50),
+    order: Math.max(1, Math.min(99, Number(value.order) || 99))
+  };
+}
+
+function publicPreviews_() {
+  return getTutorials_().filter(function(t) { return t.preview.visibility !== 'private'; })
+    .sort(function(a, b) { return a.preview.order - b.preview.order; })
+    .map(function(t) {
+      const preview = t.preview;
+      const result = { title: preview.title, label: preview.label, visibility: preview.visibility,
+        thumbnail: 'https://img.youtube.com/vi/' + t.id + '/mqdefault.jpg' };
+      if (preview.visibility === 'free') result.id = t.id;
+      return result;
+    });
+}
+
 function handleAdminAction_(action, parameters, user) {
+  if (action === 'admin_preview') {
+    const videoId = normalizeYouTubeId_(parameters.videoId);
+    const visibility = String(parameters.visibility || '');
+    const order = Number(parameters.order);
+    if (['free', 'teaser', 'private'].indexOf(visibility) === -1 ||
+        !Number.isInteger(order) || order < 1 || order > 99 ||
+        !String(parameters.title || '').trim() || !String(parameters.label || '').trim()) {
+      return jsonResponse_({ approved: false, code: 'invalid_preview' });
+    }
+    return mutateTutorials_(user, function(tutorials) {
+      const tutorial = tutorials.find(function(t) { return t.id === videoId; });
+      if (!tutorial) throw new Error('video_not_found');
+      if (visibility === 'teaser') tutorials.forEach(function(t) {
+        if (t.preview.visibility === 'teaser') t.preview.visibility = 'private';
+      });
+      tutorial.preview = { visibility: visibility, title: String(parameters.title).trim(),
+        label: String(parameters.label).trim(), order: order };
+      return tutorials;
+    });
+  }
   if (action === 'admin_list') {
     return adminDashboardResponse_(user, getTutorials_());
   }
@@ -398,7 +443,12 @@ function handleAdminAction_(action, parameters, user) {
     return mutateTutorials_(user, function(tutorials) {
       const index = tutorials.findIndex(function(item) { return item.id === videoId; });
       if (index === -1) throw new Error('video_not_found');
-      const target = direction === 'up' ? index - 1 : direction === 'down' ? index + 1 : index;
+      const library = String(parameters.library || 'all');
+      const step = direction === 'up' ? -1 : direction === 'down' ? 1 : 0;
+      let target = index + step;
+      if (step && [TUTORIAL_LIBRARY_CORE, TUTORIAL_LIBRARY_YOUNG].indexOf(library) !== -1) {
+        while (target >= 0 && target < tutorials.length && tutorials[target].libraries.indexOf(library) === -1) target += step;
+      }
       if (target >= 0 && target < tutorials.length && target !== index) {
         const moved = tutorials.splice(index, 1)[0];
         tutorials.splice(target, 0, moved);
@@ -917,7 +967,8 @@ function renumberTutorials_(tutorials) {
       id: String(tutorial.id || ''),
       number: 'Episode ' + String(index + 1).padStart(2, '0'),
       title: String(tutorial.title || ''),
-      libraries: normalizeTutorialLibraries_(tutorial)
+      libraries: normalizeTutorialLibraries_(tutorial),
+      preview: normalizePreview_(tutorial)
     };
   });
 }
@@ -962,7 +1013,8 @@ function getTutorials_() {
       id: String(tutorial.id || ''),
       number: String(tutorial.number || ''),
       title: String(tutorial.title || ''),
-      libraries: normalizeTutorialLibraries_(tutorial)
+      libraries: normalizeTutorialLibraries_(tutorial),
+      preview: normalizePreview_(tutorial)
     };
   }).filter(function(tutorial) {
     return tutorial.id && tutorial.number && tutorial.title;

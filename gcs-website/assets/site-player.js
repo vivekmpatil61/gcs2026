@@ -1,3 +1,17 @@
+  let playerReturnFocus = null;
+  let playerLoadTimer;
+  function setPlayerStatus(message, retry = false) {
+    document.getElementById('playerStatus').textContent = message;
+    document.getElementById('playerRetry').hidden = !retry;
+  }
+  function retryTutorialVideo() {
+    const id = currentVideoId;
+    if (!id) return;
+    if (youtubePlayer) youtubePlayer.destroy();
+    youtubePlayer = null;
+    youtubePlayerReady = false;
+    loadTutorialVideo(id);
+  }
   /* ── Active nav ── */
   const secs = document.querySelectorAll('section[id]');
   const navAs = document.querySelectorAll('.nav-links a');
@@ -9,12 +23,15 @@
 
   /* ── Modal player ── */
   function openPlayer(videoId) {
-    const tutorial = authorizedTutorials.get(videoId);
-    if (!activeAccessToken || !tutorial) {
+    const studentTutorial = activeAccessToken && authorizedTutorials.get(videoId);
+    const tutorial = studentTutorial || PUBLIC_TUTORIALS.get(videoId);
+    if (!tutorial) {
       clearTutorialAccess();
       showErr('Please sign in again to watch this tutorial.');
       return;
     }
+    if (!currentVideoId) playerReturnFocus = document.activeElement;
+    publicPlayback = !studentTutorial;
     currentVideoId = videoId;
     pendingYoutubeVideoId = videoId;
     document.getElementById('modalEp').textContent = tutorial.epNum;
@@ -23,6 +40,8 @@
     modalOverlay.classList.add('open');
     modalOverlay.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    document.querySelectorAll('#main-content > :not(#modalOverlay), body > nav, body > footer').forEach(element => { element.inert = true; });
+    document.querySelector('.modal-close').focus();
     resetCustomPlayerControls();
     loadTutorialVideo(videoId);
     updateProgressDisplay();
@@ -30,6 +49,13 @@
   }
 
   function openNextTutorial() {
+    if (publicPlayback) {
+      const ids = Array.from(PUBLIC_TUTORIALS.keys());
+      const next = ids[ids.indexOf(currentVideoId) + 1];
+      if (next) openPlayer(next);
+      else { closePlayer(null); showEnrolPrompt(); }
+      return;
+    }
     const libraryTutorials = allTutorials.filter(tutorial => tutorial.libraries.includes(activeLibrary));
     const currentIndex = libraryTutorials.findIndex(tutorial => tutorial.id === currentVideoId);
     const nextTutorial = libraryTutorials[currentIndex + 1];
@@ -39,6 +65,12 @@
   function updateModalNextButton() {
     const button = document.getElementById('modalNextBtn');
     if (!button) return;
+    if (publicPlayback) {
+      button.disabled = false;
+      const ids = Array.from(PUBLIC_TUTORIALS.keys());
+      button.textContent = currentVideoId === ids[ids.length - 1] ? 'Unlock the full library →' : 'Next free lesson →';
+      return;
+    }
     const libraryTutorials = allTutorials.filter(tutorial => tutorial.libraries.includes(activeLibrary));
     const currentIndex = libraryTutorials.findIndex(tutorial => tutorial.id === currentVideoId);
     const hasNext = currentIndex >= 0 && currentIndex < libraryTutorials.length - 1;
@@ -47,6 +79,9 @@
   }
 
   function loadTutorialVideo(videoId) {
+    setPlayerStatus('Loading lesson…');
+    clearTimeout(playerLoadTimer);
+    playerLoadTimer = setTimeout(() => setPlayerStatus('The lesson is taking longer to load. Check your connection and try again.', true), 15000);
     if (youtubePlayerReady && youtubePlayer && typeof youtubePlayer.loadVideoById === 'function') {
       captionsEnabled = false;
       if (typeof youtubePlayer.unloadModule === 'function') youtubePlayer.unloadModule('captions');
@@ -58,9 +93,13 @@
     }
 
     if (!(window.YT && typeof window.YT.Player === 'function')) {
-      window.setTimeout(() => {
-        if (currentVideoId === videoId) loadTutorialVideo(videoId);
-      }, 100);
+      const started = Date.now();
+      const check = () => {
+        if (currentVideoId !== videoId) return;
+        if (window.YT && typeof window.YT.Player === 'function') loadTutorialVideo(videoId);
+        else if (Date.now() - started < 15000) setTimeout(check, 250);
+      };
+      setTimeout(check, 250);
       return;
     }
 
@@ -80,6 +119,9 @@
       events: {
         onReady: event => {
           youtubePlayerReady = true;
+          if (!currentVideoId) { event.target.stopVideo(); return; }
+          clearTimeout(playerLoadTimer);
+          setPlayerStatus('');
           tutorialMuted = event.target.isMuted() || event.target.getVolume() === 0;
           if (event.target.getVolume() > 0) lastAudibleVolume = event.target.getVolume();
           const requestedVideoId = pendingYoutubeVideoId;
@@ -93,7 +135,15 @@
           window.setTimeout(populatePlaybackRates, 500);
           window.setTimeout(syncCaptionsWithPlayer, 800);
         },
+        onError: () => {
+          clearTimeout(playerLoadTimer);
+          setPlayerStatus('This lesson could not play. It may be unavailable or blocked by your connection. Please try again.', true);
+        },
         onStateChange: event => {
+          if (event.data === YT.PlayerState.PLAYING || event.data === YT.PlayerState.CUED) {
+            clearTimeout(playerLoadTimer);
+            setPlayerStatus('');
+          }
           updateCustomPlayerState();
           if (event.data === YT.PlayerState.PLAYING) {
             populatePlaybackRates();
@@ -459,6 +509,8 @@
 
   function closePlayer(e) {
     if (e && e.target !== document.getElementById('modalOverlay')) return;
+    clearTimeout(playerLoadTimer);
+    setPlayerStatus('');
     pendingYoutubeVideoId = '';
     window.clearInterval(playerProgressTimer);
     window.clearTimeout(playerControlsTimer);
@@ -472,7 +524,11 @@
     const player = document.querySelector('.modal-player');
     if (player) player.classList.remove('is-controls-hidden');
     document.body.style.overflow = '';
+    document.querySelectorAll('#main-content > :not(#modalOverlay), body > nav, body > footer').forEach(element => { element.inert = false; });
+    if (playerReturnFocus?.isConnected) playerReturnFocus.focus({ preventScroll: true });
+    playerReturnFocus = null;
     currentVideoId = '';
+    publicPlayback = false;
     tutorialPlaybackActive = false;
     resetCustomPlayerControls();
     updateProgressDisplay();
@@ -480,4 +536,13 @@
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closePlayer(null);
+  });
+
+  document.getElementById('modalOverlay').addEventListener('keydown', event => {
+    if (event.key !== 'Tab') return;
+    const items = Array.from(event.currentTarget.querySelectorAll('button, input, select, iframe, [tabindex="0"]'))
+      .filter(item => !item.disabled && !item.hidden && item.getClientRects().length);
+    const first = items[0], last = items[items.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   });

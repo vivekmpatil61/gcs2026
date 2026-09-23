@@ -1,0 +1,38 @@
+{
+  "previews": [
+    {
+      "title": "Drawing tools for beginners",
+      "label": "Materials",
+      "visibility": "free",
+      "thumbnail": "https://img.youtube.com/vi/naUyVYZzo2Y/mqdefault.jpg",
+      "id": "naUyVYZzo2Y"
+    },
+    {
+      "title": "11 shading mistakes every beginner makes",
+      "label": "Shading",
+      "visibility": "free",
+      "thumbnail": "https://img.youtube.com/vi/4p0U-0fJeZY/mqdefault.jpg",
+      "id": "4p0U-0fJeZY"
+    },
+    {
+      "title": "See shapes. Draw freehand.",
+      "label": "Freehand drawing",
+      "visibility": "free",
+      "thumbnail": "https://img.youtube.com/vi/NUo1ZeED4QA/mqdefault.jpg",
+      "id": "NUo1ZeED4QA"
+    },
+    {
+      "title": "How to draw a realistic eye",
+      "label": "Realistic drawing",
+      "visibility": "free",
+      "thumbnail": "https://img.youtube.com/vi/5ya3IiRJrk4/mqdefault.jpg",
+      "id": "5ya3IiRJrk4"
+    },
+    {
+      "title": "Grid method for beginners",
+      "label": "Inside the course",
+      "visibility": "teaser",
+      "thumbnail": "https://img.youtube.com/vi/snltJhqqrb0/mqdefault.jpg"
+    }
+  ]
+}

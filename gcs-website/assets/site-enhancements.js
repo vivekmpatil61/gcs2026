@@ -14,6 +14,7 @@
   ready(() => {
     enhanceArtworkViewer();
     enhanceNavigation();
+    enhanceMobileMenu();
     enhanceHeroDots();
     enhanceMotion();
   });
@@ -96,6 +97,23 @@
   function getArtworkCaption(item, image) {
     const visibleCaption = item.querySelector('.caption, figcaption');
     return (visibleCaption?.textContent || image.alt || 'Artwork').replace(/\s+/g, ' ').trim();
+  }
+
+  function enhanceMobileMenu() {
+    const button = document.querySelector('.nav-menu-toggle');
+    const links = document.getElementById('navLinks');
+    const close = () => { button.setAttribute('aria-expanded', 'false'); links.classList.remove('menu-open'); };
+    button.addEventListener('click', () => {
+      const open = button.getAttribute('aria-expanded') !== 'true';
+      button.setAttribute('aria-expanded', String(open));
+      links.classList.toggle('menu-open', open);
+    });
+    links.addEventListener('click', event => { if (event.target.closest('a')) close(); });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && button.getAttribute('aria-expanded') === 'true') { close(); button.focus(); }
+    });
+    document.addEventListener('click', event => { if (!event.target.closest('nav')) close(); });
+    window.matchMedia('(min-width: 1101px)').addEventListener('change', close);
   }
 
   function enhanceNavigation() {

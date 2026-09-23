@@ -7,6 +7,10 @@
     }
 
     let googleClient;
+    let adminExpiryTimer;
+    const libraryFilter = document.getElementById('libraryFilter');
+    libraryFilter.addEventListener('change', () => { pages.tutorials = 1; renderTutorials(); });
+    document.getElementById('refreshDashboard').addEventListener('click', refreshDashboard);
     let activeAccessToken = '';
     let currentTutorials = [];
     let currentStudents = [];
@@ -107,6 +111,8 @@
       try {
         const data = await adminRequest('admin_list');
         showDashboard(data);
+        clearTimeout(adminExpiryTimer);
+        adminExpiryTimer = setTimeout(expireAdminSession, Math.max(60, Number(response.expires_in) || 3000) * 1000);
       } catch (error) {
         activeAccessToken = '';
         setStatus(loginStatus, error.message, 'error');
@@ -126,7 +132,10 @@
       });
       if (!response.ok) throw new Error('The admin service is unavailable. Please try again.');
       const data = await response.json();
-      if (!data.approved || !data.admin) throw new Error(messageForCode(data.code));
+      if (!data.approved || !data.admin) {
+        if (['google_token_rejected', 'authorization_failed', 'missing_token'].includes(data.code)) expireAdminSession();
+        throw new Error(messageForCode(data.code));
+      }
       return data;
     }
 
@@ -145,6 +154,7 @@
     }
 
     function updateDashboardData(data) {
+      document.getElementById('dashboardUpdated').textContent = `Library and students updated ${new Date().toLocaleTimeString()}`;
       if (Array.isArray(data.tutorials)) currentTutorials = data.tutorials;
       if (Array.isArray(data.students)) currentStudents = data.students;
       if (Array.isArray(data.studentProfiles)) {
@@ -602,7 +612,7 @@
       setBusy(true);
       setStatus(adminStatus, action === 'admin_refresh' ? 'Refreshing the YouTube title...' : 'Updating the tutorial library...');
       try {
-        const data = await adminRequest(action, { videoId: videoId, direction: direction || '' });
+        const data = await adminRequest(action, { videoId: videoId, direction: direction || '', library: libraryFilter.value });
         updateDashboardData(data);
         renderTutorials();
         renderProgress();
@@ -634,8 +644,12 @@
       tutorialList.replaceChildren();
       document.getElementById('tutorialCount').textContent = `${currentTutorials.length} tutorial${currentTutorials.length === 1 ? '' : 's'}`;
       const query = tutorialSearch.value.trim().toLowerCase();
-      const filtered = currentTutorials.filter(tutorial =>
-        `${tutorial.number} ${tutorial.title} ${tutorial.id}`.toLowerCase().includes(query)
+      const libraryTutorials = libraryFilter.value === 'all' ? currentTutorials :
+        currentTutorials.filter(t => (t.libraries || ['core-studio']).includes(libraryFilter.value));
+      const numbered = libraryTutorials.map((tutorial, index) => ({ ...tutorial,
+        displayNumber: libraryFilter.value === 'all' ? `Catalogue ${tutorial.number}` : `Episode ${String(index + 1).padStart(2, '0')}` }));
+      const filtered = numbered.filter(tutorial =>
+        `${tutorial.displayNumber} ${tutorial.title} ${tutorial.id}`.toLowerCase().includes(query)
       );
       const page = getPage(filtered, 'tutorials');
       document.getElementById('tutorialResultCount').textContent = resultCount(filtered.length, currentTutorials.length);
@@ -650,7 +664,7 @@
       }
 
       page.items.forEach(tutorial => {
-        const index = currentTutorials.findIndex(item => item.id === tutorial.id);
+        const index = libraryTutorials.findIndex(item => item.id === tutorial.id);
         const row = document.createElement('article');
         row.className = 'tutorial';
 
@@ -662,7 +676,7 @@
         const details = document.createElement('div');
         const episode = document.createElement('p');
         episode.className = 'episode';
-        episode.textContent = tutorial.number;
+        episode.textContent = tutorial.displayNumber;
         const title = document.createElement('p');
         title.className = 'title';
         title.textContent = tutorial.title;
@@ -687,13 +701,13 @@
           ? 'both'
           : libraries.includes('young-artists') ? 'young-artists' : 'core-studio';
         library.addEventListener('change', () => updateTutorialLibrary(tutorial.id, library.value));
-        details.append(episode, title, id, library);
+        details.append(episode, title, id, library, createPreviewEditor(tutorial));
 
         const actions = document.createElement('div');
         actions.className = 'actions';
         actions.append(
           actionButton('Up', 'admin_move', tutorial.id, 'up', index === 0),
-          actionButton('Down', 'admin_move', tutorial.id, 'down', index === currentTutorials.length - 1),
+          actionButton('Down', 'admin_move', tutorial.id, 'down', index === libraryTutorials.length - 1),
           actionButton('Refresh', 'admin_refresh', tutorial.id),
           actionButton('Delete', 'admin_delete', tutorial.id, '', false, true)
         );
@@ -757,6 +771,7 @@
       button.className = `action-btn${danger ? ' delete-btn' : ''}`;
       button.textContent = label;
       button.disabled = Boolean(disabled);
+      button.dataset.locked = String(Boolean(disabled));
       if (disabled) button.dataset.locked = 'true';
       button.addEventListener('click', () => updateTutorial(action, videoId, direction));
       return button;
@@ -775,6 +790,7 @@
 
     function messageForCode(code) {
       const messages = {
+        invalid_preview: 'Enter a display title, topic and an order from 1 to 99.',
         admin_forbidden: 'This Google account is not the studio owner account.',
         authorization_failed: 'Google authorization failed. Please sign in again.',
         google_token_rejected: 'Google rejected this sign-in session. Sign out of Google, reopen this page, and try again.',
@@ -808,6 +824,7 @@
     }
 
     function signOut() {
+      clearTimeout(adminExpiryTimer);
       const token = activeAccessToken;
       activeAccessToken = '';
       currentTutorials = [];
@@ -843,4 +860,82 @@
       if (token && window.google && google.accounts && google.accounts.oauth2) {
         google.accounts.oauth2.revoke(token, function() {});
       }
+    }
+
+    function expireAdminSession() {
+      clearTimeout(adminExpiryTimer);
+      activeAccessToken = '';
+      dashboard.style.display = 'none';
+      loginPanel.style.display = 'block';
+      setStatus(loginStatus, 'Your session expired. Sign in again to reload the latest data.', 'error');
+      document.getElementById('googleSignIn').focus();
+    }
+
+    async function refreshDashboard() {
+      setBusy(true);
+      const label = document.getElementById('dashboardUpdated');
+      label.textContent = 'Refreshing…';
+      try {
+        const data = await adminRequest('admin_list');
+        updateDashboardData(data);
+        renderTutorials(); renderStudents(); renderProgress();
+        const registrations = await adminRequest('admin_registrations_list');
+        updateRegistrationData(registrations);
+        renderRegistrations();
+        label.textContent = `All data updated ${new Date().toLocaleTimeString()}`;
+      } catch (error) {
+        label.textContent = `Refresh incomplete: ${error.message}`;
+      } finally { setBusy(false); }
+    }
+
+    function createPreviewEditor(tutorial) {
+      const box = document.createElement('details');
+      box.className = 'preview-editor';
+      const summary = document.createElement('summary');
+      const preview = tutorial.preview;
+      summary.textContent = `Website preview · ${preview?.visibility || 'unavailable'}`;
+      box.append(summary);
+      if (!preview) {
+        const note = document.createElement('p');
+        note.textContent = 'Deploy the updated Apps Script to manage public previews.';
+        box.append(note);
+        return box;
+      }
+      const fields = {};
+      function field(key, labelText, type, value) {
+        const label = document.createElement('label');
+        label.textContent = labelText;
+        const input = document.createElement(type === 'select' ? 'select' : 'input');
+        if (type !== 'select') input.type = type;
+        if (type === 'select') [['private','Members only — no public card'],['free','Free full lesson'],['teaser','Locked teaser']].forEach(([value,text]) => {
+          const option = document.createElement('option'); option.value = value; option.textContent = text; input.append(option);
+        });
+        input.value = value;
+        if (type === 'number') { input.min = '1'; input.max = '99'; input.step = '1'; }
+        if (type === 'text') input.maxLength = key === 'label' ? 50 : 160;
+        input.required = true;
+        fields[key] = input;
+        label.append(input); box.append(label);
+      }
+      field('visibility', 'Public visibility', 'select', preview.visibility);
+      field('title', 'Display title', 'text', preview.title);
+      field('label', 'Topic label', 'text', preview.label);
+      field('order', 'Preview order (lowest first)', 'number', preview.order);
+      const note = document.createElement('p');
+      note.textContent = 'Free lessons play without sign-in. Selecting a locked teaser replaces the previous teaser. Changes appear after visitors reload.';
+      box.append(note);
+      const save = document.createElement('button'); save.type = 'button'; save.textContent = 'Save preview';
+      save.addEventListener('click', async () => {
+        if (!Object.values(fields).every(input => input.reportValidity())) return;
+        setBusy(true);
+        try {
+          const values = Object.fromEntries(Object.entries(fields).map(([key,input]) => [key,input.value]));
+          const data = await adminRequest('admin_preview', {videoId:tutorial.id, ...values});
+          updateDashboardData(data); renderTutorials();
+          setStatus(adminStatus, 'Website preview saved.', 'success');
+        } catch (error) { setStatus(adminStatus, error.message, 'error'); }
+        finally { setBusy(false); }
+      });
+      box.append(save);
+      return box;
     }
