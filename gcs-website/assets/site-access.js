@@ -189,7 +189,7 @@
 
       const image = document.createElement('img');
       image.className = 'ep-thumb-img';
-      image.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+      image.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg?v=20260923`;
       image.alt = `${epNum} tutorial thumbnail`;
       image.loading = 'lazy';
       image.decoding = 'async';
@@ -542,7 +542,7 @@
         card.className = 'ep-card preview-card';
         card.setAttribute('aria-label', `${free ? 'Watch free lesson' : 'Members only'}: ${preview.title}`);
         card.innerHTML = `<span class="ep-thumb"><img class="ep-thumb-img" alt="" loading="lazy" decoding="async"><span class="ep-thumb-overlay"><span class="ep-play-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${free ? 'M8 5v14l11-7z' : 'M7 10V7a5 5 0 0 1 10 0v3h1a2 2 0 0 1 2 2v8H4v-8a2 2 0 0 1 2-2zm2 0h6V7a3 3 0 0 0-6 0z'}"/></svg></span></span><span class="ep-badge"></span></span><span class="ep-body"><span class="ep-num"></span><span class="ep-title"></span><span class="ep-dur"></span></span>`;
-        card.querySelector('img').src = preview.thumbnail;
+        card.querySelector('img').src = `${preview.thumbnail}?v=20260923`;
         card.querySelector('.ep-badge').textContent = free ? 'Free lesson' : 'Members only';
         card.querySelector('.ep-num').textContent = preview.label;
         card.querySelector('.ep-title').textContent = preview.title;

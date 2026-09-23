@@ -669,7 +669,7 @@
         row.className = 'tutorial';
 
         const thumbnail = document.createElement('img');
-        thumbnail.src = `https://img.youtube.com/vi/${tutorial.id}/mqdefault.jpg`;
+        thumbnail.src = `https://img.youtube.com/vi/${tutorial.id}/mqdefault.jpg?v=20260923`;
         thumbnail.alt = `${tutorial.number} thumbnail`;
         thumbnail.loading = 'lazy';
 
