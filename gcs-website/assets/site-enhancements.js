@@ -96,7 +96,10 @@
 
   function getArtworkCaption(item, image) {
     const visibleCaption = item.querySelector('.caption, figcaption');
-    return (visibleCaption?.textContent || image.alt || 'Artwork').replace(/\s+/g, ' ').trim();
+    const text = visibleCaption
+      ? Array.from(visibleCaption.childNodes).map(node => node.textContent).join(' ')
+      : image.alt || 'Artwork';
+    return text.replace(/\s+/g, ' ').trim();
   }
 
   function enhanceMobileMenu() {
