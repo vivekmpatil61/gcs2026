@@ -45,6 +45,8 @@ Google Sign-In verifies the identity of students and the owner. Google gives the
 
 The website never receives or stores a Google password.
 
+An approved student's loaded library stays available in the current tab when the Google token expires, so expiry does not close a lecture or reset playback. Saving progress after expiry opens Google verification from the progress button and checks the same approved account again. Reloading the page requires sign-in; tokens are kept in memory only. Registration and admin verification retain their separate expiry handling.
+
 ### Google Apps Script
 
 `google-apps-script/Code.gs` is the secure backend. It runs on Google's servers and:

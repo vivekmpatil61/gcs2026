@@ -11,7 +11,8 @@
 
   let googleClient;
   let activeAccessToken = '';
-  let accessExpiryTimer;
+  let accessTokenExpiresAt = 0;
+  let studentTokenRenewal = null;
   let authorizedTutorials = new Map();
   let allTutorials = [];
   let activeLibrary = '';
@@ -71,11 +72,10 @@
           `Welcome, ${data.user.givenName || 'artist'}! Loading your tutorials...`;
         document.getElementById('pwWelcome').style.display = 'block';
 
-        window.clearTimeout(accessExpiryTimer);
-        accessExpiryTimer = window.setTimeout(() => {
-          clearTutorialAccess();
-          showErr('Your secure session expired. Please sign in again.');
-        }, Math.max(60, Number(data.expiresIn) || 3000) * 1000);
+        // Token expiry affects server requests, not an already authorised lecture.
+        accessTokenExpiresAt = Date.now() + Math.min(
+          Number(tokenResponse.expires_in) || 3000, Number(data.expiresIn) || 3000
+        ) * 1000;
 
         document.getElementById('publicPreview').hidden = true;
         document.getElementById('pwGate').style.display = 'none';
@@ -105,7 +105,7 @@
   }
 
   function clearTutorialAccess() {
-    window.clearTimeout(accessExpiryTimer);
+    accessTokenExpiresAt = 0;
     activeAccessToken = '';
     authorizedTutorials.clear();
     allTutorials = [];
@@ -126,6 +126,53 @@
     document.getElementById('pwErr').style.display = 'none';
     document.getElementById('vidUserAvatar').src = '';
     document.getElementById('vidUserEmail').textContent = '';
+  }
+
+  function renewStudentAccessToken() {
+    if (studentTokenRenewal) return studentTokenRenewal;
+    const previousToken = activeAccessToken;
+    const email = document.getElementById('vidUserEmail').textContent;
+    const renewal = new Promise((resolve, reject) => {
+      if (!window.google?.accounts?.oauth2) {
+        reject(new Error('Google sign-in is still loading. Please try again.'));
+        return;
+      }
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: 'openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+        hint: email,
+        error_callback: () => reject(new Error('Google verification was not completed. Click Mark complete to try again.')),
+        callback: async tokenResponse => {
+          try {
+            if (tokenResponse.error || !tokenResponse.access_token) {
+              throw new Error('Google verification was not completed. Click Mark complete to try again.');
+            }
+            const response = await fetch(SCRIPT_URL, {
+              method: 'POST',
+              body: new URLSearchParams({ accessToken: tokenResponse.access_token }),
+              signal: AbortSignal.timeout(15000)
+            });
+            if (!response.ok) throw new Error('Connection error. Please try again.');
+            const data = await response.json();
+            if (!data.approved || data.user?.email !== email) {
+              throw new Error('Please verify with the same approved Google account to save progress.');
+            }
+            if (!previousToken || activeAccessToken !== previousToken) {
+              throw new Error('Your sign-in changed. Please try again.');
+            }
+            activeAccessToken = tokenResponse.access_token;
+            accessTokenExpiresAt = Date.now() + Math.min(
+              Number(tokenResponse.expires_in) || 3000, Number(data.expiresIn) || 3000
+            ) * 1000;
+            resolve();
+          } catch (error) { reject(error); }
+        }
+      });
+      // Called from the progress button so browsers can open Google's verification.
+      client.requestAccessToken({ prompt: '' });
+    });
+    studentTokenRenewal = renewal.finally(() => { studentTokenRenewal = null; });
+    return studentTokenRenewal;
   }
 
   function renderTutorials(tutorials) {
@@ -244,6 +291,11 @@
     const shouldComplete = !completedTutorials.has(videoId);
     setProgressStatus(shouldComplete ? 'Saving lesson as complete...' : 'Updating your progress...');
     try {
+      if (Date.now() >= accessTokenExpiresAt - 30000) {
+        setProgressStatus('Verify with Google to save progress. Your lesson will stay open.');
+        await renewStudentAccessToken();
+      }
+      const requestToken = activeAccessToken;
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
@@ -256,7 +308,13 @@
       });
       if (!response.ok) throw new Error('progress_update_failed');
       const data = await response.json();
+      if (activeAccessToken !== requestToken) return;
       if (!data.approved || !Array.isArray(data.completedVideoIds)) {
+        if (['google_token_rejected', 'authorization_failed', 'missing_token'].includes(data.code)) {
+          accessTokenExpiresAt = 0;
+          setProgressStatus('Google verification expired. Click Mark complete again to verify and save. Your lesson will stay open.', true);
+          return;
+        }
         throw new Error(data.code || 'progress_update_failed');
       }
       completedTutorials = new Set(data.completedVideoIds);
@@ -265,7 +323,8 @@
     } catch (error) {
       const message = error.message === 'progress_busy'
         ? 'Another update is in progress. Please try again.'
-        : 'Progress could not be saved. Please try again.';
+        : error.message.startsWith('Google ') || error.message.startsWith('Please verify')
+          ? error.message : 'Progress could not be saved. Please try again.';
       setProgressStatus(message, true);
     }
   }
