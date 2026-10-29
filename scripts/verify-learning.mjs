@@ -2,9 +2,19 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
+const html = readFileSync('index.html', 'utf8');
+assert.match(html, /<div class="vid-lib" id="vidLib" hidden>/, 'student area must be hidden in the public HTML');
+assert.ok(!html.includes('id="continueLearning"'), 'the learning prompt must be removed');
+const studentStart = html.indexOf('id="vidLib"');
+const studentEnd = html.indexOf('</section>', studentStart);
+for (const id of ['lessonSearch', 'lessonCompletionFilter', 'lessonResultsCount', 'courseProgressCount', 'libraryCount-young-artists', 'libraryCount-core-studio']) {
+  const position = html.indexOf(`id="${id}"`);
+  assert.ok(position > studentStart && position < studentEnd, `${id} must remain inside the hidden student area`);
+}
+
 class Element {
   constructor() {
-    this.style = {}; this.dataset = {}; this.children = []; this.textContent = ''; this.hidden = false;
+    this.style = {}; this.dataset = {}; this.children = []; this.textContent = ''; this.hidden = false; this.listeners = {}; this.value = '';
     const classes = new Set();
     this.classList = { add: x => classes.add(x), remove: (...xs) => xs.forEach(x => classes.delete(x)),
       contains: x => classes.has(x), toggle: (x, on) => on ? classes.add(x) : classes.delete(x) };
@@ -13,9 +23,14 @@ class Element {
   append(...nodes) { this.children.push(...nodes); }
   appendChild(node) { this.children.push(node); }
   replaceChildren(...nodes) { this.children = nodes; }
-  addEventListener() {}
-  focus() {}
-  querySelector() { return new Element(); }
+  addEventListener(name, handler) { this.listeners[name] = handler; }
+  focus() { document.activeElement = this; }
+  contains(node) { return node === this || this.children.some(child => child.contains(node)); }
+  querySelector(selector) {
+    const descendants = this.children.flatMap(child => [child, ...child.descendants()]);
+    return descendants.find(child => child.className?.split(' ').includes(selector.slice(1))) || new Element();
+  }
+  descendants() { return this.children.flatMap(child => [child, ...child.descendants()]); }
 }
 const nodes = new Map();
 const get = id => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
@@ -36,7 +51,9 @@ const events = {};
 const YT = { Player: function (_id, config) { configuration = config; return player; },
   PlayerState: { UNSTARTED: -1, ENDED: 0, PLAYING: 1, PAUSED: 2, BUFFERING: 3, CUED: 5 } };
 const document = {
-  getElementById: get, querySelector: get, querySelectorAll: () => [], createElement: () => new Element(),
+  getElementById: get, querySelector: get,
+  querySelectorAll: selector => selector.includes('.ep-card[data-video-id]') ? get('episodeGrid').children : [],
+  createElement: () => new Element(),
   body: { style: {} }, addEventListener: (name, handler) => { events[name] = handler; }
 };
 const window = { YT, addEventListener: (name, handler) => { events[name] = handler; },
@@ -62,27 +79,27 @@ function login(email) {
   run("activeAccessToken = 'verified'; completedTutorials = new Set();");
   ctx.renderTutorials(tutorials);
 }
+function openSelectedLesson() {
+  const library = run('activeLibrary') || 'core-studio';
+  ctx.selectTutorialLibrary(library);
+  const lesson = tutorials.find(item => item.libraries.includes(library));
+  ctx.openPlayer(lesson.id);
+}
 login('first@example.test');
-assert.equal(get('continueLearning').hidden, false);
-assert.equal(get('continueLearningButton').textContent, 'Start your first lesson');
-ctx.continueStudentLearning();
+openSelectedLesson();
 assert.equal(run('activeLibrary'), 'core-studio');
 assert.equal(configuration.videoId, 'core0000001');
 configuration.events.onReady({ target: player });
 seconds = 125; now += 6000;
 ctx.updatePlayerProgress();
 ctx.closePlayer(null);
-assert.equal(get('continueLearningButton').textContent, 'Resume lesson');
-assert.match(get('continueLearningNote').textContent, /2:05/);
 assert.equal(storage.size, 1);
 assert.ok(![...storage.values()][0].includes('verified'), 'tokens must not be stored');
 
 // Fresh sign-in restores the approved account's position in an existing player.
 ctx.clearTutorialAccess();
-assert.equal(get('continueLearning').hidden, true);
-assert.equal(get('continueLearningLesson').textContent, '');
 login('FIRST@example.test');
-ctx.continueStudentLearning();
+openSelectedLesson();
 assert.deepEqual(loaded.at(-1), ['core0000001', 125]);
 
 // An old player's time must not be attributed to a newly selected lesson.
@@ -93,47 +110,42 @@ assert.equal(JSON.parse([...storage.values()][0]).videoId, 'core0000001');
 videoId = 'core0000002'; seconds = 42;
 ctx.saveStudentPlayback(true);
 ctx.closePlayer(null);
-assert.match(get('continueLearningLesson').textContent, /Shading/);
-assert.match(get('continueLearningNote').textContent, /0:42/);
 
 // Account switching hides the first student's history and restores it only on their sign-in.
 ctx.clearTutorialAccess();
 login('second@example.test');
-assert.equal(get('continueLearningButton').textContent, 'Start your first lesson');
+assert.equal(ctx.savedPlaybackStart('core0000002'), 0);
 ctx.clearTutorialAccess(); login('first@example.test');
-assert.match(get('continueLearningNote').textContent, /0:42/);
+assert.equal(ctx.savedPlaybackStart('core0000002'), 42);
 ctx.selectTutorialLibrary('young-artists');
-assert.match(get('continueLearningLesson').textContent, /Simple shapes/);
-ctx.continueStudentLearning();
+openSelectedLesson();
 assert.equal(loaded.at(-1)[0], 'young000001');
 
-// Finished lessons propose another incomplete lesson, without changing completion records.
+// Finishing playback does not change the manually maintained completion records.
 videoId = 'young000001'; seconds = 600; state = 0;
 ctx.saveStudentPlayback(true); ctx.closePlayer(null);
 assert.equal(run('completedTutorials.size'), 0);
+assert.equal(ctx.savedPlaybackStart('young000001'), 0);
 ctx.selectTutorialLibrary('core-studio');
-assert.match(get('continueLearningLesson').textContent, /Tools/);
 run("completedTutorials = new Set(['core0000001', 'core0000002']);");
 ctx.updateProgressDisplay();
-assert.equal(get('continueLearningTitle').textContent, 'Revisit a lesson');
 
 // Damaged or denied storage must never prevent access or open a removed/private lesson.
 ctx.clearTutorialAccess();
 const key = 'gcs:playback:v1:first%40example.test';
 storage.set(key, '{bad json'); login('first@example.test');
-assert.equal(get('continueLearningButton').textContent, 'Start your first lesson');
+assert.equal(ctx.savedPlaybackStart('core0000001'), 0);
 storage.set(key, JSON.stringify({ videoId: 'removed0001', library: 'core-studio', seconds: 70, duration: 600, finished: false }));
 login('first@example.test');
-assert.match(get('continueLearningLesson').textContent, /Tools/);
 storage.set(key, JSON.stringify({ videoId: 'core0000001', library: 'core-studio', seconds: -9, duration: 600, finished: false }));
 login('first@example.test');
 assert.equal(ctx.savedPlaybackStart('core0000001'), 0);
 blockedStorage = true;
 login('first@example.test');
-ctx.continueStudentLearning();
+openSelectedLesson();
 videoId = 'core0000001'; seconds = 33; state = 2;
 ctx.saveStudentPlayback(true); ctx.closePlayer(null);
-assert.match(get('continueLearningNote').textContent, /0:33/);
+assert.equal(ctx.savedPlaybackStart('core0000001'), 33);
 blockedStorage = false;
 
 // The public starting point follows the current public-preview permissions.
@@ -148,7 +160,7 @@ ctx.updateBeginnerStart(); assert.equal(get('beginnerStart').hidden, true);
 ctx.openBeginnerLesson(); assert.equal(run('currentVideoId'), '');
 
 // Hiding the tab persists a paused position even inside the normal write throttle.
-login('first@example.test'); ctx.continueStudentLearning();
+login('first@example.test'); openSelectedLesson();
 videoId = 'core0000001'; seconds = 177; state = 2;
 document.visibilityState = 'hidden'; events.visibilitychange();
 assert.equal(JSON.parse(storage.get(key)).seconds, 177);
@@ -157,11 +169,67 @@ assert.equal(JSON.parse(storage.get(key)).seconds, 177);
 // the latest requested lesson instead of replaying the first iframe's stale video.
 ctx.closePlayer(null); ctx.clearTutorialAccess();
 run('youtubePlayer = null; youtubePlayerReady = false;');
-login('first@example.test'); ctx.continueStudentLearning();
+login('first@example.test'); openSelectedLesson();
 assert.equal(configuration.playerVars.start, 177);
 assert.equal(configuration.videoId, 'core0000001');
 ctx.openPlayer('core0000002');
 configuration.events.onReady({ target: player });
 assert.deepEqual(loaded.at(-1), ['core0000002', 0]);
 assert.equal(JSON.parse(storage.get(key)).videoId, 'core0000001');
-console.log('✓ First lesson, playback restore, video-switch race, account isolation, library selection, finished lessons, storage failure and preview permissions verified');
+
+// Filtering keeps catalogue order/numbering and full-library progress intact.
+ctx.closePlayer(null); ctx.clearTutorialAccess(); login('filters@example.test');
+ctx.selectTutorialLibrary('core-studio');
+assert.equal(get('libraryCount-core-studio').textContent, '2 lessons');
+assert.equal(get('libraryCount-young-artists').textContent, '1 lesson');
+assert.equal(get('lessonResultsCount').textContent, 'Showing 2 of 2 lessons');
+run("completedTutorials = new Set(['core0000001']);"); ctx.updateProgressDisplay();
+get('lessonCompletionFilter').value = 'incomplete'; ctx.applyLessonFilters();
+const cards = get('episodeGrid').children;
+assert.equal(cards[0].hidden, true);
+assert.equal(cards[1].hidden, false);
+assert.match(cards[1]['aria-label'], /Episode 02/);
+assert.equal(get('courseProgressCount').textContent, '1 of 2 complete');
+assert.equal(get('lessonFilterIncomplete').textContent, 'Not completed (1)');
+assert.equal(get('lessonFilterCompleted').textContent, 'Completed (1)');
+get('lessonSearch').value = '  SHADING  '; ctx.applyLessonFilters();
+assert.equal(get('lessonResultsCount').textContent, 'Showing 1 of 2 lessons');
+assert.equal(get('lessonEmptyState').hidden, true);
+get('lessonCompletionFilter').value = 'completed'; ctx.applyLessonFilters();
+assert.equal(get('lessonResultsCount').textContent, 'Showing 0 of 2 lessons');
+assert.equal(get('lessonEmptyState').hidden, false);
+assert.match(get('lessonEmptyState').textContent, /No lessons match/);
+assert.equal(get('lessonFiltersReset').hidden, false);
+ctx.resetLessonFilters();
+assert.equal(document.activeElement, get('lessonSearch'));
+assert.equal(get('lessonFiltersReset').hidden, true);
+assert.equal(get('lessonResultsCount').textContent, 'Showing 2 of 2 lessons');
+
+// Marking complete inside a filtered view removes the card and preserves a usable focus.
+get('lessonCompletionFilter').value = 'incomplete'; ctx.applyLessonFilters();
+document.activeElement = cards[1].querySelector('.ep-complete-btn');
+run("completedTutorials.add('core0000002');"); ctx.updateProgressDisplay();
+assert.equal(cards[1].hidden, true);
+assert.equal(document.activeElement, get('lessonSearch'));
+assert.equal(get('lessonFilterCompleted').textContent, 'Completed (2)');
+assert.equal(get('lessonEmptyState').hidden, false);
+get('lessonCompletionFilter').value = 'completed'; ctx.applyLessonFilters();
+assert.equal(cards[1].hidden, false);
+run("completedTutorials.delete('core0000002');"); ctx.updateProgressDisplay();
+assert.equal(cards[1].hidden, true);
+
+// The nested completion button must not also trigger playback from bubbled key events.
+let prevented = false;
+cards[1].listeners.keydown({ target: cards[1].querySelector('.ep-complete-btn'), key: 'Enter', preventDefault() { prevented = true; } });
+assert.equal(prevented, false);
+assert.equal(run('currentVideoId'), '');
+get('lessonSearch').value = 'Shading';
+ctx.selectTutorialLibrary('young-artists');
+assert.equal(get('lessonSearch').value, '');
+assert.equal(get('lessonCompletionFilter').value, 'all');
+assert.equal(get('lessonResultsCount').textContent, 'Showing 1 of 1 lesson');
+assert.equal(get('libraryContentTitle').textContent, 'Young Artists Foundations');
+ctx.clearTutorialAccess();
+assert.equal(get('episodeGrid').children.length, 0);
+assert.equal(get('lessonResultsCount').textContent, '');
+console.log('✓ Playback restore, account isolation, preview permissions, search/filter combinations, counts, completion updates, keyboard focus and library resets verified');

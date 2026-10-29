@@ -125,9 +125,11 @@ Admin includes library filters with per-library episode numbers, preview control
 
 ## Progress flow
 
-After approval, the student area offers a first lesson or a **Continue learning** card. The last watched lesson and playback position are stored in this browser, separately for each verified email. Positions are saved during playback, on pause, on close, on sign-out and when leaving the page. Browser storage failure does not block playback; an in-memory position remains available for the current session. Saved IDs are matched against the freshly authorised catalogue before use. Playback positions do not sync between devices, and watching to the end does not automatically mark a lesson complete.
+Students choose lessons directly from their library. The last watched lesson and playback position are stored in this browser, separately for each verified email. Positions are saved during playback, on pause, on close, on sign-out and when leaving the page. Browser storage failure does not block playback; an in-memory position remains available for the current session. Saved IDs are matched against the freshly authorised catalogue before use. Playback positions do not sync between devices, and watching to the end does not automatically mark a lesson complete.
 
 The public **New here? Start here** card opens the existing materials lesson only while that video is included in the current free-preview response. Removing or restricting that preview also hides the starting-point card. Public enquiry buttons explain the personal follow-up process before enrolment.
+
+The student area is hidden by default and opens only after successful server-side approval. Each authorised library shows its lesson count, a title search and All / Not completed / Completed filters. Search and completion filters combine within the selected library; switching libraries clears them. The progress total and episode numbers always refer to the full library. Completing or undoing a lesson updates the visible results and filter counts. There are no Continue learning, first-lesson or revisit prompts in the student area.
 
 1. An approved student marks a tutorial complete.
 2. Apps Script confirms that the video belongs to the published catalogue.

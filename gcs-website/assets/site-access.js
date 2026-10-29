@@ -80,49 +80,6 @@
     } catch (_) { /* Keep the in-memory position even if storage is full or disabled. */ }
   }
 
-  function nextStudentLesson() {
-    const saved = studentPlaybackResume;
-    const available = allTutorials.filter(tutorial => !activeLibrary || tutorial.libraries.includes(activeLibrary));
-    const previous = available.find(tutorial => tutorial.id === saved?.videoId);
-    const library = activeLibrary || (previous && previous.libraries.includes(saved.library) ? saved.library
-      : available.some(tutorial => tutorial.libraries.includes('core-studio')) ? 'core-studio' : available[0]?.libraries[0]);
-    const tutorials = available.filter(tutorial => tutorial.libraries.includes(library));
-    if (!tutorials.length) return null;
-    const resume = tutorials.find(tutorial => tutorial.id === saved?.videoId);
-    if (resume && !saved.finished && !completedTutorials.has(resume.id)) return { tutorial: resume, library, seconds: saved.seconds, returning: true };
-    const next = tutorials.find(tutorial => !completedTutorials.has(tutorial.id)
-      && !(saved?.finished && tutorial.id === saved.videoId));
-    return { tutorial: next || tutorials[0], library, seconds: 0,
-      returning: Boolean(saved || tutorials.some(tutorial => completedTutorials.has(tutorial.id))), review: !next };
-  }
-
-  function updateContinueLearning() {
-    const card = document.getElementById('continueLearning');
-    const next = activeAccessToken && nextStudentLesson();
-    card.hidden = !next;
-    if (!next) {
-      document.getElementById('continueLearningLesson').textContent = '';
-      document.getElementById('continueLearningNote').textContent = '';
-      return;
-    }
-    const title = next.review ? 'Revisit a lesson' : next.returning ? 'Continue learning' : 'Start your first lesson';
-    document.getElementById('continueLearningTitle').textContent = title;
-    document.getElementById('continueLearningButton').textContent = next.seconds >= 5 ? 'Resume lesson' : title;
-    document.getElementById('continueLearningLabel').textContent = next.seconds >= 5 ? 'Pick up where you left off' : 'Your next step';
-    const libraryName = next.library === 'young-artists' ? 'Young Artists Foundations' : 'Core Studio Library';
-    document.getElementById('continueLearningLesson').textContent = `${libraryName} · ${next.tutorial.title}`;
-    document.getElementById('continueLearningNote').textContent = next.seconds >= 5
-      ? `Resume at ${formatPlayerTime(next.seconds)} · Playback position is saved on this browser.`
-      : 'Choose a library below if you would like a different starting point.';
-  }
-
-  function continueStudentLearning() {
-    const next = activeAccessToken && nextStudentLesson();
-    if (!next) return;
-    selectTutorialLibrary(next.library);
-    openPlayer(next.tutorial.id);
-  }
-
   function updateBeginnerStart() {
     document.getElementById('beginnerStart').hidden = !PUBLIC_TUTORIALS.has(BEGINNER_LESSON_ID);
   }
@@ -181,6 +138,7 @@
 
         document.getElementById('publicPreview').hidden = true;
         document.getElementById('pwGate').style.display = 'none';
+        document.getElementById('vidLib').hidden = false;
         document.getElementById('vidLib').classList.add('open');
         document.getElementById('videos').scrollIntoView({ behavior: 'smooth' });
       } else {
@@ -217,14 +175,15 @@
     activeLibrary = '';
     activeLibraryVideoIds.clear();
     completedTutorials.clear();
-    updateContinueLearning();
     currentVideoId = '';
     document.getElementById('episodeGrid').replaceChildren();
     document.getElementById('libraryContent').hidden = true;
+    resetLessonFilters(false);
     document.querySelectorAll('.library-choice').forEach(button => button.classList.remove('active'));
     updateProgressDisplay();
     setProgressStatus('');
     closePlayer(null);
+    document.getElementById('vidLib').hidden = true;
     document.getElementById('vidLib').classList.remove('open');
     document.getElementById('publicPreview').hidden = false;
     document.getElementById('pwGate').style.display = 'block';
@@ -289,6 +248,7 @@
     activeLibrary = '';
     activeLibraryVideoIds = new Set();
     document.getElementById('libraryContent').hidden = true;
+    resetLessonFilters(false);
     document.querySelectorAll('.library-choice').forEach(button => button.classList.remove('active'));
 
     tutorials.forEach(tutorial => {
@@ -308,6 +268,7 @@
 
   function selectTutorialLibrary(library) {
     if (library !== 'young-artists' && library !== 'core-studio') return;
+    if (activeLibrary !== library) resetLessonFilters(false);
     activeLibrary = library;
     document.querySelectorAll('.library-choice').forEach(button => {
       const active = button.dataset.library === library;
@@ -315,7 +276,51 @@
       button.setAttribute('aria-pressed', String(active));
     });
     document.getElementById('libraryContent').hidden = false;
+    document.getElementById('libraryContentTitle').textContent = library === 'young-artists'
+      ? 'Young Artists Foundations' : 'Core Studio Library';
     renderTutorialLibrary(allTutorials.filter(tutorial => tutorial.libraries.includes(library)));
+  }
+
+  function resetLessonFilters(focusSearch = true) {
+    document.getElementById('lessonSearch').value = '';
+    document.getElementById('lessonCompletionFilter').value = 'all';
+    applyLessonFilters();
+    if (focusSearch) document.getElementById('lessonSearch').focus();
+  }
+
+  function applyLessonFilters() {
+    const search = String(document.getElementById('lessonSearch').value || '').trim().toLocaleLowerCase();
+    const filter = document.getElementById('lessonCompletionFilter').value || 'all';
+    const cards = document.querySelectorAll('#episodeGrid .ep-card[data-video-id]');
+    let shown = 0;
+    cards.forEach(card => {
+      const complete = completedTutorials.has(card.dataset.videoId);
+      const matchesStatus = filter === 'all' || (filter === 'completed' ? complete : !complete);
+      card.hidden = !String(card.dataset.searchTitle || '').includes(search) || !matchesStatus;
+      if (card.hidden && card.contains(document.activeElement)) document.getElementById('lessonSearch').focus();
+      if (!card.hidden) shown++;
+    });
+    const total = activeLibraryVideoIds.size;
+    const completed = Array.from(activeLibraryVideoIds).filter(id => completedTutorials.has(id)).length;
+    document.getElementById('lessonFilterAll').textContent = `All (${total})`;
+    document.getElementById('lessonFilterIncomplete').textContent = `Not completed (${total - completed})`;
+    document.getElementById('lessonFilterCompleted').textContent = `Completed (${completed})`;
+    document.getElementById('lessonResultsCount').textContent = activeLibrary
+      ? `Showing ${shown} of ${total} ${total === 1 ? 'lesson' : 'lessons'}` : '';
+    const empty = document.getElementById('lessonEmptyState');
+    empty.hidden = !activeLibrary || shown > 0;
+    empty.textContent = !total ? 'Lessons for this library are being prepared. Please check back soon.'
+      : search ? 'No lessons match your search and filter. Try another title or clear the filters.'
+      : filter === 'completed' ? 'No completed lessons yet. Choose All to find your next lesson.'
+      : 'All lessons in this library are complete. Choose All to see the full library.';
+    document.getElementById('lessonFiltersReset').hidden = !search && filter === 'all';
+  }
+
+  function updateLibraryCounts() {
+    ['young-artists', 'core-studio'].forEach(library => {
+      const count = allTutorials.filter(tutorial => tutorial.libraries.includes(library)).length;
+      document.getElementById(`libraryCount-${library}`).textContent = `${count} ${count === 1 ? 'lesson' : 'lessons'}`;
+    });
   }
 
   function renderTutorialLibrary(tutorials) {
@@ -333,6 +338,7 @@
       const card = document.createElement('div');
       card.className = 'ep-card';
       card.dataset.videoId = videoId;
+      card.dataset.searchTitle = title.toLocaleLowerCase();
       card.setAttribute('role', 'button');
       card.setAttribute('tabindex', '0');
       card.setAttribute('aria-label', `${epNum}: ${title}`);
@@ -377,6 +383,7 @@
       card.append(thumb, body);
       card.addEventListener('click', () => openPlayer(videoId));
       card.addEventListener('keydown', event => {
+        if (event.target !== card) return;
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
           openPlayer(videoId);
@@ -440,7 +447,8 @@
   }
 
   function updateProgressDisplay() {
-    updateContinueLearning();
+    updateLibraryCounts();
+    applyLessonFilters();
     const total = activeLibraryVideoIds.size;
     const completed = Array.from(completedTutorials).filter(videoId => activeLibraryVideoIds.has(videoId)).length;
     const percent = total ? Math.round((completed / total) * 100) : 0;

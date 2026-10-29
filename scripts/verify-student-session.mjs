@@ -52,6 +52,7 @@ vm.runInContext(`
   updateProgressDisplay = () => {};
 `, context);
 await context.handleGoogleResponse({ access_token: 'original', expires_in: 3600 });
+assert.equal(element('vidLib').hidden, false, 'approved sign-in reveals student controls');
 vm.runInContext("currentVideoId = 'lesson00001'; activeLibrary = 'core-studio';", context);
 now = 3100 * 1000;
 assert.equal(timers, 0, 'token expiry must not schedule a forced logout');
@@ -87,6 +88,7 @@ library.user.email = 'student@example.test';
 
 const signingOut = context.toggleTutorialProgress('lesson00001');
 context.signOut();
+assert.equal(element('vidLib').hidden, true, 'sign-out hides all student controls');
 await popup.callback({ access_token: 'late-renewal' });
 await signingOut;
 assert.equal(vm.runInContext('activeAccessToken', context), '', 'late renewal cannot undo sign-out');
@@ -97,4 +99,9 @@ await context.toggleTutorialProgress('lesson00001');
 assert.match(element('courseProgressStatus').textContent, /verification expired/);
 assert.equal(vm.runInContext('accessTokenExpiresAt', context), 0);
 assert.equal(closed, 1, 'server rejection must not close playback');
+context.signOut();
+library.approved = false;
+await context.handleGoogleResponse({ access_token: 'not-approved', expires_in: 3600 });
+assert.equal(element('vidLib').hidden, true, 'an unapproved sign-in cannot reveal student controls');
+assert.equal(vm.runInContext('activeAccessToken', context), '');
 console.log('✓ Student expiry, progress renewal, cancellation, account mismatch, sign-out race and rejected-token recovery verified');
