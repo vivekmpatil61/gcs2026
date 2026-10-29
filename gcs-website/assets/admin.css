@@ -193,3 +193,36 @@
 .preview-editor input, .preview-editor select { display:block; width:100%; margin-top:0.35rem; padding:0.55rem; box-sizing:border-box; }
 .preview-editor p { font-size:0.8rem; line-height:1.6; margin:0.8rem 0; }
 .preview-editor button, #libraryFilter { padding:0.6rem; border-radius:6px; }
+
+[hidden] { display:none !important; }
+button,input,select,textarea { font:inherit; }
+button:focus-visible,summary:focus-visible { outline:3px solid var(--gold-dark); outline-offset:3px; }
+.overview { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0.6rem; margin:1.4rem 0; }
+.overview-card { padding:1rem; border:1px solid var(--border); border-radius:10px; background:var(--paper); color:var(--ink); text-align:left; font-size:0.8rem; line-height:1.5; }
+.overview-card strong { display:block; margin-top:0.4rem; font-size:1.6rem; }
+.overview-card:hover { border-color:var(--gold-dark); }
+.list-toolbar { flex-wrap:wrap; gap:0.65rem; }
+.list-toolbar > * { min-width:0; max-width:100%; }
+.student-detail { margin-top:1.5rem; overflow-wrap:anywhere; }
+.student-detail details { margin-top:1rem; }
+.student-detail li { margin-bottom:0.5rem; line-height:1.5; }
+.student-detail .registration-card + .registration-card { margin-top:1rem; }
+.student-row .student-identity { flex:1; }
+.detail-button { min-height:40px; }
+.progress-row .detail-button { margin-top:0.7rem; }
+.registration-actions { flex-wrap:wrap; flex-shrink:1; }
+.preview-editor textarea { display:block; width:100%; margin-top:0.4rem; padding:0.6rem; resize:vertical; border:1px solid var(--border); border-radius:6px; }
+.position-editor { display:flex; flex-wrap:wrap; align-items:end; gap:0.5rem; margin-top:0.8rem; }
+.position-editor label { font-size:0.75rem; color:var(--muted); }
+.position-editor input { display:block; width:5rem; padding:0.5rem; margin-top:0.3rem; border:1px solid var(--border); border-radius:6px; }
+@media(max-width:700px) {
+  .overview { grid-template-columns:1fr; }
+  .overview-card { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+  .overview-card strong { margin:0; }
+  .student-row { flex-wrap:wrap; }
+  .student-row .student-identity { flex-basis:100%; }
+  .registration-actions .detail-button { width:100%; }
+}
+
+.tutorial > div { min-width:0; }
+.tutorial .tutorial-library-select { width:100%; max-width:100%; }

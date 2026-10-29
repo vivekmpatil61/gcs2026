@@ -6,6 +6,9 @@
       window.location.replace(LIVE_ADMIN_URL);
     }
 
+    let enhancementsAvailable = false;
+    let detailEmail = '';
+    let detailReturnFocus;
     let googleClient;
     let adminExpiryTimer;
     const libraryFilter = document.getElementById('libraryFilter');
@@ -42,6 +45,8 @@
     const progressSearch = document.getElementById('progressSearch');
     const registrationSearch = document.getElementById('registrationSearch');
     const registrationFilter = document.getElementById('registrationFilter');
+    const progressFilter = document.getElementById('progressFilter');
+    const progressSort = document.getElementById('progressSort');
     const tabButtons = Array.from(document.querySelectorAll('.admin-tab'));
     const tabPanels = Array.from(document.querySelectorAll('.tab-panel'));
 
@@ -58,6 +63,16 @@
     progressSearch.addEventListener('input', () => { pages.progress = 1; renderProgress(); });
     registrationSearch.addEventListener('input', () => { pages.registrations = 1; renderRegistrations(); });
     registrationFilter.addEventListener('change', () => { pages.registrations = 1; renderRegistrations(); });
+
+    progressFilter.addEventListener('change', () => { pages.progress = 1; renderProgress(); });
+    progressSort.addEventListener('change', () => { pages.progress = 1; renderProgress(); });
+    document.getElementById('overviewNew').addEventListener('click', () => openRegistrationShortcut('New'));
+    document.getElementById('overviewFollowups').addEventListener('click', () => openRegistrationShortcut('Due'));
+    document.getElementById('overviewNoCompletions').addEventListener('click', () => {
+      progressSearch.value = ''; progressFilter.value = 'none'; pages.progress = 1;
+      switchAdminTab('progress'); renderProgress(); progressFilter.focus();
+    });
+    document.getElementById('closeStudentDetail').addEventListener('click', closeStudentDetail);
 
     function switchAdminTab(tabName, moveFocus = true) {
       tabButtons.forEach(button => {
@@ -155,6 +170,7 @@
 
     function updateDashboardData(data) {
       document.getElementById('dashboardUpdated').textContent = `Library and students updated ${new Date().toLocaleTimeString()}`;
+      if (typeof data.adminEnhancements === 'boolean') enhancementsAvailable = data.adminEnhancements;
       if (Array.isArray(data.tutorials)) currentTutorials = data.tutorials;
       if (Array.isArray(data.students)) currentStudents = data.students;
       if (Array.isArray(data.studentProfiles)) {
@@ -166,11 +182,16 @@
       document.getElementById('tutorialTabCount').textContent = String(currentTutorials.length);
       document.getElementById('studentTabCount').textContent = String(currentStudents.length);
       document.getElementById('progressTabCount').textContent = String(currentProgress.length);
+      renderOverview();
+      if (detailEmail) renderStudentDetail();
     }
 
     function updateRegistrationData(data) {
       if (Array.isArray(data.registrations)) currentRegistrations = data.registrations;
       registrationsLoaded = true;
+      if (typeof data.adminEnhancements === 'boolean') enhancementsAvailable = data.adminEnhancements;
+      renderOverview();
+      if (detailEmail) renderStudentDetail();
       document.getElementById('registrationTabCount').textContent = String(currentRegistrations.length);
       document.getElementById('registrationCount').textContent = `${currentRegistrations.length} total`;
     }
@@ -270,7 +291,7 @@
         revoke.className = 'revoke-btn';
         revoke.textContent = 'Revoke';
         revoke.addEventListener('click', () => removeStudent(student.email));
-        row.append(identity, revoke);
+        row.append(identity, detailButton(student.email), revoke);
         studentList.append(row);
       });
       renderPagination(document.getElementById('studentPagination'), 'students', filtered.length, renderStudents);
@@ -284,14 +305,21 @@
         ? Math.round(currentProgress.reduce((sum, student) => sum + Number(student.percent || 0), 0) / currentProgress.length)
         : 0;
 
-      document.getElementById('progressCount').textContent = `${started} of ${currentProgress.length} started`;
+      document.getElementById('progressCount').textContent = `${started} of ${currentProgress.length} with completions`;
       document.getElementById('startedStudents').textContent = String(started);
       document.getElementById('averageProgress').textContent = `${average}%`;
       document.getElementById('completedStudents').textContent = String(completed);
       const query = progressSearch.value.trim().toLowerCase();
-      const filtered = currentProgress.filter(student =>
-        `${student.name || ''} ${student.email || ''}`.toLowerCase().includes(query)
-      );
+      const filtered = currentProgress.filter(student => {
+        const state = completionState(student);
+        return `${student.name || ''} ${student.email || ''}`.toLowerCase().includes(query) &&
+          (!progressFilter.value || progressFilter.value === 'all' || progressFilter.value === state);
+      }).sort((a, b) => {
+        if (progressSort.value === 'name') return (a.name || a.email).localeCompare(b.name || b.email);
+        if (progressSort.value === 'most') return b.completedCount - a.completedCount;
+        if (progressSort.value === 'least') return a.completedCount - b.completedCount;
+        return (Date.parse(b.lastActivity) || 0) - (Date.parse(a.lastActivity) || 0);
+      });
       const page = getPage(filtered, 'progress');
       document.getElementById('progressResultCount').textContent = resultCount(filtered.length, currentProgress.length);
 
@@ -342,9 +370,9 @@
         const meta = document.createElement('p');
         meta.className = 'progress-meta';
         meta.textContent = student.lastActivity
-          ? `Last activity: ${formatActivity(student.lastActivity)}`
-          : 'Not started yet';
-        row.append(head, track, meta);
+          ? `Latest recorded completion: ${formatActivity(student.lastActivity)}`
+          : 'No recorded completions';
+        row.append(head, track, meta, detailButton(student.email));
         progressList.append(row);
       });
       renderPagination(document.getElementById('progressPagination'), 'progress', filtered.length, renderProgress);
@@ -374,7 +402,7 @@
           registration.subjects
         ].join(' ').toLowerCase();
         return (!query || searchable.includes(query)) &&
-          (statusFilter === 'All' || registration.status === statusFilter);
+          (statusFilter === 'All' || (statusFilter === 'Due' ? followupDue(registration) : registration.status === statusFilter));
       });
       const page = getPage(filtered, 'registrations');
       document.getElementById('registrationResultCount').textContent = resultCount(filtered.length, currentRegistrations.length);
@@ -454,7 +482,8 @@
         appendRegistrationDetail(details, 'Enjoys drawing', registration.subjects, '', true);
         appendRegistrationDetail(details, 'Questions or requests', registration.requests, '', true);
         appendRegistrationDetail(details, 'Recorded consent', registration.consent, '', true);
-        card.append(head, details);
+        actions.append(detailButton(registration.email));
+        card.append(head, details, createFollowupEditor(registration));
         registrationList.append(card);
       });
       renderPagination(document.getElementById('registrationPagination'), 'registrations', filtered.length, renderRegistrations);
@@ -712,6 +741,7 @@
           actionButton('Delete', 'admin_delete', tutorial.id, '', false, true)
         );
 
+        details.append(createPositionEditor(tutorial, index + 1, libraryTutorials.length));
         row.append(thumbnail, details, actions);
         tutorialList.append(row);
       });
@@ -778,7 +808,7 @@
     }
 
     function setBusy(isBusy) {
-      document.querySelectorAll('button,input,select').forEach(element => {
+      document.querySelectorAll('button,input,select,textarea').forEach(element => {
         element.disabled = isBusy || element.dataset.locked === 'true';
       });
     }
@@ -790,6 +820,8 @@
 
     function messageForCode(code) {
       const messages = {
+        invalid_followup: 'Enter a valid follow-up date and notes up to 3,000 characters.',
+        invalid_tutorial_position: 'Choose a position within the selected library.',
         invalid_preview: 'Enter a display title, topic and an order from 1 to 99.',
         admin_forbidden: 'This Google account is not the studio owner account.',
         authorization_failed: 'Google authorization failed. Please sign in again.',
@@ -824,6 +856,9 @@
     }
 
     function signOut() {
+      closeStudentDetail();
+      enhancementsAvailable = false;
+      progressFilter.value = 'all'; progressSort.value = 'recent';
       clearTimeout(adminExpiryTimer);
       const token = activeAccessToken;
       activeAccessToken = '';
@@ -863,6 +898,7 @@
     }
 
     function expireAdminSession() {
+      closeStudentDetail();
       clearTimeout(adminExpiryTimer);
       activeAccessToken = '';
       dashboard.style.display = 'none';
@@ -938,4 +974,126 @@
       });
       box.append(save);
       return box;
+    }
+
+    function completionState(student) {
+      if (!Number(student.completedCount)) return 'none';
+      return Number(student.totalCount) > 0 && student.completedCount >= student.totalCount ? 'completed' : 'progress';
+    }
+
+    function followupDue(registration) {
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      return Boolean(registration.followupDate && registration.followupDate <= today && !['Closed', 'Enrolled'].includes(registration.status));
+    }
+
+    function renderOverview() {
+      document.getElementById('overviewNewCount').textContent = registrationsLoaded ? String(currentRegistrations.filter(r => r.status === 'New').length) : 'Not loaded';
+      document.getElementById('overviewFollowupsCount').textContent = registrationsLoaded ? enhancementsAvailable ? String(currentRegistrations.filter(followupDue).length) : 'Update required' : 'Not loaded';
+      document.getElementById('overviewFollowups').disabled = !enhancementsAvailable;
+      document.getElementById('overviewFollowups').dataset.locked = String(!enhancementsAvailable);
+      document.getElementById('overviewNoCompletionsCount').textContent = String(currentProgress.filter(s => completionState(s) === 'none').length);
+    }
+
+    function openRegistrationShortcut(status) {
+      registrationSearch.value = ''; registrationFilter.value = status; pages.registrations = 1;
+      switchAdminTab('registrations'); renderRegistrations(); registrationFilter.focus();
+    }
+
+    function detailButton(email) {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'action-btn detail-button'; button.textContent = 'View details';
+      button.setAttribute('aria-label', `View details for ${email || 'registration'}`);
+      button.disabled = !email;
+      button.addEventListener('click', () => {
+        setStatus(document.getElementById('studentDetailStatus'), '');
+        detailReturnFocus = button; detailEmail = String(email).toLowerCase(); renderStudentDetail();
+        document.getElementById('studentDetailTitle').focus();
+        if (!registrationsLoaded && !registrationsLoading) loadRegistrations();
+      });
+      return button;
+    }
+
+    function closeStudentDetail() {
+      detailEmail = ''; document.getElementById('studentDetail').hidden = true;
+      document.getElementById('studentDetailContent').replaceChildren();
+      if (detailReturnFocus && detailReturnFocus.isConnected) detailReturnFocus.focus();
+      detailReturnFocus = null;
+    }
+
+    function renderStudentDetail() {
+      const container = document.getElementById('studentDetailContent'); container.replaceChildren();
+      document.getElementById('studentDetail').hidden = false;
+      const student = currentStudentProfiles.find(s => s.email.toLowerCase() === detailEmail);
+      const progress = currentProgress.find(s => s.email.toLowerCase() === detailEmail);
+      document.getElementById('studentDetailTitle').textContent = student && student.name || detailEmail;
+      const info = document.createElement('dl'); info.className = 'registration-details';
+      appendRegistrationDetail(info, 'Google email', detailEmail, 'email');
+      appendRegistrationDetail(info, 'Access', currentStudents.includes(detailEmail) ? 'Approved' : 'Not approved');
+      appendRegistrationDetail(info, 'Marked completed', progress ? `${progress.completedCount} of ${progress.totalCount} lessons` : 'No recorded completions');
+      appendRegistrationDetail(info, 'Latest recorded completion', progress && progress.lastActivity ? formatActivity(progress.lastActivity) : 'None');
+      container.append(info);
+      if (progress && Array.isArray(progress.completedVideoIds)) {
+        const lessons = document.createElement('details'); const summary = document.createElement('summary'); summary.textContent = 'Lesson completion details'; lessons.append(summary);
+        const list = document.createElement('ul');
+        currentTutorials.forEach(t => { const item = document.createElement('li'); item.textContent = `${progress.completedVideoIds.includes(t.id) ? 'Completed' : 'No completion recorded'} — ${t.title}`; list.append(item); });
+        lessons.append(list); container.append(lessons);
+      }
+      const registrations = currentRegistrations.filter(r => String(r.email).toLowerCase() === detailEmail);
+      const heading = document.createElement('h3'); heading.textContent = 'Registrations and follow-up'; container.append(heading);
+      if (!registrations.length) {
+        const empty = document.createElement('p'); empty.textContent = registrationsLoaded ? 'No matching registration found.' : 'Registration details have not loaded yet. Open Registrations to load or retry.'; container.append(empty);
+      }
+      registrations.forEach(r => {
+        const section = document.createElement('section'); section.className = 'registration-card';
+        const title = document.createElement('h3'); title.textContent = r.participantName || 'Registration';
+        const details = document.createElement('dl'); details.className = 'registration-details';
+        [['Status',r.status],['Submitted',formatRegistrationDate(r.timestamp)],['Age',r.age],['Parent or guardian',r.guardianName],['Preferred format',r.programme],['WhatsApp',r.whatsapp],['City / Country',r.location],['Experience',r.experience],['Enjoys drawing',r.subjects],['Questions or requests',r.requests]].forEach(([label,value]) => appendRegistrationDetail(details,label,value));
+        section.append(title,details,createFollowupEditor(r)); container.append(section);
+      });
+    }
+
+    function createFollowupEditor(registration) {
+      const box = document.createElement('details'); box.className = 'preview-editor';
+      const summary = document.createElement('summary'); summary.textContent = registration.followupDate ? `Private follow-up · ${registration.followupDate}${followupDue(registration) ? ' · Due' : ''}` : 'Private follow-up notes'; box.append(summary);
+      const form = document.createElement('form');
+      const notesLabel = document.createElement('label'); notesLabel.textContent = 'Private notes (up to 3,000 characters)';
+      const notes = document.createElement('textarea'); notes.value = registration.adminNotes || ''; notes.maxLength = 3000; notes.rows = 4; notesLabel.append(notes);
+      const dateLabel = document.createElement('label'); dateLabel.textContent = 'Next follow-up date (clear to remove)';
+      const date = document.createElement('input'); date.type = 'date'; date.value = registration.followupDate || ''; dateLabel.append(date);
+      const save = document.createElement('button'); save.type = 'submit'; save.className = 'action-btn'; save.textContent = 'Save follow-up';
+      const message = document.createElement('p'); message.setAttribute('role','status');
+      if (!enhancementsAvailable) { message.textContent = 'Deploy the updated Apps Script and refresh data to enable follow-up notes.'; save.disabled = true; save.dataset.locked = 'true'; }
+      form.append(notesLabel,dateLabel,save,message); box.append(form);
+      form.addEventListener('submit', async event => {
+        event.preventDefault(); if (!form.reportValidity() || !enhancementsAvailable) return;
+        setBusy(true); message.textContent = 'Saving…';
+        try {
+          const data = await adminRequest('admin_registration_followup', {rowNumber: registration.rowNumber, adminNotes: notes.value, followupDate: date.value});
+          updateRegistrationData(data); renderRegistrations(); setStatus(registrationStatus,'Private follow-up saved.','success');
+          if (detailEmail) { setStatus(document.getElementById('studentDetailStatus'),'Private follow-up saved.','success'); document.getElementById('studentDetailTitle').focus(); }
+        } catch (error) { message.textContent = error.message; }
+        finally { setBusy(false); }
+      });
+      return box;
+    }
+
+    function createPositionEditor(tutorial, position, total) {
+      const form = document.createElement('form'); form.className = 'position-editor';
+      const label = document.createElement('label'); label.textContent = libraryFilter.value === 'all' ? 'Catalogue position' : 'Episode position';
+      const input = document.createElement('input'); input.type = 'number'; input.setAttribute('aria-label', `Position for ${tutorial.title}`); input.min = 1; input.max = total; input.step = 1; input.required = true; input.value = position; label.append(input);
+      const button = document.createElement('button'); button.type = 'submit'; button.className = 'action-btn'; button.textContent = 'Move';
+      if (!enhancementsAvailable) { button.disabled = true; button.dataset.locked = 'true'; button.title = 'Deploy the updated Apps Script and refresh data to enable direct positioning.'; }
+      form.append(label,button);
+      form.addEventListener('submit', async event => {
+        event.preventDefault(); if (!form.reportValidity() || !enhancementsAvailable) return;
+        setBusy(true); setStatus(adminStatus,'Moving lesson…');
+        try {
+          const data = await adminRequest('admin_position',{videoId:tutorial.id,position:input.value,library:libraryFilter.value});
+          updateDashboardData(data); tutorialSearch.value = ''; pages.tutorials = Math.ceil(Number(input.value) / PAGE_SIZE);
+          renderTutorials(); setStatus(adminStatus,'Lesson position updated. Order is shared by lessons appearing in both libraries.','success');
+        } catch (error) { setStatus(adminStatus,error.message,'error'); }
+        finally { setBusy(false); }
+      });
+      return form;
     }

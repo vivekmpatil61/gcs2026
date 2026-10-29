@@ -157,3 +157,13 @@ Apps Script deployment IDs, spreadsheet IDs, private catalogue data and other se
 The ignored file `google-apps-script/tutorial-catalog.private.json` is local configuration and must never be committed.
 
 More detailed backend setup and deployment instructions are available in [google-apps-script/README.md](google-apps-script/README.md).
+
+### Admin workflow improvements
+
+The owner dashboard includes clickable shortcuts for new registrations, students with no recorded completions and follow-ups due. Progress can be filtered by completion state and sorted by latest completion, name or completion count. These figures describe student-marked completions, not viewing or watch-time analytics.
+
+`View details` combines an account's access status, registration responses and lesson completion records. Registrations sharing a Google email (for example, siblings) remain separate within that account view. Each registration has private notes and an optional follow-up date. Follow-ups due uses the owner's browser date and excludes Enrolled and Closed registrations; it does not send notifications or emails.
+
+Lessons can be moved directly to a catalogue position, or to an episode position within the selected library. Both libraries use one shared catalogue order, so moving a shared lesson can affect both libraries.
+
+Deploy the updated `google-apps-script/Code.gs` to the existing web-app deployment before publishing this admin update. Preserve all existing script properties, especially the live catalogue. The first follow-up save adds `Admin notes` and `Next follow-up date` columns to the existing response sheet. No public enquiry fields change. Direct positioning and follow-up editing remain disabled against older backend deployments; refresh data after updating the backend. No new OAuth permissions are required.

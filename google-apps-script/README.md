@@ -69,3 +69,11 @@ The private admin page summarizes this data for every approved student, includin
 ## Preview and registration update (version 22)
 
 Deploy `Code.gs` to the existing deployment before publishing the corresponding frontend. Keep the live `TUTORIAL_CATALOG_JSON` property intact; do not import the outdated local catalogue. Preview metadata is stored alongside each lesson and preserved during renumbering and title refreshes. The `public_previews` POST action needs no token and returns only free lessons and teaser display metadata. All admin actions still require verified owner identity. `admin_preview` controls visibility (`private`, `free`, `teaser`), title, topic label and order (1–99); only one teaser is selected through the admin editor. Removing a lesson removes it from the next preview response. Adult registrations may omit a guardian; participants under 18 must provide one.
+
+## Admin follow-up and positioning update
+
+Update `Code.gs` in the existing Apps Script project, then use Deploy → Manage deployments → Edit → New version → Deploy for the existing web app. Keep its URL and existing script properties unchanged. Do not import the local private catalogue. Deploy this backend before publishing the matching admin assets; refresh the admin data afterward.
+
+The owner-only `admin_registration_followup` action saves notes (up to 3,000 characters) and an optional ISO date (`YYYY-MM-DD`) against a registration row. It adds `Admin notes` and `Next follow-up date` columns as needed, stores text literally and leaves public form fields unchanged. Dates can be cleared. The dashboard counts due dates through the owner's browser date, excluding Closed and Enrolled registrations. This is an admin reminder list, with no automatic messages.
+
+The owner-only `admin_position` action moves a tutorial to a validated position within the chosen library or full catalogue. It uses the existing catalogue lock and preserves lesson IDs, metadata and library membership. Catalogue order is shared across libraries. Admin progress responses additionally include completed video IDs for the combined account details view. Student/public responses do not gain follow-up notes or other admin data. Existing Google authorization scopes suffice.

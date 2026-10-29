@@ -15,7 +15,7 @@ const SHARED_FOUNDATION_VIDEO_IDS = ['naUyVYZzo2Y', 'rGCoXfIMats', 'snltJhqqrb0'
 const DEFAULT_PUBLIC_PREVIEWS = {"naUyVYZzo2Y": {"visibility": "free", "label": "Materials", "title": "Drawing tools for beginners", "order": 1}, "4p0U-0fJeZY": {"visibility": "free", "label": "Shading", "title": "11 shading mistakes every beginner makes", "order": 2}, "NUo1ZeED4QA": {"visibility": "free", "label": "Freehand drawing", "title": "See shapes. Draw freehand.", "order": 3}, "5ya3IiRJrk4": {"visibility": "free", "label": "Realistic drawing", "title": "How to draw a realistic eye", "order": 4}, "snltJhqqrb0": {"visibility": "teaser", "label": "Inside the course", "title": "Grid method for beginners", "order": 5}};
 
 function doGet() {
-  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 22 });
+  return jsonResponse_({ ok: true, service: 'gcs-tutorial-access', version: 23 });
 }
 
 function doPost(event) {
@@ -363,6 +363,10 @@ function handleAdminAction_(action, parameters, user) {
     return adminRegistrationsResponse_(user);
   }
 
+  if (action === 'admin_registration_followup') {
+    return updateRegistrationFollowup_(user, parameters);
+  }
+
   if (action === 'admin_registration_status') {
     const rowNumber = Number(parameters.rowNumber);
     const status = String(parameters.status || '').trim();
@@ -437,6 +441,25 @@ function handleAdminAction_(action, parameters, user) {
     });
   }
 
+  if (action === 'admin_position') {
+    const videoId = normalizeYouTubeId_(parameters.videoId);
+    const library = String(parameters.library || 'all');
+    const position = Number(parameters.position);
+    if (['all', TUTORIAL_LIBRARY_CORE, TUTORIAL_LIBRARY_YOUNG].indexOf(library) === -1 ||
+        !Number.isInteger(position) || position < 1) return jsonResponse_({ approved: false, code: 'invalid_tutorial_position' });
+    return mutateTutorials_(user, function(tutorials) {
+      const visible = tutorials.filter(function(t) { return library === 'all' || t.libraries.indexOf(library) !== -1; });
+      const source = visible.findIndex(function(t) { return t.id === videoId; });
+      if (source === -1) throw new Error('video_not_found');
+      if (position > visible.length) throw new Error('invalid_tutorial_position');
+      const index = tutorials.findIndex(function(t) { return t.id === videoId; });
+      const target = tutorials.indexOf(visible[position - 1]);
+      const moved = tutorials.splice(index, 1)[0];
+      tutorials.splice(target, 0, moved);
+      return tutorials;
+    });
+  }
+
   if (action === 'admin_move') {
     const videoId = normalizeYouTubeId_(parameters.videoId);
     const direction = String(parameters.direction || '');
@@ -501,6 +524,7 @@ function adminDashboardPayload_(user, tutorials) {
   return {
     approved: true,
     admin: true,
+    adminEnhancements: true,
     user: {
       email: normalizeEmail_(user.email),
       givenName: String(user.given_name || ''),
@@ -520,6 +544,7 @@ function adminRegistrationsResponse_(user) {
     return jsonResponse_({
       approved: true,
       admin: true,
+      adminEnhancements: true,
       user: {
         email: normalizeEmail_(user.email),
         givenName: String(user.given_name || ''),
@@ -553,6 +578,8 @@ function getRegistrations_() {
     subjects: findHeaderColumn_(headers, ['what would the participant enjoy drawing', 'what subjects would the participant enjoy drawing most', 'drawing interests', 'subjects']),
     requests: findHeaderColumn_(headers, ['questions or special requests for vivek', 'any questions or special requests for vivek', 'questions or special requests', 'special requests']),
     consent: findHeaderColumn_(headers, ['consent']),
+    notes: findHeaderColumn_(headers, ['admin notes']),
+    followupDate: findHeaderColumn_(headers, ['next follow up date']),
     status: findHeaderColumn_(headers, ['follow up status', 'followup status', 'status'])
   };
 
@@ -560,6 +587,10 @@ function getRegistrations_() {
     const timestampValue = valueAt_(row, columns.timestamp);
     return {
       rowNumber: index + 2,
+      adminNotes: String(valueAt_(row, columns.notes) || ''),
+      followupDate: valueAt_(row, columns.followupDate) instanceof Date
+        ? Utilities.formatDate(valueAt_(row, columns.followupDate), sheet.getParent().getSpreadsheetTimeZone(), 'yyyy-MM-dd')
+        : String(valueAt_(row, columns.followupDate) || ''),
       timestamp: timestampValue instanceof Date ? timestampValue.toISOString() : String(timestampValue || ''),
       participantName: String(valueAt_(row, columns.participantName) || ''),
       age: String(valueAt_(row, columns.age) || ''),
@@ -577,6 +608,34 @@ function getRegistrations_() {
   }).filter(function(registration) {
     return registration.participantName || registration.email || registration.whatsapp;
   }).reverse();
+}
+
+function updateRegistrationFollowup_(user, parameters) {
+  const rowNumber = Number(parameters.rowNumber);
+  const notes = String(parameters.adminNotes || '').trim();
+  const date = String(parameters.followupDate || '');
+  if (!Number.isInteger(rowNumber) || rowNumber < 2) return jsonResponse_({ approved: false, code: 'registration_not_found' });
+  const parsed = new Date(date + 'T00:00:00Z');
+  if (notes.length > 3000 || (date && (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date))) {
+    return jsonResponse_({ approved: false, code: 'invalid_followup' });
+  }
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return jsonResponse_({ approved: false, code: 'registration_list_busy' });
+  try {
+    const sheet = getRegistrationSheet_();
+    if (rowNumber > sheet.getLastRow()) return jsonResponse_({ approved: false, code: 'registration_not_found' });
+    ['Admin notes', 'Next follow-up date'].forEach(function(label, index) {
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0].map(normalizeHeader_);
+      let column = headers.indexOf(normalizeHeader_(label));
+      if (column === -1) { column = sheet.getLastColumn(); sheet.getRange(1, column + 1).setValue(label); }
+      const value = index === 0 ? notes : date;
+      // Store owner text literally, including text starting with a formula marker.
+      sheet.getRange(rowNumber, column + 1).setNumberFormat('@').setValue(value.charAt(0) === '=' ? "'" + value : value);
+    });
+    return adminRegistrationsResponse_(user);
+  } catch (error) {
+    return jsonResponse_({ approved: false, code: 'registration_update_failed' });
+  } finally { lock.releaseLock(); }
 }
 
 function updateRegistrationStatus_(user, rowNumber, status) {
@@ -849,6 +908,7 @@ function getStudentProgressSummary_(students, tutorials, studentNames) {
     return {
       email: email,
       name: studentNames[email] || '',
+      completedVideoIds: progress ? Object.keys(progress.videoIds) : [],
       completedCount: completedCount,
       totalCount: totalCount,
       percent: totalCount ? Math.round(completedCount / totalCount * 100) : 0,

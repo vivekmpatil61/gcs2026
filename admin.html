@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <link rel="stylesheet" href="/gcs-website/assets/admin.css?v=20260923"/>
+  <link rel="stylesheet" href="/gcs-website/assets/admin.css?v=20261030-admin"/>
 </head>
 <body>
   <header class="topbar">
@@ -53,6 +53,11 @@
         <button class="primary-btn" id="refreshDashboard" type="button">Refresh data</button>
         <p id="dashboardUpdated" class="status" role="status">Not refreshed yet</p>
         <p class="intro">Manage tutorials, registrations, student access and learning progress without scrolling through one long page.</p>
+        <div class="overview" aria-label="Dashboard shortcuts">
+          <button class="overview-card" id="overviewNew" type="button">New registrations <strong id="overviewNewCount">Loading…</strong></button>
+          <button class="overview-card" id="overviewNoCompletions" type="button">No recorded completions <strong id="overviewNoCompletionsCount">0</strong></button>
+          <button class="overview-card" id="overviewFollowups" type="button">Follow-ups due <strong id="overviewFollowupsCount">Loading…</strong></button>
+        </div>
         <div class="admin-tabs" role="tablist" aria-label="Admin sections">
           <button class="admin-tab" id="tutorialsTab" type="button" role="tab" aria-selected="true" aria-controls="tutorialsPanel" data-tab="tutorials">Tutorials <span class="tab-count" id="tutorialTabCount">0</span></button>
           <button class="admin-tab" id="studentsTab" type="button" role="tab" aria-selected="false" aria-controls="studentsPanel" data-tab="students" tabindex="-1">Students <span class="tab-count" id="studentTabCount">0</span></button>
@@ -100,6 +105,7 @@
           <select id="libraryFilter" aria-label="Filter tutorials by library"><option value="all">All libraries</option><option value="core-studio">Core Studio Library</option><option value="young-artists">Young Artists Foundations</option></select>
           <span class="result-count" id="tutorialResultCount"></span>
         </div>
+        <p class="help">Choose a library to position lessons by episode. Lessons in both libraries share the same order.</p>
         <div class="tutorial-list" id="tutorialList"></div>
         <div class="pagination" id="tutorialPagination"></div>
       </section>
@@ -133,18 +139,20 @@
           <div class="dashboard-head">
             <div>
               <p class="eyebrow">Learning progress</p>
-              <h2>Student activity</h2>
+              <h2>Lesson completions</h2>
             </div>
             <span class="count" id="progressCount"></span>
           </div>
-          <p class="intro">Track how far each approved student has moved through the published tutorial library.</p>
+          <p class="intro">Progress reflects lessons students mark completed, not video views or watch time.</p>
           <div class="progress-summary">
-            <div class="progress-stat"><p class="progress-stat-value" id="startedStudents">0</p><p class="progress-stat-label">Students started</p></div>
+            <div class="progress-stat"><p class="progress-stat-value" id="startedStudents">0</p><p class="progress-stat-label">With recorded completions</p></div>
             <div class="progress-stat"><p class="progress-stat-value" id="averageProgress">0%</p><p class="progress-stat-label">Average progress</p></div>
             <div class="progress-stat"><p class="progress-stat-value" id="completedStudents">0</p><p class="progress-stat-label">Library completed</p></div>
           </div>
           <div class="list-toolbar">
             <input class="search-input" id="progressSearch" type="search" placeholder="Search student email" aria-label="Search student progress"/>
+            <select class="filter-select" id="progressFilter" aria-label="Filter lesson completions"><option value="all">All students</option><option value="none">No completions</option><option value="progress">In progress</option><option value="completed">Library completed</option></select>
+            <select class="filter-select" id="progressSort" aria-label="Sort lesson completions"><option value="recent">Latest completion</option><option value="name">Student name</option><option value="most">Most completed</option><option value="least">Fewest completed</option></select>
             <span class="result-count" id="progressResultCount"></span>
           </div>
           <div class="progress-list" id="progressList"></div>
@@ -171,6 +179,7 @@
               <option value="Contacted">Contacted</option>
               <option value="Enrolled">Enrolled</option>
               <option value="Closed">Closed</option>
+              <option value="Due">Follow-ups due</option>
             </select>
             <span class="result-count" id="registrationResultCount"></span>
           </div>
@@ -179,9 +188,14 @@
           <div class="pagination" id="registrationPagination"></div>
         </div>
       </section>
+      <section class="panel student-detail" id="studentDetail" hidden aria-labelledby="studentDetailTitle">
+        <div class="dashboard-head"><h2 id="studentDetailTitle" tabindex="-1">Student details</h2><button class="action-btn" id="closeStudentDetail" type="button">Close details</button></div>
+        <p class="status" id="studentDetailStatus" role="status"></p>
+        <div id="studentDetailContent"></div>
+      </section>
     </section>
   </main>
 
-  <script src="/gcs-website/assets/admin.js?v=20260923-thumbnails"></script>
+  <script src="/gcs-website/assets/admin.js?v=20261030-admin"></script>
 </body>
 </html>
