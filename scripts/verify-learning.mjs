@@ -148,16 +148,14 @@ ctx.saveStudentPlayback(true); ctx.closePlayer(null);
 assert.equal(ctx.savedPlaybackStart('core0000001'), 33);
 blockedStorage = false;
 
-// The public starting point follows the current public-preview permissions.
-run("PUBLIC_TUTORIALS.set(BEGINNER_LESSON_ID, {title: 'Tools', epNum: 'Free lesson'});");
-ctx.updateBeginnerStart(); assert.equal(get('beginnerStart').hidden, false);
-ctx.openBeginnerLesson(); assert.equal(run('currentVideoId'), 'naUyVYZzo2Y');
+// Public playback follows the current free-preview permissions.
+run("PUBLIC_TUTORIALS.set('naUyVYZzo2Y', {title: 'Tools', epNum: 'Free lesson'});");
+ctx.openPlayer('naUyVYZzo2Y'); assert.equal(run('currentVideoId'), 'naUyVYZzo2Y');
 const before = storage.size;
 ctx.saveStudentPlayback(true); assert.equal(storage.size, before);
 ctx.closePlayer(null);
 run('PUBLIC_TUTORIALS.clear();');
-ctx.updateBeginnerStart(); assert.equal(get('beginnerStart').hidden, true);
-ctx.openBeginnerLesson(); assert.equal(run('currentVideoId'), '');
+ctx.openPlayer('naUyVYZzo2Y'); assert.equal(run('currentVideoId'), '');
 
 // Hiding the tab persists a paused position even inside the normal write throttle.
 login('first@example.test'); openSelectedLesson();

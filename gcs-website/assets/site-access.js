@@ -29,7 +29,6 @@
   let captionsEnabled = false;
   let lastAudibleVolume = 100;
   let tutorialMuted = false;
-  const BEGINNER_LESSON_ID = 'naUyVYZzo2Y';
   let studentPlaybackKey = '';
   let studentPlaybackResume = null;
   let lastPlaybackWriteAt = 0;
@@ -78,14 +77,6 @@
       lastPlaybackWriteAt = Date.now();
       window.localStorage.setItem(studentPlaybackKey, JSON.stringify(studentPlaybackResume));
     } catch (_) { /* Keep the in-memory position even if storage is full or disabled. */ }
-  }
-
-  function updateBeginnerStart() {
-    document.getElementById('beginnerStart').hidden = !PUBLIC_TUTORIALS.has(BEGINNER_LESSON_ID);
-  }
-
-  function openBeginnerLesson() {
-    if (PUBLIC_TUTORIALS.has(BEGINNER_LESSON_ID)) openPlayer(BEGINNER_LESSON_ID);
   }
 
   function signInWithGoogle() {
@@ -697,7 +688,6 @@
     retry.hidden = true;
     grid.replaceChildren();
     PUBLIC_TUTORIALS.clear();
-    updateBeginnerStart();
     try {
       const local = ['localhost', '127.0.0.1'].includes(location.hostname);
       const response = await fetch(local ? '/gcs-website/assets/preview-demo.json' : SCRIPT_URL,
@@ -725,7 +715,6 @@
         card.addEventListener('click', () => free ? openPlayer(preview.id) : showEnrolPrompt());
         grid.append(card);
       });
-      updateBeginnerStart();
       status.textContent = grid.children.length ? '' : 'New previews are being prepared. Please check back soon.';
     } catch (error) {
       status.textContent = 'Free lessons could not be loaded. Please try again.';
