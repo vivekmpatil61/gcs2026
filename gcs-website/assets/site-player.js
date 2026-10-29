@@ -7,6 +7,7 @@
   function retryTutorialVideo() {
     const id = currentVideoId;
     if (!id) return;
+    saveStudentPlayback(true);
     if (youtubePlayer) youtubePlayer.destroy();
     youtubePlayer = null;
     youtubePlayerReady = false;
@@ -30,6 +31,7 @@
       showErr('Please sign in again to watch this tutorial.');
       return;
     }
+    saveStudentPlayback(true);
     if (!currentVideoId) playerReturnFocus = document.activeElement;
     publicPlayback = !studentTutorial;
     currentVideoId = videoId;
@@ -68,7 +70,7 @@
     if (publicPlayback) {
       button.disabled = false;
       const ids = Array.from(PUBLIC_TUTORIALS.keys());
-      button.textContent = currentVideoId === ids[ids.length - 1] ? 'Unlock the full library →' : 'Next free lesson →';
+      button.textContent = currentVideoId === ids[ids.length - 1] ? 'Enquire about joining →' : 'Next free lesson →';
       return;
     }
     const libraryTutorials = allTutorials.filter(tutorial => tutorial.libraries.includes(activeLibrary));
@@ -85,7 +87,7 @@
     if (youtubePlayerReady && youtubePlayer && typeof youtubePlayer.loadVideoById === 'function') {
       captionsEnabled = false;
       if (typeof youtubePlayer.unloadModule === 'function') youtubePlayer.unloadModule('captions');
-      youtubePlayer.loadVideoById(videoId);
+      youtubePlayer.loadVideoById(videoId, publicPlayback ? 0 : savedPlaybackStart(videoId));
       startPlayerProgressTimer();
       window.setTimeout(populatePlaybackRates, 500);
       window.setTimeout(syncCaptionsWithPlayer, 800);
@@ -109,6 +111,7 @@
       host: 'https://www.youtube-nocookie.com',
       videoId,
       playerVars: {
+        start: publicPlayback ? 0 : Math.floor(savedPlaybackStart(videoId)),
         autoplay: 1,
         controls: 0,
         disablekb: 1,
@@ -126,12 +129,13 @@
           if (event.target.getVolume() > 0) lastAudibleVolume = event.target.getVolume();
           const requestedVideoId = pendingYoutubeVideoId;
           if (requestedVideoId && requestedVideoId !== videoId) {
-            event.target.loadVideoById(requestedVideoId);
+            event.target.loadVideoById(requestedVideoId, publicPlayback ? 0 : savedPlaybackStart(requestedVideoId));
           } else {
             event.target.playVideo();
           }
           startPlayerProgressTimer();
           updateCustomPlayerState();
+          saveStudentPlayback(true);
           window.setTimeout(populatePlaybackRates, 500);
           window.setTimeout(syncCaptionsWithPlayer, 800);
         },
@@ -145,6 +149,7 @@
             setPlayerStatus('');
           }
           updateCustomPlayerState();
+          if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) saveStudentPlayback(true);
           if (event.data === YT.PlayerState.PLAYING) {
             populatePlaybackRates();
             window.setTimeout(syncCaptionsWithPlayer, 250);
@@ -402,6 +407,7 @@
       seek.value = String(current / duration * 100);
     }
     if (time) time.textContent = `${formatPlayerTime(current)} / ${formatPlayerTime(duration)}`;
+    saveStudentPlayback();
   }
 
   function formatPlayerTime(seconds) {
@@ -509,6 +515,7 @@
 
   function closePlayer(e) {
     if (e && e.target !== document.getElementById('modalOverlay')) return;
+    saveStudentPlayback(true);
     clearTimeout(playerLoadTimer);
     setPlayerStatus('');
     pendingYoutubeVideoId = '';
@@ -536,6 +543,11 @@
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closePlayer(null);
+  });
+
+  window.addEventListener('pagehide', () => saveStudentPlayback(true));
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveStudentPlayback(true);
   });
 
   document.getElementById('modalOverlay').addEventListener('keydown', event => {

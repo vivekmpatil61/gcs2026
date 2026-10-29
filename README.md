@@ -125,6 +125,10 @@ Admin includes library filters with per-library episode numbers, preview control
 
 ## Progress flow
 
+After approval, the student area offers a first lesson or a **Continue learning** card. The last watched lesson and playback position are stored in this browser, separately for each verified email. Positions are saved during playback, on pause, on close, on sign-out and when leaving the page. Browser storage failure does not block playback; an in-memory position remains available for the current session. Saved IDs are matched against the freshly authorised catalogue before use. Playback positions do not sync between devices, and watching to the end does not automatically mark a lesson complete.
+
+The public **New here? Start here** card opens the existing materials lesson only while that video is included in the current free-preview response. Removing or restricting that preview also hides the starting-point card. Public enquiry buttons explain the personal follow-up process before enrolment.
+
 1. An approved student marks a tutorial complete.
 2. Apps Script confirms that the video belongs to the published catalogue.
 3. The student name, verified email, episode number, video ID, title and completion time are stored in `Tutorial progress`. The verified email is shown as the student label when no registration name is available.

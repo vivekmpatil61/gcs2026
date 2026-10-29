@@ -29,6 +29,107 @@
   let captionsEnabled = false;
   let lastAudibleVolume = 100;
   let tutorialMuted = false;
+  const BEGINNER_LESSON_ID = 'naUyVYZzo2Y';
+  let studentPlaybackKey = '';
+  let studentPlaybackResume = null;
+  let lastPlaybackWriteAt = 0;
+
+  function loadStudentPlayback(email) {
+    studentPlaybackKey = email ? `gcs:playback:v1:${encodeURIComponent(email.toLowerCase())}` : '';
+    studentPlaybackResume = null;
+    lastPlaybackWriteAt = 0;
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(studentPlaybackKey));
+      if (saved && /^[A-Za-z0-9_-]{11}$/.test(saved.videoId)
+          && ['young-artists', 'core-studio'].includes(saved.library)
+          && Number.isFinite(saved.seconds) && saved.seconds >= 0
+          && Number.isFinite(saved.duration) && saved.duration > 0 && saved.seconds <= saved.duration
+          && typeof saved.finished === 'boolean') {
+        studentPlaybackResume = saved;
+      }
+    } catch (_) { /* Playback remains available when browser storage is unavailable. */ }
+  }
+
+  function savedPlaybackStart(videoId) {
+    return studentPlaybackResume?.videoId === videoId && !studentPlaybackResume.finished
+      && !completedTutorials.has(videoId) ? studentPlaybackResume.seconds : 0;
+  }
+
+  function saveStudentPlayback(force = false) {
+    if (!studentPlaybackKey || !activeAccessToken || publicPlayback || !currentVideoId
+        || !authorizedTutorials.has(currentVideoId) || !youtubePlayerReady || !youtubePlayer) return;
+    if (!force && Date.now() - lastPlaybackWriteAt < 5000) return;
+    try {
+      // A late event from the previous video must not overwrite the new lesson's position.
+      if (new URL(youtubePlayer.getVideoUrl()).searchParams.get('v') !== currentVideoId) return;
+      const state = youtubePlayer.getPlayerState();
+      if (![0, 1, 2].includes(state)) return;
+      const seconds = Number(youtubePlayer.getCurrentTime());
+      const duration = Number(youtubePlayer.getDuration());
+      if (!Number.isFinite(seconds) || seconds < 0 || !Number.isFinite(duration) || duration <= 0) return;
+      const tutorial = allTutorials.find(item => item.id === currentVideoId);
+      if (!tutorial) return;
+      studentPlaybackResume = {
+        videoId: currentVideoId,
+        library: tutorial.libraries.includes(activeLibrary) ? activeLibrary : tutorial.libraries[0],
+        seconds: Math.min(seconds, duration), duration,
+        finished: state === 0 || seconds >= duration - 2
+      };
+      lastPlaybackWriteAt = Date.now();
+      window.localStorage.setItem(studentPlaybackKey, JSON.stringify(studentPlaybackResume));
+    } catch (_) { /* Keep the in-memory position even if storage is full or disabled. */ }
+  }
+
+  function nextStudentLesson() {
+    const saved = studentPlaybackResume;
+    const available = allTutorials.filter(tutorial => !activeLibrary || tutorial.libraries.includes(activeLibrary));
+    const previous = available.find(tutorial => tutorial.id === saved?.videoId);
+    const library = activeLibrary || (previous && previous.libraries.includes(saved.library) ? saved.library
+      : available.some(tutorial => tutorial.libraries.includes('core-studio')) ? 'core-studio' : available[0]?.libraries[0]);
+    const tutorials = available.filter(tutorial => tutorial.libraries.includes(library));
+    if (!tutorials.length) return null;
+    const resume = tutorials.find(tutorial => tutorial.id === saved?.videoId);
+    if (resume && !saved.finished && !completedTutorials.has(resume.id)) return { tutorial: resume, library, seconds: saved.seconds, returning: true };
+    const next = tutorials.find(tutorial => !completedTutorials.has(tutorial.id)
+      && !(saved?.finished && tutorial.id === saved.videoId));
+    return { tutorial: next || tutorials[0], library, seconds: 0,
+      returning: Boolean(saved || tutorials.some(tutorial => completedTutorials.has(tutorial.id))), review: !next };
+  }
+
+  function updateContinueLearning() {
+    const card = document.getElementById('continueLearning');
+    const next = activeAccessToken && nextStudentLesson();
+    card.hidden = !next;
+    if (!next) {
+      document.getElementById('continueLearningLesson').textContent = '';
+      document.getElementById('continueLearningNote').textContent = '';
+      return;
+    }
+    const title = next.review ? 'Revisit a lesson' : next.returning ? 'Continue learning' : 'Start your first lesson';
+    document.getElementById('continueLearningTitle').textContent = title;
+    document.getElementById('continueLearningButton').textContent = next.seconds >= 5 ? 'Resume lesson' : title;
+    document.getElementById('continueLearningLabel').textContent = next.seconds >= 5 ? 'Pick up where you left off' : 'Your next step';
+    const libraryName = next.library === 'young-artists' ? 'Young Artists Foundations' : 'Core Studio Library';
+    document.getElementById('continueLearningLesson').textContent = `${libraryName} · ${next.tutorial.title}`;
+    document.getElementById('continueLearningNote').textContent = next.seconds >= 5
+      ? `Resume at ${formatPlayerTime(next.seconds)} · Playback position is saved on this browser.`
+      : 'Choose a library below if you would like a different starting point.';
+  }
+
+  function continueStudentLearning() {
+    const next = activeAccessToken && nextStudentLesson();
+    if (!next) return;
+    selectTutorialLibrary(next.library);
+    openPlayer(next.tutorial.id);
+  }
+
+  function updateBeginnerStart() {
+    document.getElementById('beginnerStart').hidden = !PUBLIC_TUTORIALS.has(BEGINNER_LESSON_ID);
+  }
+
+  function openBeginnerLesson() {
+    if (PUBLIC_TUTORIALS.has(BEGINNER_LESSON_ID)) openPlayer(BEGINNER_LESSON_ID);
+  }
 
   function signInWithGoogle() {
     if (!window.google?.accounts?.oauth2) { showErr("Google sign-in is still loading. Please try again."); return; }
@@ -64,6 +165,7 @@
       if (data.approved && data.user && Array.isArray(data.tutorials)) {
         activeAccessToken = tokenResponse.access_token;
         completedTutorials = new Set(Array.isArray(data.completedVideoIds) ? data.completedVideoIds : []);
+        loadStudentPlayback(data.user.email || '');
         renderTutorials(data.tutorials);
         document.getElementById('vidUserAvatar').src = data.user.picture || '';
         document.getElementById('vidUserEmail').textContent = data.user.email || '';
@@ -105,6 +207,9 @@
   }
 
   function clearTutorialAccess() {
+    saveStudentPlayback(true);
+    studentPlaybackKey = '';
+    studentPlaybackResume = null;
     accessTokenExpiresAt = 0;
     activeAccessToken = '';
     authorizedTutorials.clear();
@@ -112,6 +217,7 @@
     activeLibrary = '';
     activeLibraryVideoIds.clear();
     completedTutorials.clear();
+    updateContinueLearning();
     currentVideoId = '';
     document.getElementById('episodeGrid').replaceChildren();
     document.getElementById('libraryContent').hidden = true;
@@ -334,6 +440,7 @@
   }
 
   function updateProgressDisplay() {
+    updateContinueLearning();
     const total = activeLibraryVideoIds.size;
     const completed = Array.from(completedTutorials).filter(videoId => activeLibraryVideoIds.has(videoId)).length;
     const percent = total ? Math.round((completed / total) * 100) : 0;
@@ -582,6 +689,7 @@
     retry.hidden = true;
     grid.replaceChildren();
     PUBLIC_TUTORIALS.clear();
+    updateBeginnerStart();
     try {
       const local = ['localhost', '127.0.0.1'].includes(location.hostname);
       const response = await fetch(local ? '/gcs-website/assets/preview-demo.json' : SCRIPT_URL,
@@ -605,10 +713,11 @@
         card.querySelector('.ep-badge').textContent = free ? 'Free lesson' : 'Members only';
         card.querySelector('.ep-num').textContent = preview.label;
         card.querySelector('.ep-title').textContent = preview.title;
-        card.querySelector('.ep-dur').textContent = free ? 'Watch the full lesson, no sign-in needed.' : 'Enrol to unlock this lesson and the full library.';
+        card.querySelector('.ep-dur').textContent = free ? 'Watch the full lesson, no sign-in needed.' : 'Included in the full library. Enquire about joining.';
         card.addEventListener('click', () => free ? openPlayer(preview.id) : showEnrolPrompt());
         grid.append(card);
       });
+      updateBeginnerStart();
       status.textContent = grid.children.length ? '' : 'New previews are being prepared. Please check back soon.';
     } catch (error) {
       status.textContent = 'Free lessons could not be loaded. Please try again.';

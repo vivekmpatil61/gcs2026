@@ -124,7 +124,7 @@
     ]
   }
   </script>
-  <link rel="stylesheet" href="/gcs-website/assets/site.css?v=20260923-family-stories"/>
+  <link rel="stylesheet" href="/gcs-website/assets/site.css?v=20261030-learning"/>
   <link rel="stylesheet" href="/gcs-website/assets/site-enhancements.css?v=20260923"/>
 </head>
 <body>
@@ -144,7 +144,7 @@
   </ul>
   <div style="display:flex;align-items:center;gap:0.6rem;">
     <a class="nav-student-btn" href="#pwGate">Student Login</a>
-    <a class="nav-cta" href="#registration">Enrol Now</a>
+    <a class="nav-cta" href="#registration" aria-label="Enquire about joining"><span class="nav-cta-full">Enquire about joining</span><span class="nav-cta-short" aria-hidden="true">Enquire</span></a>
   </div>
 </nav>
 
@@ -502,8 +502,17 @@
 <section id="videos">
   <p class="lbl">Video Library</p>
   <h2>Get a feel for learning with me.</h2>
-  <p>Watch free lessons from Core Studio and explore my step-by-step teaching style. Enrol when you’re ready for the full video library.</p>
+  <p>Watch free lessons from Core Studio and explore my step-by-step teaching style. Enquire when you’re ready to learn more about joining.</p>
   <div id="publicPreview" class="public-preview">
+    <article id="beginnerStart" class="learning-welcome" aria-labelledby="beginnerStartTitle" hidden>
+      <div class="learning-welcome-copy">
+        <p class="learning-welcome-label">New here? Start here</p>
+        <h3 id="beginnerStartTitle">Tools &amp; Materials</h3>
+        <p>Get to know the pencils, paper and simple tools we’ll use before you begin drawing.</p>
+        <p class="learning-welcome-note">Free lesson · No sign-in needed</p>
+      </div>
+      <button id="beginnerStartButton" type="button" class="btn btn-gold" onclick="openBeginnerLesson()">Watch the materials lesson</button>
+    </article>
     <div class="ep-grid" id="publicPreviewGrid" aria-label="Free lessons and a preview of the course"></div>
     <p id="previewStatus" role="status">Loading free lessons…</p>
     <button id="previewRetry" type="button" hidden>Try again</button>
@@ -512,9 +521,9 @@
   <dialog id="enrolDialog" class="enrol-dialog" aria-labelledby="enrolDialogTitle" aria-describedby="enrolDialogDescription">
     <form method="dialog"><button class="enrol-dialog-close" aria-label="Close enrolment prompt">✕</button></form>
     <p class="lbl">Keep learning</p>
-    <h3 id="enrolDialogTitle">Your next lesson is waiting.</h3>
-    <p id="enrolDialogDescription">Enrol in the course to unlock this lesson and get lifetime access to the full video library. Learn at your own pace, with guidance every step of the way.</p>
-    <a href="#registration" class="btn btn-gold" onclick="document.getElementById('enrolDialog').close(); chooseProgramme('access');">Enrol for full library access</a>
+    <h3 id="enrolDialogTitle">Interested in the full library?</h3>
+    <p id="enrolDialogDescription">Send an enquiry and Vivek will personally share pricing, availability and joining details. Once enrolled, you’ll have lifetime access to the full video library.</p>
+    <a href="#registration" class="btn btn-gold" onclick="document.getElementById('enrolDialog').close(); chooseProgramme('access');">Enquire about joining</a>
   </dialog>
   <div class="pw-gate" id="pwGate">
     <h3>Student Access</h3>
@@ -540,6 +549,15 @@
       </div>
       <button class="vid-signout-btn" onclick="signOut()">Sign out</button>
     </div>
+    <article id="continueLearning" class="learning-welcome" aria-labelledby="continueLearningTitle" hidden>
+      <div class="learning-welcome-copy">
+        <p id="continueLearningLabel" class="learning-welcome-label">Your next step</p>
+        <h3 id="continueLearningTitle">Start your first lesson</h3>
+        <p id="continueLearningLesson"></p>
+        <p id="continueLearningNote" class="learning-welcome-note"></p>
+      </div>
+      <button id="continueLearningButton" type="button" class="btn btn-gold" onclick="continueStudentLearning()">Start your first lesson</button>
+    </article>
     <div class="materials-resource">
       <div class="materials-resource-copy">
         <span class="materials-resource-icon" aria-hidden="true">
@@ -553,14 +571,16 @@
       <a class="materials-resource-link" href="https://docs.google.com/document/d/1xvKbKF3e7_p03yPmSZZ21ymrUfmQ4Qu_CKJvb3kqhAs/edit?tab=t.0" target="_blank" rel="noopener noreferrer">View materials list ↗</a>
     </div>
     <div class="library-chooser" id="libraryChooser" role="group" aria-label="Tutorial libraries">
-      <button class="library-choice" type="button" data-library="young-artists" onclick="selectTutorialLibrary('young-artists')" aria-label="Young Artists Foundations">
+      <button class="library-choice" type="button" data-library="young-artists" onclick="selectTutorialLibrary('young-artists')" aria-label="Young Artists Foundations for children aged 5 to 8">
         <span class="library-choice-index">01</span>
         <span class="library-choice-title">Young Artists Foundations</span>
+        <span class="library-choice-description">For children aged 5–8. Build confidence with lines, shapes and shading through gentle, step-by-step lessons.</span>
         <span class="library-choice-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span>
       </button>
       <button class="library-choice" type="button" data-library="core-studio" onclick="selectTutorialLibrary('core-studio')" aria-label="Core Studio Library">
         <span class="library-choice-index">02</span>
         <span class="library-choice-title">Core Studio Library</span>
+        <span class="library-choice-description">Start with drawing foundations, then explore realistic graphite and charcoal studies. Suitable for teens and adults, including beginners.</span>
         <span class="library-choice-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span>
       </button>
     </div>
@@ -760,7 +780,7 @@
       <div id="registrationIntroBlock">
         <p class="lbl">Express interest</p>
         <h3>Ready to pick up the pencil?</h3>
-        <p class="registration-intro">Share a few details below and Vivek will reach out personally to discuss availability, format and everything you need to get started.</p>
+        <p class="registration-intro">Share a few details below and Vivek will personally share pricing, availability and joining details. This is an enquiry; you can decide about joining after your conversation.</p>
       </div>
 
       <form id="registrationForm" class="registration-form">
@@ -900,7 +920,7 @@
 </footer>
 
 <script src="/gcs-website/assets/site-gallery.js?v=20260923"></script>
-<script src="/gcs-website/assets/site-access.js?v=20261019-session"></script>
-<script src="/gcs-website/assets/site-player.js?v=20260923"></script>
+<script src="/gcs-website/assets/site-access.js?v=20261030-learning"></script>
+<script src="/gcs-website/assets/site-player.js?v=20261030-learning"></script>
 </body>
 </html>
