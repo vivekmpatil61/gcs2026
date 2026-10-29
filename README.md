@@ -131,6 +131,8 @@ The public page presents the free lessons directly, without a separate introduct
 
 The student area is hidden by default and opens only after successful server-side approval. Each authorised library shows its lesson count, a title search and All / Not completed / Completed filters. Search and completion filters combine within the selected library; switching libraries clears them. The progress total and episode numbers always refer to the full library. Completing or undoing a lesson updates the visible results and filter counts. There are no Continue learning, first-lesson or revisit prompts in the student area.
 
+Approved students see **Your lesson library** instead of the public introductory heading. The last selected library is saved separately for each verified account on this browser and restored only if it still exists in the approved catalogue. Sign-out restores the public heading. Previous and Next lesson buttons follow the full selected library, independent of filters. Opening a video adds one browser-history entry; switching videos replaces that entry, Back closes the player, and Forward can reopen it only while access remains valid. No lesson IDs are added to the URL.
+
 1. An approved student marks a tutorial complete.
 2. Apps Script confirms that the video belongs to the published catalogue.
 3. The student name, verified email, episode number, video ID, title and completion time are stored in `Tutorial progress`. The verified email is shown as the student label when no registration name is available.

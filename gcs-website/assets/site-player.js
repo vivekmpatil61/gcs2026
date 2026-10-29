@@ -1,5 +1,18 @@
   let playerReturnFocus = null;
   let playerLoadTimer;
+  const playerHistorySession = Math.random().toString(36).slice(2);
+  let playerHistoryClosing = false;
+  let queuedPlayerVideoId = '';
+
+  function recordPlayerHistory(videoId) {
+    try {
+      const history = window.history;
+      const state = { ...history.state, gcsPlayer: { session: playerHistorySession, videoId,
+        library: publicPlayback ? '' : activeLibrary, public: publicPlayback } };
+      if (history.state?.gcsPlayer?.session === playerHistorySession) history.replaceState(state, '');
+      else history.pushState(state, '');
+    } catch (_) { /* Playback also works when history updates are unavailable. */ }
+  }
   function setPlayerStatus(message, retry = false) {
     document.getElementById('playerStatus').textContent = message;
     document.getElementById('playerRetry').hidden = !retry;
@@ -23,7 +36,7 @@
   });
 
   /* ── Modal player ── */
-  function openPlayer(videoId) {
+  function openPlayer(videoId, fromHistory = false) {
     const studentTutorial = activeAccessToken && authorizedTutorials.get(videoId);
     const tutorial = studentTutorial || PUBLIC_TUTORIALS.get(videoId);
     if (!tutorial) {
@@ -31,9 +44,14 @@
       showErr('Please sign in again to watch this tutorial.');
       return;
     }
+    if (playerHistoryClosing && !fromHistory) {
+      queuedPlayerVideoId = videoId;
+      return;
+    }
     saveStudentPlayback(true);
     if (!currentVideoId) playerReturnFocus = document.activeElement;
     publicPlayback = !studentTutorial;
+    if (!fromHistory) recordPlayerHistory(videoId);
     currentVideoId = videoId;
     pendingYoutubeVideoId = videoId;
     document.getElementById('modalEp').textContent = tutorial.epNum;
@@ -64,20 +82,30 @@
     if (nextTutorial) openPlayer(nextTutorial.id);
   }
 
+  function openPreviousTutorial() {
+    const ids = publicPlayback ? Array.from(PUBLIC_TUTORIALS.keys())
+      : allTutorials.filter(tutorial => tutorial.libraries.includes(activeLibrary)).map(tutorial => tutorial.id);
+    const index = ids.indexOf(currentVideoId);
+    if (index > 0) openPlayer(ids[index - 1]);
+  }
+
   function updateModalNextButton() {
     const button = document.getElementById('modalNextBtn');
+    const previousButton = document.getElementById('modalPreviousBtn');
     if (!button) return;
     if (publicPlayback) {
       button.disabled = false;
       const ids = Array.from(PUBLIC_TUTORIALS.keys());
+      previousButton.disabled = ids.indexOf(currentVideoId) <= 0;
       button.textContent = currentVideoId === ids[ids.length - 1] ? 'Enquire about joining →' : 'Next free lesson →';
       return;
     }
     const libraryTutorials = allTutorials.filter(tutorial => tutorial.libraries.includes(activeLibrary));
     const currentIndex = libraryTutorials.findIndex(tutorial => tutorial.id === currentVideoId);
+    previousButton.disabled = currentIndex <= 0;
     const hasNext = currentIndex >= 0 && currentIndex < libraryTutorials.length - 1;
     button.disabled = !hasNext;
-    button.textContent = hasNext ? 'Next tutorial →' : 'Last tutorial';
+    button.textContent = hasNext ? 'Next lesson →' : 'Last lesson';
   }
 
   function loadTutorialVideo(videoId) {
@@ -513,8 +541,14 @@
     modalPlayerControls.addEventListener('pointerdown', () => showPlayerControls());
   }
 
-  function closePlayer(e) {
+  function closePlayer(e, fromHistory = false) {
     if (e && e.target !== document.getElementById('modalOverlay')) return;
+    if (!fromHistory && currentVideoId && window.history?.state?.gcsPlayer?.session === playerHistorySession) {
+      try {
+        playerHistoryClosing = true;
+        window.history.back();
+      } catch (_) { playerHistoryClosing = false; }
+    }
     saveStudentPlayback(true);
     clearTimeout(playerLoadTimer);
     setPlayerStatus('');
@@ -540,6 +574,28 @@
     resetCustomPlayerControls();
     updateProgressDisplay();
   }
+
+  window.addEventListener('popstate', event => {
+    playerHistoryClosing = false;
+    if (queuedPlayerVideoId) {
+      const videoId = queuedPlayerVideoId;
+      queuedPlayerVideoId = '';
+      openPlayer(videoId);
+      return;
+    }
+    const entry = event.state?.gcsPlayer;
+    if (entry?.session === playerHistorySession) {
+      const allowed = entry.public ? PUBLIC_TUTORIALS.has(entry.videoId)
+        : activeAccessToken && authorizedTutorials.has(entry.videoId);
+      if (allowed) {
+        const tutorial = allTutorials.find(item => item.id === entry.videoId);
+        if (!entry.public && tutorial?.libraries.includes(entry.library)) selectTutorialLibrary(entry.library);
+        openPlayer(entry.videoId, true);
+        return;
+      }
+    }
+    if (currentVideoId) closePlayer(null, true);
+  });
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closePlayer(null);

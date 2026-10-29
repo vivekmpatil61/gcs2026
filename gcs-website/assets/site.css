@@ -549,11 +549,13 @@
     }
     .modal-studio { font-size:0.75rem; color:rgba(255,255,255,0.3); letter-spacing:0.05em; }
     .modal-studio span { color:var(--gold); }
-    .modal-actions { display:flex; align-items:center; gap:0.6rem; }
+    .modal-actions { display:flex; flex-wrap:wrap; align-items:stretch; gap:0.6rem; }
+    .modal-actions button { min-height:44px; }
     .modal-complete-btn { padding:0.55rem 0.9rem; border:1px solid rgba(255,255,255,0.25); border-radius:6px; background:rgba(255,255,255,0.08); color:#ffffff; font:inherit; font-size:0.75rem; font-weight:600; cursor:pointer; }
     .modal-complete-btn.completed { background:var(--gold); border-color:var(--gold); color:var(--ink); }
     .modal-next-btn { padding:0.55rem 0.9rem; border:1px solid var(--gold); border-radius:6px; background:var(--gold); color:var(--ink); font:inherit; font-size:0.75rem; font-weight:700; cursor:pointer; }
     .modal-next-btn:disabled { border-color:rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.38); cursor:not-allowed; }
+    .modal-prev-btn { border-color:rgba(255,255,255,0.35); background:transparent; color:#fff; }
 
     /* ── HOW ───────────────────────────────────────────── */
     #how { background:var(--ink); padding:90px 5vw; }
@@ -696,8 +698,9 @@
       .modal-volume-slider{width:62px;}
       .modal-player-speed{width:64px;min-width:64px;max-width:64px;justify-self:end;padding:0 0.3rem;}
       .modal-footer{align-items:flex-start;flex-direction:column;}
-      .modal-actions{width:100%;}
-      .modal-complete-btn,.modal-next-btn{flex:1;}
+      .modal-actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;}
+      .modal-complete-btn{grid-column:1/-1;}
+      .modal-actions > .modal-next-btn{width:100%;min-width:0;min-height:52px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.4;}
     }
     @media(prefers-reduced-motion:reduce){
       html { scroll-behavior:auto; }

@@ -32,9 +32,13 @@
   let studentPlaybackKey = '';
   let studentPlaybackResume = null;
   let lastPlaybackWriteAt = 0;
+  let studentLibraryKey = '';
+  let preferredStudentLibrary = '';
 
   function loadStudentPlayback(email) {
     studentPlaybackKey = email ? `gcs:playback:v1:${encodeURIComponent(email.toLowerCase())}` : '';
+    studentLibraryKey = email ? `gcs:library:v1:${encodeURIComponent(email.toLowerCase())}` : '';
+    preferredStudentLibrary = '';
     studentPlaybackResume = null;
     lastPlaybackWriteAt = 0;
     try {
@@ -47,6 +51,18 @@
         studentPlaybackResume = saved;
       }
     } catch (_) { /* Playback remains available when browser storage is unavailable. */ }
+    try {
+      const library = window.localStorage.getItem(studentLibraryKey);
+      if (['young-artists', 'core-studio'].includes(library)) preferredStudentLibrary = library;
+    } catch (_) { /* Library selection remains available without browser storage. */ }
+  }
+
+  function updateLibraryHeading(signedIn) {
+    document.getElementById('videoLibraryLabel').textContent = signedIn ? 'Student library' : 'Video Library';
+    document.getElementById('videoLibraryTitle').textContent = signedIn ? 'Your lesson library' : 'Get a feel for learning with me.';
+    document.getElementById('videoLibraryIntro').textContent = signedIn
+      ? 'Choose a library to explore your lessons, search by title or filter by completion.'
+      : 'Watch free lessons from Core Studio and explore my step-by-step teaching style. Enquire when you’re ready to learn more about joining.';
   }
 
   function savedPlaybackStart(videoId) {
@@ -131,6 +147,7 @@
         document.getElementById('pwGate').style.display = 'none';
         document.getElementById('vidLib').hidden = false;
         document.getElementById('vidLib').classList.add('open');
+        updateLibraryHeading(true);
         document.getElementById('videos').scrollIntoView({ behavior: 'smooth' });
       } else {
         activeAccessToken = '';
@@ -157,8 +174,11 @@
 
   function clearTutorialAccess() {
     saveStudentPlayback(true);
+    closePlayer(null);
     studentPlaybackKey = '';
     studentPlaybackResume = null;
+    studentLibraryKey = '';
+    preferredStudentLibrary = '';
     accessTokenExpiresAt = 0;
     activeAccessToken = '';
     authorizedTutorials.clear();
@@ -173,9 +193,9 @@
     document.querySelectorAll('.library-choice').forEach(button => button.classList.remove('active'));
     updateProgressDisplay();
     setProgressStatus('');
-    closePlayer(null);
     document.getElementById('vidLib').hidden = true;
     document.getElementById('vidLib').classList.remove('open');
+    updateLibraryHeading(false);
     document.getElementById('publicPreview').hidden = false;
     document.getElementById('pwGate').style.display = 'block';
     document.getElementById('pwWelcome').style.display = 'none';
@@ -254,13 +274,21 @@
       allTutorials.push(normalized);
       authorizedTutorials.set(videoId, { epNum: String(tutorial.number || ''), title });
     });
-    updateProgressDisplay();
+    if (preferredStudentLibrary && allTutorials.some(tutorial => tutorial.libraries.includes(preferredStudentLibrary))) {
+      selectTutorialLibrary(preferredStudentLibrary);
+    } else {
+      updateProgressDisplay();
+    }
   }
 
   function selectTutorialLibrary(library) {
-    if (library !== 'young-artists' && library !== 'core-studio') return;
+    if (!activeAccessToken || (library !== 'young-artists' && library !== 'core-studio')) return;
     if (activeLibrary !== library) resetLessonFilters(false);
     activeLibrary = library;
+    preferredStudentLibrary = library;
+    if (studentLibraryKey) {
+      try { window.localStorage.setItem(studentLibraryKey, library); } catch (_) { /* Selection still works in this session. */ }
+    }
     document.querySelectorAll('.library-choice').forEach(button => {
       const active = button.dataset.library === library;
       button.classList.toggle('active', active);

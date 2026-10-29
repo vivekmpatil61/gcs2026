@@ -124,7 +124,7 @@
     ]
   }
   </script>
-  <link rel="stylesheet" href="/gcs-website/assets/site.css?v=20261030-library-cleanup"/>
+  <link rel="stylesheet" href="/gcs-website/assets/site.css?v=20261030-navigation-buttons"/>
   <link rel="stylesheet" href="/gcs-website/assets/site-enhancements.css?v=20260923"/>
 </head>
 <body>
@@ -500,9 +500,9 @@
 
 <!-- VIDEO LIBRARY -->
 <section id="videos">
-  <p class="lbl">Video Library</p>
-  <h2>Get a feel for learning with me.</h2>
-  <p>Watch free lessons from Core Studio and explore my step-by-step teaching style. Enquire when you’re ready to learn more about joining.</p>
+  <p class="lbl" id="videoLibraryLabel">Video Library</p>
+  <h2 id="videoLibraryTitle">Get a feel for learning with me.</h2>
+  <p id="videoLibraryIntro">Watch free lessons from Core Studio and explore my step-by-step teaching style. Enquire when you’re ready to learn more about joining.</p>
   <div id="publicPreview" class="public-preview">
     <div class="ep-grid" id="publicPreviewGrid" aria-label="Free lessons and a preview of the course"></div>
     <p id="previewStatus" role="status">Loading free lessons…</p>
@@ -563,7 +563,7 @@
       <button class="library-choice" type="button" data-library="core-studio" onclick="selectTutorialLibrary('core-studio')" aria-label="Core Studio Library" aria-describedby="libraryCount-core-studio">
         <span class="library-choice-index">02</span>
         <span class="library-choice-title">Core Studio Library</span>
-        <span class="library-choice-description">Start with drawing foundations, then explore realistic graphite and charcoal studies. Suitable for teens and adults, including beginners.</span>
+        <span class="library-choice-description">Build a complete drawing foundation, from your first pencil marks to realistic graphite and charcoal studies. Beginners and returning learners are welcome.</span>
         <span class="library-choice-count" id="libraryCount-core-studio"></span>
         <span class="library-choice-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg></span>
       </button>
@@ -640,7 +640,8 @@
     <p class="modal-studio"><span>Graphite & Charcoal Studio</span> · @universeofvivek</p>
     <div class="modal-actions">
       <button class="modal-complete-btn" id="modalCompleteBtn" type="button" onclick="toggleCurrentTutorialProgress()">Mark as complete</button>
-      <button class="modal-next-btn" id="modalNextBtn" type="button" onclick="openNextTutorial()">Next tutorial →</button>
+      <button class="modal-next-btn modal-prev-btn" id="modalPreviousBtn" type="button" onclick="openPreviousTutorial()">← Previous lesson</button>
+      <button class="modal-next-btn" id="modalNextBtn" type="button" onclick="openNextTutorial()">Next lesson →</button>
     </div>
   </div>
 </div>
@@ -922,7 +923,7 @@
 </footer>
 
 <script src="/gcs-website/assets/site-gallery.js?v=20260923"></script>
-<script src="/gcs-website/assets/site-access.js?v=20261030-library-cleanup"></script>
-<script src="/gcs-website/assets/site-player.js?v=20261030-learning"></script>
+<script src="/gcs-website/assets/site-access.js?v=20261030-navigation"></script>
+<script src="/gcs-website/assets/site-player.js?v=20261030-navigation"></script>
 </body>
 </html>

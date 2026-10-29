@@ -48,6 +48,21 @@ const player = {
   getAvailablePlaybackRates: () => [1], getPlaybackRate: () => 1
 };
 const events = {};
+const historyEntries = [null];
+let historyIndex = 0;
+let deferHistory = false;
+let historyEventPending = false;
+const dispatchHistory = () => {
+  if (deferHistory) { historyEventPending = true; return; }
+  events.popstate?.({ state: historyEntries[historyIndex] });
+};
+const history = {
+  get state() { return historyEntries[historyIndex]; },
+  pushState(state) { historyEntries.splice(historyIndex + 1); historyEntries.push(state); historyIndex++; },
+  replaceState(state) { historyEntries[historyIndex] = state; },
+  back() { if (historyIndex > 0) { historyIndex--; dispatchHistory(); } },
+  forward() { if (historyIndex < historyEntries.length - 1) { historyIndex++; dispatchHistory(); } }
+};
 const YT = { Player: function (_id, config) { configuration = config; return player; },
   PlayerState: { UNSTARTED: -1, ENDED: 0, PLAYING: 1, PAUSED: 2, BUFFERING: 3, CUED: 5 } };
 const document = {
@@ -56,7 +71,7 @@ const document = {
   createElement: () => new Element(),
   body: { style: {} }, addEventListener: (name, handler) => { events[name] = handler; }
 };
-const window = { YT, addEventListener: (name, handler) => { events[name] = handler; },
+const window = { YT, history, addEventListener: (name, handler) => { events[name] = handler; },
   setTimeout() {}, clearTimeout() {}, setInterval() {}, clearInterval() {},
   localStorage: {
     getItem(key) { if (blockedStorage) throw Error('disabled'); return storage.get(key) || null; },
@@ -74,6 +89,7 @@ const tutorials = [
   { id: 'young000001', title: 'Simple shapes', libraries: ['young-artists'] }
 ];
 ctx.tutorials = tutorials;
+const key = 'gcs:playback:v1:first%40example.test';
 function login(email) {
   ctx.loadStudentPlayback(email);
   run("activeAccessToken = 'verified'; completedTutorials = new Set();");
@@ -93,8 +109,8 @@ configuration.events.onReady({ target: player });
 seconds = 125; now += 6000;
 ctx.updatePlayerProgress();
 ctx.closePlayer(null);
-assert.equal(storage.size, 1);
-assert.ok(![...storage.values()][0].includes('verified'), 'tokens must not be stored');
+assert.equal(storage.size, 2);
+assert.ok([...storage.values()].every(value => !value.includes('verified')), 'tokens must not be stored');
 
 // Fresh sign-in restores the approved account's position in an existing player.
 ctx.clearTutorialAccess();
@@ -106,7 +122,7 @@ assert.deepEqual(loaded.at(-1), ['core0000001', 125]);
 ctx.openPlayer('core0000002');
 seconds = 220; now += 6000;
 ctx.saveStudentPlayback(true);
-assert.equal(JSON.parse([...storage.values()][0]).videoId, 'core0000001');
+assert.equal(JSON.parse(storage.get(key)).videoId, 'core0000001');
 videoId = 'core0000002'; seconds = 42;
 ctx.saveStudentPlayback(true);
 ctx.closePlayer(null);
@@ -132,7 +148,6 @@ ctx.updateProgressDisplay();
 
 // Damaged or denied storage must never prevent access or open a removed/private lesson.
 ctx.clearTutorialAccess();
-const key = 'gcs:playback:v1:first%40example.test';
 storage.set(key, '{bad json'); login('first@example.test');
 assert.equal(ctx.savedPlaybackStart('core0000001'), 0);
 storage.set(key, JSON.stringify({ videoId: 'removed0001', library: 'core-studio', seconds: 70, duration: 600, finished: false }));
@@ -230,4 +245,82 @@ assert.equal(get('libraryContentTitle').textContent, 'Young Artists Foundations'
 ctx.clearTutorialAccess();
 assert.equal(get('episodeGrid').children.length, 0);
 assert.equal(get('lessonResultsCount').textContent, '');
+
+// Library preferences are restored per approved account, not inferred from playback.
+login('preferences@example.test');
+assert.equal(run('activeLibrary'), '');
+ctx.selectTutorialLibrary('young-artists'); ctx.clearTutorialAccess();
+login('other-preferences@example.test');
+assert.equal(run('activeLibrary'), '');
+ctx.clearTutorialAccess(); login('PREFERENCES@example.test');
+assert.equal(run('activeLibrary'), 'young-artists');
+assert.equal(get('libraryContent').hidden, false);
+ctx.clearTutorialAccess();
+const preferenceKey = 'gcs:library:v1:preferences%40example.test';
+storage.set(preferenceKey, 'unknown-library'); login('preferences@example.test');
+assert.equal(run('activeLibrary'), '');
+ctx.clearTutorialAccess();
+storage.set(preferenceKey, 'young-artists');
+ctx.loadStudentPlayback('preferences@example.test');
+run("activeAccessToken = 'verified';");
+ctx.renderTutorials(tutorials.filter(item => item.libraries.includes('core-studio')));
+assert.equal(run('activeLibrary'), '', 'a saved library must exist in the approved catalogue');
+ctx.clearTutorialAccess();
+blockedStorage = true; login('preferences@example.test');
+ctx.selectTutorialLibrary('young-artists');
+assert.equal(run('activeLibrary'), 'young-artists');
+ctx.clearTutorialAccess(); blockedStorage = false;
+
+// Previous/next operate on full library order, independently of search filters.
+login('navigation@example.test'); ctx.selectTutorialLibrary('core-studio');
+get('lessonSearch').value = 'Shading'; ctx.applyLessonFilters();
+ctx.openPlayer('core0000002');
+assert.equal(get('modalPreviousBtn').disabled, false);
+assert.equal(get('modalNextBtn').disabled, true);
+const modalHistoryIndex = historyIndex;
+ctx.openPreviousTutorial();
+assert.equal(run('currentVideoId'), 'core0000001');
+assert.equal(get('modalPreviousBtn').disabled, true);
+ctx.openPreviousTutorial();
+assert.equal(run('currentVideoId'), 'core0000001');
+ctx.openNextTutorial();
+assert.equal(run('currentVideoId'), 'core0000002');
+assert.equal(historyIndex, modalHistoryIndex, 'switching lessons must replace the modal history entry');
+history.back();
+assert.equal(run('currentVideoId'), '');
+assert.equal(get('modalOverlay').classList.contains('open'), false);
+assert.equal(get('lessonSearch').value, 'Shading');
+history.forward();
+assert.equal(run('currentVideoId'), 'core0000002');
+ctx.closePlayer(null);
+assert.equal(historyIndex, modalHistoryIndex - 1, 'explicit close consumes the modal history entry');
+
+// A rapid reopen waits for the outstanding Back operation, then opens the new lesson.
+ctx.openPlayer('core0000001');
+deferHistory = true; ctx.closePlayer(null);
+assert.equal(historyEventPending, true);
+ctx.openPlayer('core0000002');
+assert.equal(run('currentVideoId'), '');
+deferHistory = false; historyEventPending = false;
+events.popstate({ state: history.state });
+assert.equal(run('currentVideoId'), 'core0000002');
+ctx.closePlayer(null);
+
+// Forward after sign-out cannot reopen a private lesson.
+ctx.openPlayer('core0000001'); ctx.clearTutorialAccess();
+assert.equal(run('currentVideoId'), '');
+history.forward();
+assert.equal(run('currentVideoId'), '');
+assert.equal(get('vidLib').hidden, true);
+
+// Public lessons get the same first/previous/back behaviour without student access.
+run("PUBLIC_TUTORIALS.set('public00001', {title: 'First', epNum: 'Free'}); PUBLIC_TUTORIALS.set('public00002', {title: 'Second', epNum: 'Free'});");
+ctx.openPlayer('public00002'); ctx.openPreviousTutorial();
+assert.equal(run('currentVideoId'), 'public00001');
+assert.equal(get('modalPreviousBtn').disabled, true);
+ctx.openNextTutorial();
+assert.equal(run('currentVideoId'), 'public00002');
+history.back();
+assert.equal(run('currentVideoId'), '');
 console.log('✓ Playback restore, account isolation, preview permissions, search/filter combinations, counts, completion updates, keyboard focus and library resets verified');
+console.log('✓ Remembered library isolation, unavailable storage, previous/next boundaries, Back/Forward, rapid reopen and sign-out history verified');

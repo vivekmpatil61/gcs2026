@@ -53,6 +53,7 @@ vm.runInContext(`
 `, context);
 await context.handleGoogleResponse({ access_token: 'original', expires_in: 3600 });
 assert.equal(element('vidLib').hidden, false, 'approved sign-in reveals student controls');
+assert.equal(element('videoLibraryTitle').textContent, 'Your lesson library');
 vm.runInContext("currentVideoId = 'lesson00001'; activeLibrary = 'core-studio';", context);
 now = 3100 * 1000;
 assert.equal(timers, 0, 'token expiry must not schedule a forced logout');
@@ -89,6 +90,7 @@ library.user.email = 'student@example.test';
 const signingOut = context.toggleTutorialProgress('lesson00001');
 context.signOut();
 assert.equal(element('vidLib').hidden, true, 'sign-out hides all student controls');
+assert.equal(element('videoLibraryTitle').textContent, 'Get a feel for learning with me.');
 await popup.callback({ access_token: 'late-renewal' });
 await signingOut;
 assert.equal(vm.runInContext('activeAccessToken', context), '', 'late renewal cannot undo sign-out');
